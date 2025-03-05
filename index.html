@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Infinite Puzzles</title>
+<link rel="manifest" crossorigin="use-credentials" href="manifest.json" />
+<link rel="apple-touch-icon" href="images/infinite-puzzles-icon-180.png" />
+<meta name="msapplication-TileImage" content="images/infinite-puzzles-icon-144.png" />
+<meta name="msapplication-TileColor" content="#0062A5"/>
+<meta name="theme-color" content="#F9B70F" />
+<script>
+  "use strict";
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener("load", function() {
+      let iframe = document.querySelector("iframe");
+
+      navigator.serviceWorker.getRegistrations()
+          .then(function(registrations) {
+        registrations.forEach(r => r.unregister());
+        console.log('Removed existing registered ServiceWorkers');
+      })
+
+      navigator.serviceWorker.register('./serviceWorker.js')
+          .then(function(registration) {
+        // Registration was successful
+        console.log('ServiceWorker registration successful with scope:', registration.scope);
+
+        registration.addEventListener('updatefound', () => {
+          console.log('ServiceWorker update detected');
+
+          let newWorker = registration.installing;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              console.log('ServiceWorker update ready');
+
+              let params = new URLSearchParams(iframe.contentWindow.location.search);
+              params.set("update", true);
+              let base = iframe.contentWindow.location.href.split('?')[0];
+              iframe.contentWindow.history.replaceState(null, null, base + "?" + params.toString());
+
+              iframe.addEventListener("load", function loadListener() {
+                params = new URLSearchParams(iframe.contentWindow.location.search);
+
+                if (!params.get("update")) {
+                  params.set("update", true);
+                  base = iframe.contentWindow.location.href.split('?')[0];
+                  iframe.contentWindow.history.replaceState(null, null, base + "?" + params.toString());
+                } else {
+                  iframe.removeEventListener("load", loadListener);
+                  params.delete("update");
+                  let paramString = params.toString();
+                  base = iframe.contentWindow.location.href.split('?')[0];
+                  iframe.contentWindow.history.replaceState(null, null, base + (paramString.length > 0 ? "?" + paramString : ""));
+
+                  console.log('ServiceWorker update commencing');
+                }
+              });
+            }
+          });
+        });
+      }, function(err) {
+        // Registration failed
+        console.log('ServiceWorker registration failed:', err);
+      });
+    });
+  }
+</script>
+<style>
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+</style>
+</head>
+<body>
+  <iframe src="home.html" allow="fullscreen"></iframe>
+</body>
+</html>

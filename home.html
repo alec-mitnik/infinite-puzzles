@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html class="loading">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Infinite Puzzles</title>
+<link rel="manifest" crossorigin="use-credentials" href="manifest.json" />
+<link rel="stylesheet" href="styles.css" />
+<script type="text/javascript" src="common.js"></script>
+<script>
+  "use strict";
+  
+  /***********************************************
+   * INIT
+   ***********************************************/
+  function init() {
+    let canvas = document.getElementById("puzzleCanvas");
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    
+    drawInstructions();
+  }
+  
+  function drawInstructions() {
+    let canvas = document.getElementById("puzzleCanvas");
+    let context = canvas.getContext("2d");
+    
+    context.fillStyle = BACKGROUND_COLOR;
+    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    context.font = "bold 100px Arial"
+    context.textAlign = "center";
+    context.fillStyle = "#ffffff";
+    context.fillText("\u221E Infinite Puzzles \u221E", CANVAS_WIDTH / 2, 150);
+    context.font = "bold 40px Arial"
+    context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 230);
+    
+    context.font = "104px Arial"
+    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 450);
+    context.font = "120px Arial"
+    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 790);
+    
+    context.font = "30px Arial"
+    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 530);
+    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 580);
+    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 850);
+    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 900);
+  }
+</script>
+</head>
+
+<body onload="commonInit(); init();">
+  <div class="puzzleLinks sidebar">
+    <button onclick="window.location = 'markedLoopPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128141;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'sliderPathPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128681;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'tetrominoGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128306;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'tangledGraphPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128376;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'lightSwitchesPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128680;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'colorPiecesGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#127937;&#xFE0E;</span>
+    </button>
+  </div>
+  <div class="puzzleLinks sidebar">
+    <button onclick="window.location = 'circuitGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128268;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'gridMirrorPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#x1F506;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'shiftingGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128642;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'emittersGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128251;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'arithmeticGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128221;&#xFE0E;</span>
+    </button>
+    <button onclick="window.location = 'logicGridPuzzle.html' + addURLParams();">
+      <span tabindex="-1">&#128173;&#xFE0E;</span>
+    </button>
+  </div>
+  <div id="canvasContainer" class="started">
+    <canvas id="puzzleCanvas" oncontextmenu="return false;"></canvas>
+  </div>
+  <div id="settings" class="sidebar">
+    <!-- Volume -->
+    <button id="muteButton" onclick="toggleMuted()">
+      <span id="soundIcon" tabindex="-1">&#128266;</span>
+      <span id="noSoundIcon" tabindex="-1">&#128264;</span>
+    </button>
+    <!-- Tongue Out -->
+    <button id="difficulty1" class="faded" onclick="setDifficultyWithoutNavigating(1)">
+      <span tabindex="-1">&#128523;</span>
+    </button>
+    <!-- Thinking -->
+    <button id="difficulty2" class="faded" onclick="setDifficultyWithoutNavigating(2)">
+      <span tabindex="-1">&#129300;</span>
+    </button>
+    <!-- Bracing -->
+    <button id="difficulty3" class="faded" onclick="setDifficultyWithoutNavigating(3)">
+      <span tabindex="-1">&#128548;</span>
+    </button>
+    <!-- Mind Blown -->
+    <button id="difficulty4" class="faded" onclick="setDifficultyWithoutNavigating(4)">
+      <span tabindex="-1">&#129327;</span>
+    </button>
+    <button id="fullScreenButton" onclick="toggleFullScreen()">
+      <span id="fullScreenOnIcon" tabindex="-1">&#128241;</span>
+      <span id="fullScreenOffIcon" tabindex="-1">&#128244;</span>
+    </button>
+  </div>
+</body>
+</html>
