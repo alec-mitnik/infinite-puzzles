@@ -1,4 +1,4 @@
-const CACHE_VERSION = 133;
+const CACHE_VERSION = 134;
 
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
