@@ -177,9 +177,7 @@ class Router {
     if (this.getNavigationConfirmCondition()) {
       // Navigating back at any point breaks confirmation dialogs in mobile iOS
       let startingTime = Date.now();
-      console.log('CONFIRM ABANDON');
       const abandonConfirmed = confirm("Abandon Puzzle?");
-      console.log(abandonConfirmed, Date.now() - startingTime);
       return abandonConfirmed || Date.now() - startingTime < 10;
     }
 
