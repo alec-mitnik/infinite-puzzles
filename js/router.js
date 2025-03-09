@@ -175,7 +175,12 @@ class Router {
   confirmAbandon() {
     // Check if we need to confirm leaving current puzzle
     if (this.getNavigationConfirmCondition()) {
-      return confirm('Abandon puzzle?');
+      // Navigating back at any point breaks confirmation dialogs in mobile iOS
+      let startingTime = Date.now();
+      console.log('CONFIRM ABANDON');
+      const abandonConfirmed = confirm("Abandon Puzzle?");
+      console.log(abandonConfirmed, Date.now() - startingTime);
+      return abandonConfirmed || Date.now() - startingTime < 10;
     }
 
     return true;
