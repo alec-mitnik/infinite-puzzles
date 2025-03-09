@@ -42,7 +42,8 @@ html::before {
   animation:spin 0.5s linear infinite;
 }
 
-html.loading body, #canvasContainer.loading {
+body.loading, #canvasContainer.loading {
+  transition: opacity 0s;
   opacity: 0;
 }
 
@@ -53,6 +54,12 @@ html.loading body, #canvasContainer.loading {
 body {
   transition: opacity 1s;
   position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#app {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column-reverse;
@@ -200,18 +207,18 @@ button > span {
 }
 
 @media (orientation: landscape) {
-  body {
+  body, #app {
     flex-direction: row;
   }
 
   .sidebar {
     flex-direction: column;
   }
-  
+
   .sidebar button.selected {
     padding: 0 10px;
   }
-  
+
   .sidebar button span {
     padding: 10px 30px;
   }
