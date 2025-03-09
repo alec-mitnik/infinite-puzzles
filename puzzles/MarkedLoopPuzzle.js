@@ -794,10 +794,12 @@ export function drawPuzzle() {
         context.strokeStyle = solved ? SUCCESS_COLOR
             : (!allPathsLoops || loops.length !== 1 || markerMatchesPath ?
                 "#808080" : ALERT_COLOR);
+        context.lineCap = "round";
         context.beginPath();
         context.arc(...centerCoord, NODE_SIZE, 0, 2 * Math.PI, false);
         context.fill();
         context.stroke();
+        context.lineCap = "square";
       }
     }
   }
