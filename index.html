@@ -80,9 +80,20 @@
     });
 
     // Handle fullscreen toggling
-    document.getElementById('fullScreenButton')?.addEventListener('click', () => {
-      toggleFullScreen();
-    });
+    let fullScreenEnabled = document.fullscreenEnabled
+        || document.webkitFullscreenEnabled
+        || document.mozFullscreenEnabled
+        || document.msFullscreenEnabled;
+
+    let fullScreenButton = document.getElementById("fullScreenButton");
+
+    if (!fullScreenEnabled) {
+      fullScreenButton.classList.add("hidden");
+    } else {
+      fullScreenButton.addEventListener('click', () => {
+        toggleFullScreen();
+      });
+    }
 
     // Handle mute toggling
     document.getElementById('muteButton')?.addEventListener('click', () => {
