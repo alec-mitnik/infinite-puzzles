@@ -163,179 +163,102 @@
     }
   }
 </script>
-
-<!-- <script>
-  "use strict";
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener("load", function() {
-      let iframe = document.querySelector("iframe");
-
-      navigator.serviceWorker.getRegistrations()
-          .then(function(registrations) {
-        registrations.forEach(r => r.unregister());
-        console.log('Removed existing registered ServiceWorkers');
-      })
-
-      navigator.serviceWorker.register('./serviceWorker.js')
-          .then(function(registration) {
-        // Registration was successful
-        console.log('ServiceWorker registration successful with scope:', registration.scope);
-
-        registration.addEventListener('updatefound', () => {
-          console.log('ServiceWorker update detected');
-
-          let newWorker = registration.installing;
-
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'activated') {
-              console.log('ServiceWorker update ready');
-
-              let params = new URLSearchParams(iframe.contentWindow.location.search);
-              params.set("update", true);
-              let base = iframe.contentWindow.location.href.split('?')[0];
-              iframe.contentWindow.history.replaceState(null, null, base + "?" + params.toString());
-
-              iframe.addEventListener("load", function loadListener() {
-                params = new URLSearchParams(iframe.contentWindow.location.search);
-
-                if (!params.get("update")) {
-                  params.set("update", true);
-                  base = iframe.contentWindow.location.href.split('?')[0];
-                  iframe.contentWindow.history.replaceState(null, null, base + "?" + params.toString());
-                } else {
-                  iframe.removeEventListener("load", loadListener);
-                  params.delete("update");
-                  let paramString = params.toString();
-                  base = iframe.contentWindow.location.href.split('?')[0];
-                  iframe.contentWindow.history.replaceState(null, null, base + (paramString.length > 0 ? "?" + paramString : ""));
-
-                  console.log('ServiceWorker update commencing');
-                }
-              });
-            }
-          });
-        });
-      }, function(err) {
-        // Registration failed
-        console.log('ServiceWorker registration failed:', err);
-      });
-    });
-  }
-</script> -->
-
-<style>
-  html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-
-  iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-</style>
 </head>
+
 <body class="loading">
-  <div id="app">
-    <div class="puzzleLinks sidebar">
-      <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
-        <span tabindex="-1">&#128141;&#xFE0E;</span>
-      </button>
-      <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
-        <span tabindex="-1">&#128681;&#xFE0E;</span>
-      </button>
-      <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
-        <span tabindex="-1">&#128306;&#xFE0E;</span>
-      </button>
-      <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
-        <span tabindex="-1">&#128376;&#xFE0E;</span>
-      </button>
-      <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
-        <span tabindex="-1">&#128680;&#xFE0E;</span>
-      </button>
-      <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
-        <span tabindex="-1">&#127937;&#xFE0E;</span>
-      </button>
-    </div>
-    <div class="puzzleLinks sidebar">
-      <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
-        <span tabindex="-1">&#128268;&#xFE0E;</span>
-      </button>
-      <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
-        <span tabindex="-1">&#x1F506;&#xFE0E;</span>
-      </button>
-      <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
-        <span tabindex="-1">&#128642;&#xFE0E;</span>
-      </button>
-      <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
-        <span tabindex="-1">&#128251;&#xFE0E;</span>
-      </button>
-      <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
-        <span tabindex="-1">&#128221;&#xFE0E;</span>
-      </button>
-      <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
-        <span tabindex="-1">&#128173;&#xFE0E;</span>
-      </button>
-    </div>
+  <div class="puzzleLinks sidebar">
+    <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
+      <span tabindex="-1">&#128141;&#xFE0E;</span>
+    </button>
+    <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
+      <span tabindex="-1">&#128681;&#xFE0E;</span>
+    </button>
+    <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
+      <span tabindex="-1">&#128306;&#xFE0E;</span>
+    </button>
+    <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
+      <span tabindex="-1">&#128376;&#xFE0E;</span>
+    </button>
+    <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
+      <span tabindex="-1">&#128680;&#xFE0E;</span>
+    </button>
+    <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
+      <span tabindex="-1">&#127937;&#xFE0E;</span>
+    </button>
+  </div>
+  <div class="puzzleLinks sidebar">
+    <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
+      <span tabindex="-1">&#128268;&#xFE0E;</span>
+    </button>
+    <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
+      <span tabindex="-1">&#x1F506;&#xFE0E;</span>
+    </button>
+    <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
+      <span tabindex="-1">&#128642;&#xFE0E;</span>
+    </button>
+    <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
+      <span tabindex="-1">&#128251;&#xFE0E;</span>
+    </button>
+    <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
+      <span tabindex="-1">&#128221;&#xFE0E;</span>
+    </button>
+    <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
+      <span tabindex="-1">&#128173;&#xFE0E;</span>
+    </button>
+  </div>
 
-    <div id="controls" class="sidebar hidden">
-      <!-- Home -->
-      <button aria-label="Home">
-        <span tabindex="-1">&#10094;</span>
-      </button>
-      <!-- Reload -->
-      <button aria-label="Reload" class="larger">
-        <span tabindex="-1">&#8634;</span>
-      </button>
-      <!-- Instructions -->
-      <button aria-label="Toggle Instructions" class="larger" id="instructionsButton">
-        <span tabindex="-1">?</span>
-      </button>
-      <!-- Solution -->
-      <button aria-label="Toggle Solution" class="larger" id="solutionButton">
-        <span tabindex="-1">&#9745;&#xFE0E;</span>
-      </button>
-    </div>
+  <div id="controls" class="sidebar hidden">
+    <!-- Home -->
+    <button aria-label="Home">
+      <span tabindex="-1">&#10094;</span>
+    </button>
+    <!-- Reload -->
+    <button aria-label="Reload" class="larger">
+      <span tabindex="-1">&#8634;</span>
+    </button>
+    <!-- Instructions -->
+    <button aria-label="Toggle Instructions" class="larger" id="instructionsButton">
+      <span tabindex="-1">?</span>
+    </button>
+    <!-- Solution -->
+    <button aria-label="Toggle Solution" class="larger" id="solutionButton">
+      <span tabindex="-1">&#9745;&#xFE0E;</span>
+    </button>
+  </div>
 
-    <div id="canvasContainer">
-      <canvas id="puzzleCanvas" oncontextmenu="return false;"></canvas>
-      <button disabled id="startButton">
-        <span tabindex="-1"></span>
-      </button>
-    </div>
+  <div id="canvasContainer">
+    <canvas id="puzzleCanvas" oncontextmenu="return false;"></canvas>
+    <button disabled id="startButton">
+      <span tabindex="-1"></span>
+    </button>
+  </div>
 
-    <div id="settings" class="sidebar">
-      <!-- Volume -->
-      <button aria-label="Toggle Mute" id="muteButton">
-        <span id="soundIcon" tabindex="-1">&#128266;</span>
-        <span id="noSoundIcon" tabindex="-1">&#128264;</span>
-      </button>
-      <!-- Tongue Out -->
-      <button aria-label="Difficulty: Quick" id="difficulty1" class="faded"">
-        <span tabindex="-1">&#128523;</span>
-      </button>
-      <!-- Thinking -->
-      <button aria-label="Difficulty: Casual" id="difficulty2" class="faded">
-        <span tabindex="-1">&#129300;</span>
-      </button>
-      <!-- Bracing -->
-      <button aria-label="Difficulty: Challenging" id="difficulty3" class="faded">
-        <span tabindex="-1">&#128548;</span>
-      </button>
-      <!-- Mind Blown -->
-      <button aria-label="Difficulty: Intense" id="difficulty4" class="faded">
-        <span tabindex="-1">&#129327;</span>
-      </button>
-      <button aria-label="Toggle Fullscreen" id="fullScreenButton">
-        <span id="fullScreenOnIcon" tabindex="-1">&#128241;</span>
-        <span id="fullScreenOffIcon" tabindex="-1">&#128244;</span>
-      </button>
-    </div>
+  <div id="settings" class="sidebar">
+    <!-- Volume -->
+    <button aria-label="Toggle Mute" id="muteButton">
+      <span id="soundIcon" tabindex="-1">&#128266;</span>
+      <span id="noSoundIcon" tabindex="-1">&#128264;</span>
+    </button>
+    <!-- Tongue Out -->
+    <button aria-label="Difficulty: Quick" id="difficulty1" class="faded"">
+      <span tabindex="-1">&#128523;</span>
+    </button>
+    <!-- Thinking -->
+    <button aria-label="Difficulty: Casual" id="difficulty2" class="faded">
+      <span tabindex="-1">&#129300;</span>
+    </button>
+    <!-- Bracing -->
+    <button aria-label="Difficulty: Challenging" id="difficulty3" class="faded">
+      <span tabindex="-1">&#128548;</span>
+    </button>
+    <!-- Mind Blown -->
+    <button aria-label="Difficulty: Intense" id="difficulty4" class="faded">
+      <span tabindex="-1">&#129327;</span>
+    </button>
+    <button aria-label="Toggle Fullscreen" id="fullScreenButton">
+      <span id="fullScreenOnIcon" tabindex="-1">&#128241;</span>
+      <span id="fullScreenOffIcon" tabindex="-1">&#128244;</span>
+    </button>
   </div>
 </body>
 </html>
