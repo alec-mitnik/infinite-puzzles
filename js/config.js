@@ -1,3 +1,7 @@
+// Theme colors
+// Blue: #0062A5
+// Yellow: #F9B70F
+
 // Also tied to canvas container styles
 export const BACKGROUND_COLOR = "#333366";
 export const SUCCESS_COLOR = "#80ccaa";

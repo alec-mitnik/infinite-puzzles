@@ -27,6 +27,7 @@ html {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  font-size: clamp(62.5%, 2vmin + 0.125rem, 100%);
 }
 
 html::before {
@@ -59,18 +60,15 @@ body {
   flex-direction: column-reverse;
 }
 
-#app {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column-reverse;
-}
-
 #canvasContainer {
   transition: opacity 1s;
   background-color: #000000; /* For browsers that do not support gradients */
   background-image: repeating-linear-gradient(45deg, #333366, #333366 6px, #000000 6px, #000000 12px);
   flex: 1 1 auto;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #startButton {
@@ -203,11 +201,11 @@ button > span {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 @media (orientation: landscape) {
-  body, #app {
+  body {
     flex-direction: row;
   }
 
@@ -233,5 +231,76 @@ button > span {
 @media (orientation: landscape) and (max-height: 600px) {
   .sidebar button {
     font-size: 10vh;
+  }
+}
+
+dialog {
+  margin: auto;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  border: none;
+  background: transparent;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.close-button {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  line-height: 1;
+  padding: 10px;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 10;
+
+  &:hover {
+    background: #eee;
+  }
+}
+
+#kofi-button {
+  position: absolute;
+  bottom: 1.25rem;
+  color: white;
+  background: #333;
+  padding: 6px 10px;
+  border: 2px solid #F9B70F;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.875rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: #0062A5;
+  }
+
+  img {
+    width: 1.375rem;
+    height: 0.9375rem;
+    margin-top: -2px;
   }
 }

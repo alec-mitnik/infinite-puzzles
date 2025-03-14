@@ -158,6 +158,8 @@ class Router {
       let context = canvas.getContext("2d");
       context.reset();
 
+      document.getElementById('kofi-button').classList.add('hidden');
+
       // Initialize the route
       this.routes[route].init();
     }
@@ -209,15 +211,15 @@ class Router {
     context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 230);
 
     context.font = "104px Arial"
-    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 450);
+    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 420);
     context.font = "120px Arial"
-    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 790);
+    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 740);
 
     context.font = "30px Arial"
-    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 530);
-    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 580);
-    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 850);
-    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 900);
+    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 500);
+    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 550);
+    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 800);
+    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 850);
 
     const canvasContainer = document.getElementById('canvasContainer');
     canvasContainer.classList.remove('loading');
@@ -226,6 +228,8 @@ class Router {
     // Hide puzzle controls
     document.getElementById('controls').classList.add('hidden');
     document.querySelectorAll('.puzzleLinks').forEach(linkSet => linkSet.classList.remove('hidden'));
+
+    document.getElementById('kofi-button').classList.remove('hidden');
   }
 
   // Load puzzle page content
