@@ -206,24 +206,24 @@ class Router {
     context.font = "bold 100px Arial"
     context.textAlign = "center";
     context.fillStyle = "#ffffff";
-    context.fillText("\u221E Infinite Puzzles \u221E", CANVAS_WIDTH / 2, 150);
+    context.fillText("\u221E Infinite Puzzles \u221E", CANVAS_WIDTH / 2, 140);
     context.font = "bold 40px Arial"
-    context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 230);
+    context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 220);
 
     context.font = "104px Arial"
-    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 420);
+    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 410);
     context.font = "120px Arial"
-    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 740);
+    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 730);
 
     context.font = "30px Arial"
-    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 500);
-    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 550);
-    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 800);
-    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 850);
+    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 490);
+    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 540);
+    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 790);
+    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 840);
 
     const canvasContainer = document.getElementById('canvasContainer');
     canvasContainer.classList.remove('loading');
-    canvasContainer.classList.add('started');
+    canvasContainer.classList.add('started', 'home');
 
     // Hide puzzle controls
     document.getElementById('controls').classList.add('hidden');
@@ -246,7 +246,7 @@ class Router {
       };
 
       const canvasContainer = document.getElementById('canvasContainer');
-      canvasContainer.classList.remove('started');
+      canvasContainer.classList.remove('started', 'home');
       canvasContainer.classList.add('loading');
 
       // Dynamically import the puzzle module

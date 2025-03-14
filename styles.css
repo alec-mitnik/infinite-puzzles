@@ -69,6 +69,10 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  &.home {
+    background: #333366;
+  }
 }
 
 #startButton {
@@ -97,6 +101,7 @@ canvas#puzzleCanvas {
 }
 
 .sidebar {
+  margin: -1px 0;
   background: #333333;
   flex: 0 1 auto;
   display: flex;
@@ -137,7 +142,7 @@ button > span {
 }
 
 .sidebar button span {
-  padding: 30px 10px;
+  padding: 20px 10px;
   line-height: 1.35;
 }
 
@@ -211,6 +216,7 @@ button > span {
 
   .sidebar {
     flex-direction: column;
+    margin: 0 -1px;
   }
 
   .sidebar button.selected {
@@ -218,7 +224,7 @@ button > span {
   }
 
   .sidebar button span {
-    padding: 10px 30px;
+    padding: 10px 20px;
   }
 }
 
@@ -296,7 +302,7 @@ dialog {
   color: white;
   background: #333;
   padding: 6px 10px;
-  border: 2px solid #F9B70F;
+  box-shadow: 0 0 4px 0 #f9b70f;
   border-radius: 10px;
   font-weight: bold;
   font-size: 0.875rem;
