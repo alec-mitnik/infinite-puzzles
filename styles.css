@@ -284,6 +284,10 @@ dialog {
   &:hover {
     background: #eee;
   }
+
+  > span {
+    filter: brightness(0);
+  }
 }
 
 #kofi-button {
