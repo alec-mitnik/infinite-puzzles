@@ -269,14 +269,14 @@ dialog {
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 999999px;
   line-height: 1;
-  font-size: 16px;
+  font-size: 14px;
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: -8.5px;
+  right: -8.5px;
   z-index: 10;
   width: 32px;
   height: 32px;
-  padding-top: 2px;
+  padding: 1px 0 0 1px;
   display: flex;
   justify-content: center;
   align-items: center;
