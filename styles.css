@@ -140,8 +140,10 @@ button > span {
   font-size: 60px;
   flex: 1;
 
-  &:hover:not(:disabled) {
-    background-color: #555;
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background-color: #555;
+    }
   }
 }
 
@@ -291,8 +293,10 @@ dialog {
   justify-content: center;
   align-items: center;
 
-  &:hover {
-    background: #eee;
+  @media (hover: hover) {
+    &:hover {
+      background: #ddd;
+    }
   }
 
   > span {
@@ -315,11 +319,13 @@ dialog {
   align-items: center;
   gap: 6px;
 
-  &:hover {
-    background: #555;
+  @media (hover: hover) {
+    &:hover {
+      background: #555;
+    }
   }
 
-  img {
+  > img {
     width: 1.375rem;
     height: 0.9375rem;
     margin-top: -2px;
