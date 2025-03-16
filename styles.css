@@ -139,6 +139,10 @@ button > span {
   color: #ffffff;
   font-size: 60px;
   flex: 1;
+
+  &:hover:not(:disabled) {
+    background-color: #555;
+  }
 }
 
 .sidebar button span {
@@ -312,7 +316,7 @@ dialog {
   gap: 6px;
 
   &:hover {
-    background: #0062A5;
+    background: #555;
   }
 
   img {
