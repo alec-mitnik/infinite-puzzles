@@ -166,7 +166,12 @@ class Router {
   }
 
   reloadPuzzle() {
-    return this.loadRoute(this.currentRoute);
+    if (this.confirmAbandon()) {
+      this.loadRoute(this.currentRoute);
+      return true;
+    }
+
+    return false;
   }
 
   getNavigationConfirmCondition() {
@@ -292,11 +297,9 @@ class Router {
       return;
     }
 
-    if (this.confirmAbandon()) {
+    if (this.reloadPuzzle()) {
       // Update UI
       this.updateDifficultyUI();
-
-      this.reloadPuzzle();
     } else {
       this.difficulty = oldValue;
 
