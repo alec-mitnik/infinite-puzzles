@@ -75,6 +75,10 @@ body {
   }
 }
 
+#canvasContainer, canvas {
+  user-select: none;
+}
+
 #startButton {
   position: absolute;
   width: 100%;
