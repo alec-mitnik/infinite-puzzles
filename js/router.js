@@ -61,6 +61,9 @@ class Router {
       if (typeof window.app.currentPuzzle?.onTouchStart === 'function') {
         window.app.currentPuzzle.onTouchStart(event);
       }
+
+      // Prevent double-tap selection/magnification on mobile
+      event.preventDefault();
     });
     canvasContainer?.addEventListener('touchmove', (event) => {
       if (typeof window.app.currentPuzzle?.onTouchMove === 'function') {
