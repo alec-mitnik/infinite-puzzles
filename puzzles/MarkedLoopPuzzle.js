@@ -83,8 +83,12 @@ function generateGrid() {
       }
     });
 
+    // In case the smallest filled group ends up somehow surrounding the center,
+    // need to make sure to only consider coordinates at the edge of the group
+    // when finding the one closest to the center to grow from
     let smallestFilledGroup = randomEl(smallestFilledGroups);
-    let coord = getClosestCoordToCenter(smallestFilledGroup);
+    let edgesOfGroup = getEdgesOfGroup(smallestFilledGroup);
+    let coord = getClosestCoordToCenter(edgesOfGroup);
 
     // In case of an odd number of rows or columns, need to make sure to
     // filter out filled neighbors and only consider empty ones
@@ -120,9 +124,9 @@ function generateGrid() {
       let j = group[0][1];
       let cell = loopGrid[i][j];
 
-      let leftEdge = (cell && i === 0) || loopGrid[i - 1][j + 1] !== cell;
+      let leftEdge = (cell && i === 0) || (i > 0 && loopGrid[i - 1][j + 1] !== cell);
       let rightEdge = (cell && i + 1 === LOOP_COLS - 1)
-          || loopGrid[i + 2][j + 1] !== cell;
+          || (i + 1 < LOOP_COLS - 1 && loopGrid[i + 2][j + 1] !== cell);
 
       if (leftEdge && (!rightEdge || Math.random() < 0.5)) {
         loopGrid[i][j + 1] = !cell;
@@ -139,9 +143,9 @@ function generateGrid() {
       let j = group[0][1];
       let cell = loopGrid[i][j];
 
-      let topEdge = (cell && j === 0) || loopGrid[i + 1][j - 1] !== cell;
+      let topEdge = (cell && j === 0) || (j > 0 && loopGrid[i + 1][j - 1] !== cell);
       let bottomEdge = (cell && j + 1 === LOOP_ROWS - 1)
-          || loopGrid[i + 1][j + 2] !== cell;
+          || (j + 1 < LOOP_ROWS - 1 && loopGrid[i + 1][j + 2] !== cell);
 
       if (topEdge && (!bottomEdge || Math.random() < 0.5)) {
         loopGrid[i + 1][j] = !cell;
@@ -158,14 +162,12 @@ function generateGrid() {
     allEligible3x2Groups = getAllEligible3x2Groups();
   }
 
-  grid = Array.from({length: COLS},
-      (el, x) => Array.from({length: ROWS},
-          (el, y) => {
-            return {
-              coord: [x, y],
-              neighborPaths: [],
-              marked: isGridCoordMarked([x, y])
-            };
+  grid = Array.from({length: COLS}, (_el, x) => Array.from({length: ROWS}, (_el, y) => {
+    return {
+      coord: [x, y],
+      neighborPaths: [],
+      marked: isGridCoordMarked([x, y])
+    };
   }));
 
   solution = deepCopy(grid);
@@ -187,9 +189,9 @@ function generateGrid() {
       && pathMatchesMarkers;
 
   if (!solutionValid) {
-    console.error("Will regenerate due to invalid solution:", solution);
+    console.error("Will regenerate due to invalid solution:", solution, "\nall paths loops:",
+        allPathsLoops, "\nloops length:", loops.length, "\npath matches markers:", pathMatchesMarkers);
     generateGrid();
-    return;
   }
 }
 
@@ -367,6 +369,21 @@ function getNeighborCoords(coord) {
   }
 
   return neighbors;
+}
+
+// Get cells of a group that neighbor a cell of the opposite value
+function getEdgesOfGroup(group) {
+  let edges = [];
+
+  group.forEach(coord => {
+    let neighbors = getNeighborCoords(coord);
+
+    if (neighbors.some(neighbor => loopGrid[neighbor[0]][neighbor[1]] !== loopGrid[coord[0]][coord[1]])) {
+      edges.push(coord);
+    }
+  });
+
+  return edges;
 }
 
 // In other words, farthest coord from both vertical and horizontal edges
