@@ -63,6 +63,10 @@
     document.getElementById('startButton')?.addEventListener('click', () => {
       startButtonClick();
     });
+    document.getElementById('startButton')?.addEventListener('touchend', (event) => {
+      startButtonClick();
+      event.preventDefault();
+    });
 
     // Handle puzzle controls
     const controls = document.getElementById('controls').children;
@@ -233,7 +237,8 @@
     </button>
 
     <!-- Ko-fi tipping button -->
-    <button id="kofi-button" onclick="document.getElementById('kofi-dialog').showModal()">
+    <button id="kofi-button" onclick="document.getElementById('kofi-dialog').showModal()"
+        ontouchend="document.getElementById('kofi-dialog').showModal(); event.preventDefault();">
       <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi donations">
       Support my projects
     </button>
