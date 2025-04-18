@@ -61,20 +61,20 @@ class Router {
       if (typeof window.app.currentPuzzle?.onTouchStart === 'function') {
         window.app.currentPuzzle.onTouchStart(event);
       }
-
-      // Prevent double-tap selection/magnification on mobile
-      event.preventDefault();
-    });
+    }, { passive: false });
     canvasContainer?.addEventListener('touchmove', (event) => {
       if (typeof window.app.currentPuzzle?.onTouchMove === 'function') {
         window.app.currentPuzzle.onTouchMove(event);
       }
-    });
+
+      // Prevent double-tap selection/magnification on mobile without preventing click events
+      event.preventDefault();
+    }, { passive: false });
     canvasContainer?.addEventListener('touchend', (event) => {
       if (typeof window.app.currentPuzzle?.onTouchEnd === 'function') {
         window.app.currentPuzzle.onTouchEnd(event);
       }
-    });
+    }, { passive: false });
 
     let puzzleCanvas = document.getElementById('puzzleCanvas');
     puzzleCanvas?.addEventListener('mousedown', (event) => {
