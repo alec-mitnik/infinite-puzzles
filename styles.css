@@ -299,6 +299,7 @@ dialog {
   }
 
   > span {
+    /* Make the emoji always appear black */
     filter: brightness(0);
   }
 }

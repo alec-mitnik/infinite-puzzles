@@ -755,7 +755,7 @@ export function onTouchEnd(event) {
   }
 }
 
-export function onMouseOut(event) {
+export function onMouseOut() {
   if (window.app.puzzleState.interactive && dragging) {
     snapToGrid(dragging);
     dragging = null;

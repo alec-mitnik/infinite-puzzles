@@ -266,6 +266,29 @@ export function onMouseDown(event) {
   }
 }
 
+export function onTouchStart(event) {
+  if (window.app.puzzleState.interactive && event.changedTouches.length === 1) {
+    let touch = event.changedTouches[0];
+    let canvasRect = event.target.getBoundingClientRect();
+    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+
+    // For-each loops cannot be broken out of!
+    for (let i = 0; i < lightSwitches.length; i++) {
+      let lightSwitch = lightSwitches[i];
+      let coord = getSwitchCoord(lightSwitch);
+
+      if (Math.sqrt(Math.pow(touchX - coord[0], 2)
+          + Math.pow(touchY - coord[1], 2)) < SWITCH_SIZE / 3) {
+        queuedSounds.push(SWITCH_SOUND);
+        toggle(lightSwitch);
+        drawPuzzle();
+        return;
+      }
+    }
+  }
+}
+
 export function onMouseUp(event) {
   // Middle click
   if (event.button === 1) {

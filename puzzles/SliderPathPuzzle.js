@@ -659,128 +659,146 @@ export function onMouseDown(event) {
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
       let coord = convertToGridCoord(mouseX, mouseY);
-      let neighborCoord;
-
-      // Restart
-      if ((coord[0] === COLS || coord[0] === COLS - 1) && coord[1] === -1) {
-        // if (gridHistory >= HISTORY_LIMIT) {
-          // gridHistory.shift();
-        // }
-
-        // gridHistory.push(deepCopy(grid));
-        gridHistory = [];
-        alternateToVerticalHistory = [];
-
-        grid = deepCopy(solution);
-        audioManager.play(RESTART_SOUND);
-        drawPuzzle();
-
-      // Undo
-      } else if ((coord[0] === -1 || coord[0] === 0) && coord[1] === -1) {
-        if (gridHistory.length > 0) {
-          audioManager.play(UNDO_SOUND);
-          grid = gridHistory.pop();
-          alternateToVerticalHistory.pop();
-          drawPuzzle();
-        }
-      } else {
-        let rightMove = false;
-        let leftMove = false;
-        let downMove = false;
-        let upMove = false;
-
-        let sliderCoord;
-
-        for (let i = 0; i < COLS; i++) {
-          for (let j = 0; j < ROWS; j++) {
-            let gridCell = grid[i][j];
-            if (gridCell.containsSlider) {
-              sliderCoord = [i, j];
-              break;
-            }
-          }
-        }
-
-        if (coord[0] === sliderCoord[0] && coord[1] === sliderCoord[1]) {
-          return;
-        }
-
-        if (coord[0] <= -1 && coord[1] >= ROWS / 2 - 4 && coord[1] <= ROWS / 2 + 3) {
-          leftMove = true;
-        } else if (coord[0] >= COLS && coord[1] >= ROWS / 2 - 4 && coord[1] <= ROWS / 2 + 3) {
-          rightMove = true;
-        } else if (coord[0] >= COLS / 2 - 4 && coord[0] <= COLS / 2 + 3 && coord[1] <= -1) {
-          upMove = true;
-        } else if (coord[0] >= COLS / 2 - 4 && coord[0] <= COLS / 2 + 3 && coord[1] >= ROWS) {
-          downMove = true;
-        } else {
-          let deltaX = Math.abs(coord[0] - sliderCoord[0]);
-          let deltaY = Math.abs(coord[1] - sliderCoord[1]);
-
-          if (deltaX !== deltaY) {
-            if (deltaX > deltaY) {
-              if (deltaX <= 2) {
-                if (coord[0] - sliderCoord[0] < 0) {
-                  leftMove = true;
-                } else {
-                  rightMove = true;
-                }
-              }
-            } else {
-              if (deltaY <= 2) {
-                if (coord[1] - sliderCoord[1] < 0) {
-                  upMove = true;
-                } else {
-                  downMove = true;
-                }
-              }
-            }
-          }
-        }
-
-        if (leftMove) {
-          if (sliderCoord[0] > 0) {
-            neighborCoord = [sliderCoord[0] - 1, sliderCoord[1]];
-          }
-        } else if (rightMove) {
-          if (sliderCoord[0] < COLS - 1) {
-            neighborCoord = [sliderCoord[0] + 1, sliderCoord[1]];
-          }
-        } else if (upMove) {
-          if (sliderCoord[1] > 0) {
-            neighborCoord = [sliderCoord[0], sliderCoord[1] - 1];
-          }
-        } else if (downMove) {
-          if (sliderCoord[1] < ROWS - 1) {
-            neighborCoord = [sliderCoord[0], sliderCoord[1] + 1];
-          }
-        }
-
-        if (neighborCoord && !grid[neighborCoord[0]][neighborCoord[1]].block) {
-          if (rightMove || leftMove || downMove || upMove) {
-            if (gridHistory >= HISTORY_LIMIT) {
-              gridHistory.shift();
-            }
-
-            gridHistory.push(deepCopy(grid));
-          }
-
-          if (rightMove) {
-            moveRight(...neighborCoord);
-          } else if (leftMove) {
-            moveLeft(...neighborCoord);
-          } else if (downMove) {
-            moveDown(...neighborCoord);
-          } else if (upMove) {
-            moveUp(...neighborCoord);
-          }
-        }
-      }
+      handleLeftClickOrTap(coord);
     }
 
   // Middle click
   } else if (event.button === 1) {
     onMiddleMouseDown();
+  }
+}
+
+export function onTouchStart(event) {
+  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+    event.preventDefault();
+
+    let canvasRect = event.target.getBoundingClientRect();
+    let touch = event.changedTouches[0];
+    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+
+    let coord = convertToGridCoord(touchX, touchY);
+    handleLeftClickOrTap(coord);
+  }
+}
+
+function handleLeftClickOrTap(coord) {
+  // Restart
+  if ((coord[0] === COLS || coord[0] === COLS - 1) && coord[1] === -1) {
+    // if (gridHistory >= HISTORY_LIMIT) {
+      // gridHistory.shift();
+    // }
+
+    // gridHistory.push(deepCopy(grid));
+    gridHistory = [];
+    alternateToVerticalHistory = [];
+
+    grid = deepCopy(solution);
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+
+  // Undo
+  } else if ((coord[0] === -1 || coord[0] === 0) && coord[1] === -1) {
+    if (gridHistory.length > 0) {
+      audioManager.play(UNDO_SOUND);
+      grid = gridHistory.pop();
+      alternateToVerticalHistory.pop();
+      drawPuzzle();
+    }
+  } else {
+    let rightMove = false;
+    let leftMove = false;
+    let downMove = false;
+    let upMove = false;
+
+    let sliderCoord;
+
+    for (let i = 0; i < COLS; i++) {
+      for (let j = 0; j < ROWS; j++) {
+        let gridCell = grid[i][j];
+        if (gridCell.containsSlider) {
+          sliderCoord = [i, j];
+          break;
+        }
+      }
+    }
+
+    if (coord[0] === sliderCoord[0] && coord[1] === sliderCoord[1]) {
+      return;
+    }
+
+    if (coord[0] <= -1 && coord[1] >= ROWS / 2 - 4 && coord[1] <= ROWS / 2 + 3) {
+      leftMove = true;
+    } else if (coord[0] >= COLS && coord[1] >= ROWS / 2 - 4 && coord[1] <= ROWS / 2 + 3) {
+      rightMove = true;
+    } else if (coord[0] >= COLS / 2 - 4 && coord[0] <= COLS / 2 + 3 && coord[1] <= -1) {
+      upMove = true;
+    } else if (coord[0] >= COLS / 2 - 4 && coord[0] <= COLS / 2 + 3 && coord[1] >= ROWS) {
+      downMove = true;
+    } else {
+      let deltaX = Math.abs(coord[0] - sliderCoord[0]);
+      let deltaY = Math.abs(coord[1] - sliderCoord[1]);
+
+      if (deltaX !== deltaY) {
+        if (deltaX > deltaY) {
+          if (deltaX <= 2) {
+            if (coord[0] - sliderCoord[0] < 0) {
+              leftMove = true;
+            } else {
+              rightMove = true;
+            }
+          }
+        } else {
+          if (deltaY <= 2) {
+            if (coord[1] - sliderCoord[1] < 0) {
+              upMove = true;
+            } else {
+              downMove = true;
+            }
+          }
+        }
+      }
+    }
+
+    let neighborCoord;
+
+    if (leftMove) {
+      if (sliderCoord[0] > 0) {
+        neighborCoord = [sliderCoord[0] - 1, sliderCoord[1]];
+      }
+    } else if (rightMove) {
+      if (sliderCoord[0] < COLS - 1) {
+        neighborCoord = [sliderCoord[0] + 1, sliderCoord[1]];
+      }
+    } else if (upMove) {
+      if (sliderCoord[1] > 0) {
+        neighborCoord = [sliderCoord[0], sliderCoord[1] - 1];
+      }
+    } else if (downMove) {
+      if (sliderCoord[1] < ROWS - 1) {
+        neighborCoord = [sliderCoord[0], sliderCoord[1] + 1];
+      }
+    }
+
+    if (neighborCoord && !grid[neighborCoord[0]][neighborCoord[1]].block) {
+      if (rightMove || leftMove || downMove || upMove) {
+        if (gridHistory >= HISTORY_LIMIT) {
+          gridHistory.shift();
+        }
+
+        gridHistory.push(deepCopy(grid));
+      }
+
+      if (rightMove) {
+        moveRight(...neighborCoord);
+      } else if (leftMove) {
+        moveLeft(...neighborCoord);
+      } else if (downMove) {
+        moveDown(...neighborCoord);
+      } else if (upMove) {
+        moveUp(...neighborCoord);
+      }
+    }
   }
 }
 

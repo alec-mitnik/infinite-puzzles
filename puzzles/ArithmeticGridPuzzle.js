@@ -385,56 +385,54 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (event.changedTouches.length === 1) {
-    if (window.app.puzzleState.interactive) {
-      event.preventDefault();
+  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+    event.preventDefault();
 
-      let canvasRect = event.target.getBoundingClientRect();
-      let touch = event.changedTouches[0];
-      let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
-      let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+    let canvasRect = event.target.getBoundingClientRect();
+    let touch = event.changedTouches[0];
+    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
-      let tiles = grid.flat();
+    let tiles = grid.flat();
 
-      // For-each loops cannot be broken out of!
-      for (let i = 0; i < tiles.length; i++) {
-        let tile = tiles[i];
+    // For-each loops cannot be broken out of!
+    for (let i = 0; i < tiles.length; i++) {
+      let tile = tiles[i];
 
-        if (!tile.fixed && Math.abs(touchX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
-            && Math.abs(touchY - (tile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
-          if (selection) {
-            if (selection === tile) {
-              audioManager.play(SELECT_SOUND);
-              selection = null;
-
-              drawPuzzle();
-            } else {
-              queuedSounds.push(SWAP_SOUND);
-
-              let coordinate = [selection.gridCoords, selection.x, selection.y];
-
-              selection.gridCoords = tile.gridCoords;
-              selection.x = tile.x;
-              selection.y = tile.y;
-              grid[tile.gridCoords[0]][tile.gridCoords[1]] = selection;
-
-              tile.gridCoords = coordinate[0];
-              tile.x = coordinate[1];
-              tile.y = coordinate[2];
-              grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
-
-              selection = null;
-              drawPuzzle();
-            }
-          } else {
+      if (!tile.fixed && Math.abs(touchX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
+          && Math.abs(touchY - (tile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
+        if (selection) {
+          if (selection === tile) {
             audioManager.play(SELECT_SOUND);
-            selection = tile;
+            selection = null;
 
             drawPuzzle();
-          }
+          } else {
+            queuedSounds.push(SWAP_SOUND);
 
-          return;
+            let coordinate = [selection.gridCoords, selection.x, selection.y];
+
+            selection.gridCoords = tile.gridCoords;
+            selection.x = tile.x;
+            selection.y = tile.y;
+            grid[tile.gridCoords[0]][tile.gridCoords[1]] = selection;
+
+            tile.gridCoords = coordinate[0];
+            tile.x = coordinate[1];
+            tile.y = coordinate[2];
+            grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
+
+            selection = null;
+            drawPuzzle();
+          }
+        } else {
+          audioManager.play(SELECT_SOUND);
+          selection = tile;
+
+          drawPuzzle();
         }
+
+        return;
       }
     }
   }

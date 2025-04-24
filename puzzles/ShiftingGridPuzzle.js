@@ -680,92 +680,109 @@ export function onMouseDown(event) {
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
       let coord = convertToGridCoord(mouseX, mouseY);
-
-      // Restart
-      if (coord[0] >= COLS && coord[1] < 0) {
-        if (gridHistory.length > 0) {
-          grid = gridHistory[0];
-          startingTile = getStartingTileForGrid(grid);
-          gridHistory = [];
-
-          audioManager.play(RESTART_SOUND);
-          drawPuzzle();
-        }
-
-      // Undo
-      } else if (coord[0] < 0 && coord[1] < 0) {
-        if (gridHistory.length > 0) {
-          grid = gridHistory.pop();
-          startingTile = getStartingTileForGrid(grid);
-
-          audioManager.play(UNDO_SOUND);
-          drawPuzzle();
-        }
-
-      // Save
-      } else if (coord[0] >= COLS && coord[1] >= ROWS) {
-        savedGrid = deepCopy(grid);
-        audioManager.play(SAVE_SOUND);
-        drawPuzzle();
-
-      // Load
-      } else if (coord[0] < 0 && coord[1] >= ROWS) {
-        if (savedGrid) {
-          if (gridHistory >= HISTORY_LIMIT) {
-            gridHistory.shift();
-          }
-
-          gridHistory.push(deepCopy(grid));
-          grid = deepCopy(savedGrid);
-          startingTile = getStartingTileForGrid(grid);
-
-          audioManager.play(LOAD_SOUND);
-          drawPuzzle();
-        }
-      } else {
-        let direction = null;
-        let index = -1;
-
-        if (coord[1] < 0) {
-          if (coord[0] >= 0 && coord[0] < COLS) {
-            direction = DIRECTION.UP;
-            index = coord[0];
-          }
-        } else if (coord[0] >= COLS) {
-          if (coord[1] >= 0 && coord[1] < ROWS) {
-            direction = DIRECTION.RIGHT;
-            index = coord[1];
-          }
-        } else if (coord[1] >= ROWS) {
-          if (coord[0] >= 0 && coord[0] < COLS) {
-            direction = DIRECTION.DOWN;
-            index = coord[0];
-          }
-        } else if (coord[0] < 0) {
-          if (coord[1] >= 0 && coord[1] < ROWS) {
-            direction = DIRECTION.LEFT;
-            index = coord[1];
-          }
-        }
-
-        if (direction) {
-          if (gridHistory >= HISTORY_LIMIT) {
-            gridHistory.shift();
-          }
-
-          gridHistory.push(deepCopy(grid));
-
-          shiftAtIndex(index, direction);
-          queuedSounds.push(SHIFT_SOUND);
-
-          drawPuzzle();
-        }
-      }
+      handleLeftClickOrTap(coord);
     }
 
   // Middle click
   } else if (event.button === 1) {
     onMiddleMouseDown();
+  }
+}
+
+export function onTouchStart(event) {
+  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+    event.preventDefault();
+
+    let canvasRect = event.target.getBoundingClientRect();
+    let touch = event.changedTouches[0];
+    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+
+    let coord = convertToGridCoord(touchX, touchY);
+    handleLeftClickOrTap(coord);
+  }
+}
+
+function handleLeftClickOrTap(coord) {
+  // Restart
+  if (coord[0] >= COLS && coord[1] < 0) {
+    if (gridHistory.length > 0) {
+      grid = gridHistory[0];
+      startingTile = getStartingTileForGrid(grid);
+      gridHistory = [];
+
+      audioManager.play(RESTART_SOUND);
+      drawPuzzle();
+    }
+
+  // Undo
+  } else if (coord[0] < 0 && coord[1] < 0) {
+    if (gridHistory.length > 0) {
+      grid = gridHistory.pop();
+      startingTile = getStartingTileForGrid(grid);
+
+      audioManager.play(UNDO_SOUND);
+      drawPuzzle();
+    }
+
+  // Save
+  } else if (coord[0] >= COLS && coord[1] >= ROWS) {
+    savedGrid = deepCopy(grid);
+    audioManager.play(SAVE_SOUND);
+    drawPuzzle();
+
+  // Load
+  } else if (coord[0] < 0 && coord[1] >= ROWS) {
+    if (savedGrid) {
+      if (gridHistory >= HISTORY_LIMIT) {
+        gridHistory.shift();
+      }
+
+      gridHistory.push(deepCopy(grid));
+      grid = deepCopy(savedGrid);
+      startingTile = getStartingTileForGrid(grid);
+
+      audioManager.play(LOAD_SOUND);
+      drawPuzzle();
+    }
+  } else {
+    let direction = null;
+    let index = -1;
+
+    if (coord[1] < 0) {
+      if (coord[0] >= 0 && coord[0] < COLS) {
+        direction = DIRECTION.UP;
+        index = coord[0];
+      }
+    } else if (coord[0] >= COLS) {
+      if (coord[1] >= 0 && coord[1] < ROWS) {
+        direction = DIRECTION.RIGHT;
+        index = coord[1];
+      }
+    } else if (coord[1] >= ROWS) {
+      if (coord[0] >= 0 && coord[0] < COLS) {
+        direction = DIRECTION.DOWN;
+        index = coord[0];
+      }
+    } else if (coord[0] < 0) {
+      if (coord[1] >= 0 && coord[1] < ROWS) {
+        direction = DIRECTION.LEFT;
+        index = coord[1];
+      }
+    }
+
+    if (direction) {
+      if (gridHistory >= HISTORY_LIMIT) {
+        gridHistory.shift();
+      }
+
+      gridHistory.push(deepCopy(grid));
+
+      shiftAtIndex(index, direction);
+      queuedSounds.push(SHIFT_SOUND);
+
+      drawPuzzle();
+    }
   }
 }
 

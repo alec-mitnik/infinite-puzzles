@@ -815,107 +815,124 @@ export function onMouseDown(event) {
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
       let coord = convertToGridCoord(mouseX, mouseY);
-
-      // Restart
-      if ((coord[0] <= COLS - 2 && coord[0] >= COLS - 3) && coord[1] === -1) {
-        gridHistory = [];
-        tapsHistory = [];
-        availableTaps = allowedTaps;
-        mirrorsHistory = [];
-        availableMirrors = allowedMirrors;
-
-        grid = deepCopy(solution);
-        audioManager.play(RESTART_SOUND);
-        drawPuzzle();
-
-      // Undo
-      } else if ((coord[0] >= 1 && coord[0] <= 2) && coord[1] === -1) {
-        if (gridHistory.length > 0) {
-          audioManager.play(UNDO_SOUND);
-          grid = gridHistory.pop();
-          availableTaps = tapsHistory.pop();
-          availableMirrors = mirrorsHistory.pop();
-
-          drawPuzzle();
-        }
-      } else if (coord[0] >= 0 && coord[0] < COLS
-          && coord[1] >= 0 && coord[1] < ROWS) {
-        if (availableTaps > 0) {
-          let cell = grid[coord[0]][coord[1]];
-
-          if (!cell.filled) {
-            gridHistory.push(deepCopy(grid));
-            tapsHistory.push(availableTaps);
-            mirrorsHistory.push(availableMirrors);
-
-            availableTaps--;
-
-            cell.filled = true;
-            queuedSounds.push(TAP_SOUND);
-
-            drawPuzzle();
-          }
-        }
-      } else if (availableMirrors > 0) {
-        let mirrorDirections = getAvailableMirrors();
-        let direction = null;
-
-        if (coord[0] <= -1 && coord[1] >= ROWS / 2 - 2 && coord[1] <= ROWS / 2 + 1) {
-          if (mirrorDirections.indexOf(DIRECTION.LEFT) > -1) {
-            direction = DIRECTION.LEFT;
-          }
-        } else if (coord[0] >= COLS && coord[1] >= ROWS / 2 - 2 && coord[1] <= ROWS / 2 + 1) {
-          if (mirrorDirections.indexOf(DIRECTION.RIGHT) > -1) {
-            direction = DIRECTION.RIGHT;
-          }
-        } else if (coord[0] >= COLS / 2 - 2 && coord[0] <= COLS / 2 + 1 && coord[1] <= -1) {
-          if (mirrorDirections.indexOf(DIRECTION.UP) > -1) {
-            direction = DIRECTION.UP;
-          }
-        } else if (coord[0] >= COLS / 2 - 2 && coord[0] <= COLS / 2 + 1 && coord[1] >= ROWS) {
-          if (mirrorDirections.indexOf(DIRECTION.DOWN) > -1) {
-            direction = DIRECTION.DOWN;
-          }
-        } else if ((coord[0] <= -1 && coord[1] <= 0)
-            || (coord[1] <= -1 && coord[0] <= 0)) {
-          if (mirrorDirections.indexOf(DIRECTION.UP_LEFT) > -1) {
-            direction = DIRECTION.UP_LEFT;
-          }
-        } else if ((coord[0] >= COLS && coord[1] <= 0)
-            || (coord[1] <= -1 && coord[0] >= COLS - 1)) {
-          if (mirrorDirections.indexOf(DIRECTION.UP_RIGHT) > -1) {
-            direction = DIRECTION.UP_RIGHT;
-          }
-        } else if ((coord[0] <= -1 && coord[1] >= ROWS - 1)
-            || (coord[1] >= ROWS && coord[0] <= 0)) {
-          if (mirrorDirections.indexOf(DIRECTION.DOWN_LEFT) > -1) {
-            direction = DIRECTION.DOWN_LEFT;
-          }
-        } else if ((coord[0] >= COLS && coord[1] >= ROWS - 1)
-            || (coord[1] >= ROWS && coord[0] >= COLS - 1)) {
-          if (mirrorDirections.indexOf(DIRECTION.DOWN_RIGHT) > -1) {
-            direction = DIRECTION.DOWN_RIGHT;
-          }
-        }
-
-        if (direction) {
-          gridHistory.push(deepCopy(grid));
-          tapsHistory.push(availableTaps);
-          mirrorsHistory.push(availableMirrors);
-
-          availableMirrors--;
-
-          mirrorGrid(direction);
-          queuedSounds.push(MIRROR_SOUND);
-
-          drawPuzzle();
-        }
-      }
+      handleLeftClickOrTap(coord);
     }
 
   // Middle click
   } else if (event.button === 1) {
     onMiddleMouseDown();
+  }
+}
+
+export function onTouchStart(event) {
+  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+    event.preventDefault();
+
+    let canvasRect = event.target.getBoundingClientRect();
+    let touch = event.changedTouches[0];
+    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+
+    let coord = convertToGridCoord(touchX, touchY);
+    handleLeftClickOrTap(coord);
+  }
+}
+
+function handleLeftClickOrTap(coord) {
+  // Restart
+  if ((coord[0] <= COLS - 2 && coord[0] >= COLS - 3) && coord[1] === -1) {
+    gridHistory = [];
+    tapsHistory = [];
+    availableTaps = allowedTaps;
+    mirrorsHistory = [];
+    availableMirrors = allowedMirrors;
+
+    grid = deepCopy(solution);
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+
+  // Undo
+  } else if ((coord[0] >= 1 && coord[0] <= 2) && coord[1] === -1) {
+    if (gridHistory.length > 0) {
+      audioManager.play(UNDO_SOUND);
+      grid = gridHistory.pop();
+      availableTaps = tapsHistory.pop();
+      availableMirrors = mirrorsHistory.pop();
+
+      drawPuzzle();
+    }
+  } else if (coord[0] >= 0 && coord[0] < COLS
+      && coord[1] >= 0 && coord[1] < ROWS) {
+    if (availableTaps > 0) {
+      let cell = grid[coord[0]][coord[1]];
+
+      if (!cell.filled) {
+        gridHistory.push(deepCopy(grid));
+        tapsHistory.push(availableTaps);
+        mirrorsHistory.push(availableMirrors);
+
+        availableTaps--;
+
+        cell.filled = true;
+        queuedSounds.push(TAP_SOUND);
+
+        drawPuzzle();
+      }
+    }
+  } else if (availableMirrors > 0) {
+    let mirrorDirections = getAvailableMirrors();
+    let direction = null;
+
+    if (coord[0] <= -1 && coord[1] >= ROWS / 2 - 2 && coord[1] <= ROWS / 2 + 1) {
+      if (mirrorDirections.indexOf(DIRECTION.LEFT) > -1) {
+        direction = DIRECTION.LEFT;
+      }
+    } else if (coord[0] >= COLS && coord[1] >= ROWS / 2 - 2 && coord[1] <= ROWS / 2 + 1) {
+      if (mirrorDirections.indexOf(DIRECTION.RIGHT) > -1) {
+        direction = DIRECTION.RIGHT;
+      }
+    } else if (coord[0] >= COLS / 2 - 2 && coord[0] <= COLS / 2 + 1 && coord[1] <= -1) {
+      if (mirrorDirections.indexOf(DIRECTION.UP) > -1) {
+        direction = DIRECTION.UP;
+      }
+    } else if (coord[0] >= COLS / 2 - 2 && coord[0] <= COLS / 2 + 1 && coord[1] >= ROWS) {
+      if (mirrorDirections.indexOf(DIRECTION.DOWN) > -1) {
+        direction = DIRECTION.DOWN;
+      }
+    } else if ((coord[0] <= -1 && coord[1] <= 0)
+        || (coord[1] <= -1 && coord[0] <= 0)) {
+      if (mirrorDirections.indexOf(DIRECTION.UP_LEFT) > -1) {
+        direction = DIRECTION.UP_LEFT;
+      }
+    } else if ((coord[0] >= COLS && coord[1] <= 0)
+        || (coord[1] <= -1 && coord[0] >= COLS - 1)) {
+      if (mirrorDirections.indexOf(DIRECTION.UP_RIGHT) > -1) {
+        direction = DIRECTION.UP_RIGHT;
+      }
+    } else if ((coord[0] <= -1 && coord[1] >= ROWS - 1)
+        || (coord[1] >= ROWS && coord[0] <= 0)) {
+      if (mirrorDirections.indexOf(DIRECTION.DOWN_LEFT) > -1) {
+        direction = DIRECTION.DOWN_LEFT;
+      }
+    } else if ((coord[0] >= COLS && coord[1] >= ROWS - 1)
+        || (coord[1] >= ROWS && coord[0] >= COLS - 1)) {
+      if (mirrorDirections.indexOf(DIRECTION.DOWN_RIGHT) > -1) {
+        direction = DIRECTION.DOWN_RIGHT;
+      }
+    }
+
+    if (direction) {
+      gridHistory.push(deepCopy(grid));
+      tapsHistory.push(availableTaps);
+      mirrorsHistory.push(availableMirrors);
+
+      availableMirrors--;
+
+      mirrorGrid(direction);
+      queuedSounds.push(MIRROR_SOUND);
+
+      drawPuzzle();
+    }
   }
 }
 

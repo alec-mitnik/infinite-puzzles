@@ -744,8 +744,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && (!dragging || event.touches.length === 1)
-      && event.changedTouches.length === 1) {
+  if (window.app.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
     dragging = null;
     previousTouch = null;
 
@@ -850,7 +849,7 @@ export function onTouchEnd(event) {
   }
 }
 
-export function onMouseOut(event) {
+export function onMouseOut() {
   if (window.app.puzzleState.interactive && dragging) {
     releaseNode(dragging);
     dragging = null;

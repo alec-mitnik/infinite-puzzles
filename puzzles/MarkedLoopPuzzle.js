@@ -952,7 +952,6 @@ export function onMouseMove(event) {
     let canvasRect = event.target.getBoundingClientRect();
     let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
     let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
-    let coord = convertToGridCoord(mouseX, mouseY);
 
     pathInteraction(mouseX, mouseY);
   }
