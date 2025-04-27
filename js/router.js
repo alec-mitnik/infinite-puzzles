@@ -327,7 +327,7 @@ class Router {
       return;
     }
 
-    if (window.app.puzzleState.tutorialStage || this.reloadPuzzle()) {
+    if (window.app.puzzleState?.tutorialStage || this.reloadPuzzle()) {
       // Update UI
       this.updateDifficultyUI();
     } else {

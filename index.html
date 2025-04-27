@@ -74,13 +74,13 @@
       window.app.router.navigate('home');
     });
     controls[1].addEventListener('click', () => {
-      solutionToggle();
+      window.app.router.toggleTutorial();
     });
     controls[2].addEventListener('click', () => {
       window.app.currentPuzzle.drawInstructions();
     });
     controls[3].addEventListener('click', () => {
-      window.app.router.toggleTutorial();
+      solutionToggle();
     });
     controls[4].addEventListener('click', () => {
       window.app.router.reloadPuzzle();
@@ -222,17 +222,17 @@
     <button aria-label="Home">
       <span tabindex="-1">&#10094;</span>
     </button>
-    <!-- Solution -->
-    <button aria-label="Toggle Solution" class="larger" id="solutionButton">
-      <span tabindex="-1">&#9745;&#xFE0E;</span>
+    <!-- Toggle Tutorial -->
+    <button aria-label="Toggle Tutorial" class="larger" id="tutorialButton">
+      <span tabindex="-1">&#9883;&#xFE0E;</span>
     </button>
     <!-- Instructions -->
     <button aria-label="Toggle Instructions" class="larger" id="instructionsButton">
       <span tabindex="-1">?</span>
     </button>
-    <!-- Toggle Tutorial -->
-    <button aria-label="Toggle Tutorial" class="larger" id="tutorialButton">
-      <span tabindex="-1">&#9883;&#xFE0E;</span>
+    <!-- Solution -->
+    <button aria-label="Toggle Solution" class="larger" id="solutionButton">
+      <span tabindex="-1">&#9745;&#xFE0E;</span>
     </button>
     <!-- Generate New Puzzle -->
     <button aria-label="Generate New Puzzle" class="larger" id="generateNewPuzzleButton">
