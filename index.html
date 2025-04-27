@@ -77,9 +77,15 @@
       window.app.router.reloadPuzzle();
     });
     controls[2].addEventListener('click', () => {
-      window.app.currentPuzzle.drawInstructions();
+      window.app.router.reloadPuzzle();
     });
     controls[3].addEventListener('click', () => {
+      window.app.router.toggleTutorial();
+    });
+    controls[4].addEventListener('click', () => {
+      window.app.currentPuzzle.drawInstructions();
+    });
+    controls[5].addEventListener('click', () => {
       solutionToggle();
     });
 
@@ -216,9 +222,17 @@
     <button aria-label="Home">
       <span tabindex="-1">&#10094;</span>
     </button>
-    <!-- Reload -->
-    <button aria-label="Reload" class="larger">
+    <!-- Generate New Puzzle -->
+    <button aria-label="Generate New Puzzle" class="larger" id="generateNewPuzzleButton">
       <span tabindex="-1">&#8634;</span>
+    </button>
+    <!-- Next Tutorial -->
+    <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
+      <span tabindex="-1">&#9197;&#xFE0E;</span>
+    </button>
+    <!-- Toggle Tutorial -->
+    <button aria-label="Toggle Tutorial" class="larger" id="tutorialButton">
+      <span tabindex="-1">&#9883;&#xFE0E;</span>
     </button>
     <!-- Instructions -->
     <button aria-label="Toggle Instructions" class="larger" id="instructionsButton">

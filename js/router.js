@@ -25,7 +25,7 @@ class Router {
 
     puzzles.forEach(puzzle => {
       this.routes[puzzle] = {
-        init: () => this.loadPuzzle(puzzle),
+        init: (startTutorial) => this.loadPuzzle(puzzle, startTutorial),
         title: `${puzzle.replace(/([A-Z])/g, ' $1').trim()} - Infinite Puzzles`
       };
     });
@@ -133,7 +133,7 @@ class Router {
     document.body.classList.remove('loading');
   }
 
-  loadRoute(route, updateHistory = true, skipInitialization = false) {
+  loadRoute(route, updateHistory = true, skipInitialization = false, startTutorial = false) {
     // Default to home if route doesn't exist
     if (!this.routes[route]) {
       route = 'home';
@@ -165,7 +165,7 @@ class Router {
       document.getElementById('kofi-button').classList.add('hidden');
 
       // Initialize the route
-      this.routes[route].init();
+      this.routes[route].init(startTutorial);
     }
   }
 
@@ -176,6 +176,18 @@ class Router {
     }
 
     return false;
+  }
+
+  toggleTutorial() {
+    if (this.confirmAbandon()) {
+      const startTutorial = !window.app.puzzleState.tutorialStage;
+
+      if (!startTutorial) {
+        window.app.puzzleState.tutorialStage = 0;
+      }
+
+      this.loadRoute(this.currentRoute, false, false, startTutorial);
+    }
   }
 
   getNavigationConfirmCondition() {
@@ -205,6 +217,10 @@ class Router {
   // Load home page content
   async loadHome() {
     window.app.currentPuzzle = null;
+
+    if (window.app.puzzleState) {
+      window.app.puzzleState.tutorialStage = 0;
+    }
 
     let canvas = document.getElementById("puzzleCanvas");
     let context = canvas.getContext("2d");
@@ -242,10 +258,11 @@ class Router {
   }
 
   // Load puzzle page content
-  async loadPuzzle(puzzleName) {
+  async loadPuzzle(puzzleName, startTutorial) {
     try {
       // Reset puzzle state
       window.app.puzzleState = {
+        ...window.app.puzzleState,
         started: false,
         ended: false,
         interactive: false,
@@ -271,6 +288,15 @@ class Router {
       // Initialize puzzle
       if (typeof window.app.currentPuzzle.init === 'function') {
         canvasContainer.classList.add("loading");
+
+        if (window.app.puzzleState.tutorialStage) {
+          window.app.puzzleState.tutorialStage++;
+        }
+
+        if (startTutorial) {
+          window.app.puzzleState.tutorialStage = 1;
+        }
+
         window.app.currentPuzzle.init();
       } else {
         console.error(`init function not found for ${puzzleName}`);
@@ -301,7 +327,7 @@ class Router {
       return;
     }
 
-    if (this.reloadPuzzle()) {
+    if (window.app.puzzleState.tutorialStage || this.reloadPuzzle()) {
       // Update UI
       this.updateDifficultyUI();
     } else {

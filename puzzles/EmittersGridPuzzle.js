@@ -1,8 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl } from "../js/utils.js";
-
-const LINE_THICKNESS = 6;
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialState } from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
   "UP": 1,
@@ -23,12 +21,361 @@ const SNAP_SOUND = 'click';
 const RESET_SOUND = 'boing';
 const CHIME_SOUND = 'chime';
 
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        coord: [0, 0],
+      },
+      {
+        coord: [0, 1],
+      }],
+      [{
+        coord: [1, 0],
+      },
+      {
+        coord: [1, 1],
+      }],
+    ],
+    nodes: [
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [0, 0],
+        // GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * Math.max(ROWS, COLS) / (Math.max(ROWS, COLS) + 1.5);
+        // CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+        // CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1.5);
+        // let centerOffset = center ? CELL_SIZE / 2 : 0;
+        // return [coord[0] * CELL_SIZE + centerOffset, coord[1] * CELL_SIZE + centerOffset];
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [1, 1],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [0, 1],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [1, 0],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
+      },
+      // {
+      //   type: NODE_TYPE.RECEIVER,
+      //   coord: [i, receiverY],
+      //   canvasCoord: gridToCanvasCoord([i, receiverY], true),
+      //   directions: [DIRECTION.UP],
+      // },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 3,
+    grid: [
+      [{
+        coord: [0, 0],
+      },
+      {
+        coord: [0, 1],
+      },
+      {
+        coord: [0, 2],
+      }],
+      [{
+        coord: [1, 0],
+      },
+      {
+        coord: [1, 1],
+      },
+      {
+        coord: [1, 2],
+      }],
+      [{
+        coord: [2, 0],
+      },
+      {
+        coord: [2, 1],
+      },
+      {
+        coord: [2, 2],
+      }],
+    ],
+    nodes: [
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [0, 0],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [1, 1],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [2, 2],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [1, 0],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [2, 1],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [0, 2],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 3,
+    grid: [
+      [{
+        coord: [0, 0],
+      },
+      {
+        coord: [0, 1],
+      },
+      {
+        coord: [0, 2],
+      }],
+      [{
+        coord: [1, 0],
+      },
+      {
+        coord: [1, 1],
+      },
+      {
+        coord: [1, 2],
+      }],
+      [{
+        coord: [2, 0],
+      },
+      {
+        coord: [2, 1],
+      },
+      {
+        coord: [2, 2],
+      }],
+    ],
+    nodes: [
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [0, 0],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [1, 1],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [2, 2],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [1, 0],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [2, 1],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [0, 2],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [0, 1],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+        directions: [DIRECTION.UP, DIRECTION.RIGHT],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [1, 2],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+        directions: [DIRECTION.UP, DIRECTION.RIGHT],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [2, 0],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
+        directions: [],
+      },
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    grid: [
+      [{
+        coord: [0, 0],
+      },
+      {
+        coord: [0, 1],
+      },
+      {
+        coord: [0, 2],
+      },
+      {
+        coord: [0, 3],
+      }],
+      [{
+        coord: [1, 0],
+      },
+      {
+        coord: [1, 1],
+      },
+      {
+        coord: [1, 2],
+      },
+      {
+        coord: [1, 3],
+      }],
+      [{
+        coord: [2, 0],
+      },
+      {
+        coord: [2, 1],
+      },
+      {
+        coord: [2, 2],
+      },
+      {
+        coord: [2, 3],
+      }],
+    ],
+    nodes: [
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [1, 0],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [2, 1],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [3, 2],
+        canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.EMITTER,
+        coord: [0, 3],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [0, 0],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [1, 3],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [2, 2],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.BLOCK,
+        coord: [3, 1],
+        canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [0, 1],
+        canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+        directions: [DIRECTION.DOWN, DIRECTION.RIGHT],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [1, 2],
+        canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+        directions: [DIRECTION.UP],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [2, 3],
+        canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+        directions: [],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [3, 3],
+        canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+        directions: [DIRECTION.UP],
+      },
+      {
+        type: NODE_TYPE.RECEIVER,
+        coord: [3, 0],
+        canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
+            0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
+        directions: [DIRECTION.LEFT],
+      },
+    ],
+  },
+];
+
 let DIFFICULTY;
 let ROWS;
 let COLS;
 let GRID_SIZE;
 let CELL_SIZE;
 let NODE_SIZE;
+let LINE_THICKNESS;
 
 let grid;
 let nodes;
@@ -96,20 +443,20 @@ function generateGrid() {
       nodes.push({
         type: NODE_TYPE.EMITTER,
         coord: [i, emitterY],
-        canvasCoord: gridToCanvasCoord([i, emitterY], true)
+        canvasCoord: gridToCanvasCoord([i, emitterY], true),
       });
 
       nodes.push({
         type: NODE_TYPE.BLOCK,
         coord: [i, blockY],
-        canvasCoord: gridToCanvasCoord([i, blockY], true)
+        canvasCoord: gridToCanvasCoord([i, blockY], true),
       });
 
       nodes.push({
         type: NODE_TYPE.RECEIVER,
         coord: [i, receiverY],
         canvasCoord: gridToCanvasCoord([i, receiverY], true),
-        directions: []
+        directions: [],
       });
     }
   }
@@ -235,7 +582,7 @@ function generateGrid() {
   }
 
   nodes.filter(node => node.type === NODE_TYPE.RECEIVER).forEach(node => {
-    let cell = grid[node.coord[0]][node.coord[1]];
+    // let cell = grid[node.coord[0]][node.coord[1]];
 
     node.directions = DIRECTIONS.filter(direction => {
       return isCoordReceivingFromDirection(node.coord, direction);
@@ -321,7 +668,8 @@ export function drawInstructions() {
   drawInstructionsHelper("📻\uFE0E Emitters Grid Puzzle 📻\uFE0E",
       ["Place a 4-way emitter and a block in each row/column,",
           "activating each white receiver but no black ones."],
-      ["Drag emitters and blocks to move them."]);
+      ["Drag emitters and blocks to move them."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -348,9 +696,9 @@ export function drawPuzzle() {
     context.arc(resetX, resetY, CELL_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
     context.lineTo(resetX + CELL_SIZE * 0.05, resetY - CELL_SIZE * 0.15);
     context.lineTo(resetX + CELL_SIZE * 0.1, resetY - CELL_SIZE * 0.3);
-    context.lineTo(resetX - CELL_SIZE * 0.02, resetY - CELL_SIZE * 0.25);
-    context.lineTo(resetX + CELL_SIZE * 0.025, resetY - CELL_SIZE * 0.2);
-    context.lineTo(resetX + CELL_SIZE * 0.05, resetY - CELL_SIZE * 0.2);
+    context.lineTo(resetX - CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
+    context.lineTo(resetX + CELL_SIZE * 0.028, resetY - CELL_SIZE * 0.18);
+    context.lineTo(resetX + CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
     context.stroke();
   }
 
@@ -661,21 +1009,43 @@ function isOverlapping(node) {
  * INIT
  ***********************************************/
 export function init() {
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 6/6, Casual: 8/8, Challenging: 10/10, Intense: 12/12
-  ROWS = 4 + DIFFICULTY * 2;
-  COLS = 4 + DIFFICULTY * 2;
-  GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * Math.max(ROWS, COLS) / (Math.max(ROWS, COLS) + 1.5);
-  CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
-  NODE_SIZE = CELL_SIZE / 3;
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
 
   dragging = null;
   previousTouch = null;
   queuedSounds = [];
 
-  // Allow opportunity for loading screen to show
-  setTimeout(generateGrid, 100);
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * Math.max(ROWS, COLS) / (Math.max(ROWS, COLS) + 1.5);
+    CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+    NODE_SIZE = CELL_SIZE / 3;
+    LINE_THICKNESS = -2 * Math.max(ROWS, COLS) + 18;
+
+    grid = deepCopy(tutorial.grid);
+    nodes = deepCopy(tutorial.nodes);
+    solution = deepCopy(tutorial.nodes);
+
+    finishInit();
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+
+    // Quick: 6/6, Casual: 8/8, Challenging: 10/10, Intense: 12/12
+    ROWS = 4 + DIFFICULTY * 2;
+    COLS = 4 + DIFFICULTY * 2;
+    GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * Math.max(ROWS, COLS) / (Math.max(ROWS, COLS) + 1.5);
+    CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+    NODE_SIZE = CELL_SIZE / 3;
+    LINE_THICKNESS = 6;
+
+    // Allow opportunity for loading screen to show
+    setTimeout(generateGrid, 100);
+  }
 }
 
 function finishInit() {
@@ -693,6 +1063,8 @@ function finishInit() {
   });
 
   initialState = deepCopy(nodes);
+
+  updateForTutorialState();
 
   drawInstructions();
 

@@ -1,16 +1,12 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
-const ROWS = 3;
-const COLS = 3;
 const TILE_SIZE = 3;
 const MAX_TILE_CIRCUITS = TILE_SIZE * 2; // For reference
 const TILE_CIRCUITS = MAX_TILE_CIRCUITS / 2; // MAX_TILE_CIRCUITS - 2; // Might be limited by tile size
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
-const CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
-const TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 const LINE_THICKNESS = 12;
 const TILE_BORDER = 2;
 
@@ -18,6 +14,225 @@ const SELECT_SOUND = 'click';
 const SWAP_SOUND = 'whir';
 const ROTATE_SOUND = 'warp';
 const CHIME_SOUND = 'chime';
+
+const TUTORIAL_CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / 2;
+
+const tutorials = [
+  {
+    rows: 1,
+    cols: 1,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        // x: OFFSET_SIZE + CELL_SIZE * i,
+        // y: OFFSET_SIZE + CELL_SIZE * j,
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[1, 0], [3, 0]]],
+        fixed: false,
+      }],
+    ],
+    // [0, j * (TILE_SIZE + 2) + coord[1]]
+    // [(TILE_SIZE + 2) * COLS - 1, j * (TILE_SIZE + 2) + coord[1]]
+    // [i * (TILE_SIZE + 2) + coord[0], (TILE_SIZE + 2) * ROWS - 1]
+    circuitEnds: [[1, 0], [3, 0]],
+    rotate: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [],
+        fixed: true,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [],
+        fixed: true,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2]],
+    swap: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [],
+        fixed: true,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [],
+        fixed: true,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2]],
+    rotate: true,
+    swap: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]]],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[1, (TILE_SIZE + 1)], [3, (TILE_SIZE + 1)]]],
+        fixed: true,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[1, 0], [3, 0]]],
+        fixed: true,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2],
+        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1]],
+    swap: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]], [[0, 3], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]],
+            [[(TILE_SIZE + 1), 2], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [2, (TILE_SIZE + 1)]], [[0, 3], [(TILE_SIZE + 1), 3]]],
+        fixed: true,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[2, 0], [2, (TILE_SIZE + 1)]], [[0, 2], [0, 3]]],
+        fixed: false,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2],
+        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1], [2 * (TILE_SIZE + 2) - 1, 3],
+        [(TILE_SIZE + 2) + 2, 0], [(TILE_SIZE + 2) + 2, 2 * (TILE_SIZE + 2) - 1], [0, 3]],
+    swap: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]], [[0, 3], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]],
+            [[(TILE_SIZE + 1), 2], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [2, (TILE_SIZE + 1)]], [[0, 3], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[2, 0], [2, (TILE_SIZE + 1)]], [[0, 2], [0, 3]]],
+        fixed: false,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2],
+        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1], [2 * (TILE_SIZE + 2) - 1, 3],
+        [(TILE_SIZE + 2) + 2, 0], [(TILE_SIZE + 2) + 2, 2 * (TILE_SIZE + 2) - 1], [0, 3]],
+    rotate: true,
+    swap: true,
+  },
+];
+
+let ROWS = 3;
+let COLS = 3;
+let CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+let TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 
 let DIFFICULTY;
 let FIXED_TILES;
@@ -160,7 +375,7 @@ function generateGrid() {
         x: OFFSET_SIZE + CELL_SIZE * i,
         y: OFFSET_SIZE + CELL_SIZE * j,
         circuitPaths: tileCircuits,
-        fixed: false
+        fixed: false,
       };
     }
   }
@@ -336,7 +551,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🔌\uFE0E Circuit Grid Puzzle 🔌\uFE0E",
       ["Arrange the tiles to complete all the outgoing circuits."],
       ["Click or tap to select tiles and swap them.",
-          "Right-click or tap with a 2nd finger to rotate tiles."]);
+          "Right-click or tap with a 2nd finger to rotate tiles."],
+          window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -501,6 +717,10 @@ function getCoordinatePath(gridCoords, coord) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
+
   DIFFICULTY = window.app.router.difficulty;
   FIXED_TILES = 5 - DIFFICULTY; // Quick: 4, Casual: 3, Challenging: 2, Intense: 1
 
@@ -508,55 +728,97 @@ export function init() {
   circuitEnds = [];
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
 
-  let moveableTiles = grid.flat();
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+    TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 
-  for (let i = 0; i < FIXED_TILES; i++) {
-    let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
-    fixedTile.fixed = true;
-  }
+    grid = deepCopy(tutorial.grid);
+    circuitEnds = tutorial.circuitEnds;
 
-  solution = deepCopy(grid);
+    solution = deepCopy(grid);
 
-  let puzzleSolved = true;
+    if (tutorial.rotate) {
+      rotateTile(grid[0][0], false);
+    }
 
-  while (puzzleSolved) {
-    let coordinates = moveableTiles.map(tile => {
-      return [tile.gridCoords, tile.x, tile.y];
-    });
+    if (tutorial.swap) {
+      const tile1 = grid[0][0];
+      const tile1X = tile1.x;
+      const tile1Y = tile1.y;
 
-    moveableTiles.forEach(tile => {
-      let coordinate = coordinates.splice(randomIndex(coordinates), 1)[0];
-      tile.gridCoords = coordinate[0];
-      grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
-      tile.x = coordinate[1];
-      tile.y = coordinate[2];
+      const tile2 = grid[0][1];
 
-      let tileRotations = Math.floor(Math.random() * 4);
-      for (let i = 0; i < tileRotations; i++) {
-        rotateTile(tile, false);
-      }
-    });
+      tile1.gridCoords = [0, 1];
+      tile2.gridCoords = [0, 0];
+      tile1.x = tile2.x;
+      tile1.y = tile2.y;
+      tile2.x = tile1X;
+      tile2.y = tile1Y;
+      grid[0][0] = tile2;
+      grid[0][1] = tile1;
+    }
+  } else {
+    ROWS = 3;
+    COLS = 3;
+    CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+    TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 
-    let circuitEndsToDraw = [...circuitEnds];
+    generateGrid();
 
-    while (puzzleSolved && circuitEndsToDraw.length > 0) {
-      let coord = circuitEndsToDraw.splice(0, 1)[0];
-      let connectedEnd = circuitGetConnectedEnd(coord, grid);
-      puzzleSolved &= connectedEnd;
+    let moveableTiles = grid.flat();
 
-      if (connectedEnd) {
-        for (let i = 0; i < circuitEndsToDraw.length; i++) {
-          if (circuitEndsToDraw[i][0] == connectedEnd[0]
-              && circuitEndsToDraw[i][1] == connectedEnd[1]) {
-            circuitEndsToDraw.splice(i, 1);
-            break;
+    for (let i = 0; i < FIXED_TILES; i++) {
+      let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
+      fixedTile.fixed = true;
+    }
+
+    solution = deepCopy(grid);
+
+    let puzzleSolved = true;
+
+    while (puzzleSolved) {
+      let coordinates = moveableTiles.map(tile => {
+        return [tile.gridCoords, tile.x, tile.y];
+      });
+
+      moveableTiles.forEach(tile => {
+        let coordinate = coordinates.splice(randomIndex(coordinates), 1)[0];
+        tile.gridCoords = coordinate[0];
+        grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
+        tile.x = coordinate[1];
+        tile.y = coordinate[2];
+
+        let tileRotations = Math.floor(Math.random() * 4);
+        for (let i = 0; i < tileRotations; i++) {
+          rotateTile(tile, false);
+        }
+      });
+
+      let circuitEndsToDraw = [...circuitEnds];
+
+      while (puzzleSolved && circuitEndsToDraw.length > 0) {
+        let coord = circuitEndsToDraw.splice(0, 1)[0];
+        let connectedEnd = circuitGetConnectedEnd(coord, grid);
+        puzzleSolved &= connectedEnd;
+
+        if (connectedEnd) {
+          for (let i = 0; i < circuitEndsToDraw.length; i++) {
+            if (circuitEndsToDraw[i][0] == connectedEnd[0]
+                && circuitEndsToDraw[i][1] == connectedEnd[1]) {
+              circuitEndsToDraw.splice(i, 1);
+              break;
+            }
           }
         }
       }
     }
   }
+
+  updateForTutorialState();
 
   drawInstructions();
 

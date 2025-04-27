@@ -160,6 +160,10 @@ button > span {
   line-height: 1;
 }
 
+#tutorialButton.active span {
+  background-color: #F9B70F;
+}
+
 #instructionsButton.active span {
   background-color: #0062A5;
 }

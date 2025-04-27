@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 const SKIPPED_ROWS = 0;
 const SKIPPED_COLS = 0;
@@ -12,6 +12,306 @@ const LINE_THICKNESS = 12;
 const SELECT_SOUND = 'click';
 const SWAP_SOUND = 'whir';
 const CHIME_SOUND = 'chime';
+
+const TUTORIAL_CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 3;
+
+const tutorials = [
+  {
+    rows: 2,
+    cols: 1,
+    grid: [
+      [{
+        num: 0,
+        gridCoords: [0, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        // CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
+        // x: CELL_SIZE * i + (1 - TILE_PROPORTION) / 2 * CELL_SIZE,
+        // y: CELL_SIZE * j + (1 - TILE_PROPORTION) / 2 * CELL_SIZE,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE / 3 * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      },
+      {
+        num: 1,
+        gridCoords: [0, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      }],
+    ],
+    // signGrid: Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => Math.random() < MINUS_RATE ? -1 : 1)),
+    signGrid: Array.from({length: 1 }, () => Array.from({length: 3}, () => 1)),
+    colTotals: [{
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 0,
+      // x: CELL_SIZE * i + (1 - TILE_PROPORTION) / 2 * CELL_SIZE,
+      // y: CELL_SIZE * ROWS + (1 - TILE_PROPORTION) / 2 * CELL_SIZE,
+      x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+    rowTotals: [{
+      num: 0,
+      gridCoords: null,
+      rowTotalIndex: 0,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: 1,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        num: 0,
+        gridCoords: [0, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE / 3 * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      },
+      {
+        num: 1,
+        gridCoords: [0, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      }],
+      [{
+        num: 1,
+        gridCoords: [1, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: true,
+      },
+      {
+        num: 0,
+        gridCoords: [1, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: true,
+      }],
+    ],
+    signGrid: Array.from({length: 3 }, () => Array.from({length: 3}, () => 1)),
+    colTotals: [{
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 0,
+      x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 1,
+      x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+    rowTotals: [{
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: 0,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: 1,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        num: 0,
+        gridCoords: [0, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE / 3 * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      },
+      {
+        num: 2,
+        gridCoords: [0, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      }],
+      [{
+        num: 1,
+        gridCoords: [1, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      },
+      {
+        num: 3,
+        gridCoords: [1, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      }],
+    ],
+    signGrid: Array.from({length: 3 }, () => Array.from({length: 3}, () => 1)),
+    colTotals: [{
+      num: 2,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 0,
+      x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 4,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 1,
+      x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+    rowTotals: [{
+      num: 1,
+      gridCoords: null,
+      rowTotalIndex: 0,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 5,
+      gridCoords: null,
+      rowTotalIndex: 1,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        num: 2,
+        gridCoords: [0, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE / 3 * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      },
+      {
+        num: 4,
+        gridCoords: [0, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: false,
+      }],
+      [{
+        num: 0,
+        gridCoords: [1, 0],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: true,
+      },
+      {
+        num: 0,
+        gridCoords: [1, 1],
+        rowTotalIndex: null,
+        colTotalIndex: null,
+        x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+        fixed: true,
+      }],
+    ],
+    signGrid: Array.from({length: 3 }, () => Array.from({length: 3}, () => -1)),
+    colTotals: [{
+      num: -2,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 0,
+      x: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 0,
+      gridCoords: null,
+      rowTotalIndex: null,
+      colTotalIndex: 1,
+      x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+    rowTotals: [{
+      num: 2,
+      gridCoords: null,
+      rowTotalIndex: 0,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    },
+    {
+      num: 4,
+      gridCoords: null,
+      rowTotalIndex: 1,
+      colTotalIndex: null,
+      x: TUTORIAL_CELL_SIZE * 2 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
+      fixed: true,
+    }],
+  },
+];
 
 let DIFFICULTY;
 let ROWS;
@@ -179,7 +479,8 @@ export function drawInstructions() {
   drawInstructionsHelper("📝\uFE0E Arithmetic Grid Puzzle 📝\uFE0E",
       ["Arrange the tiles to get the expected totals.",
           "White tiles are fixed in place."],
-      ["Click or tap to select tiles and swap them."]);
+      ["Click or tap to select tiles and swap them."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -276,6 +577,10 @@ export function drawPuzzle() {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Quick: 3/3/2/+, Casual: 3/3/0/+, Challenging: 3/3/2/+-, Intense: 3/3/0/+-
@@ -292,34 +597,64 @@ export function init() {
   unusedCols = [];
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
 
-  let moveableTiles = grid.flat().filter(tile => {
-    return !tile.fixed;
-  });
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
 
-  let puzzleSolved = true;
+    grid = deepCopy(tutorial.grid);
+    signGrid = tutorial.signGrid;
+    colTotals = tutorial.colTotals;
+    rowTotals = tutorial.rowTotals;
 
-  while (puzzleSolved) {
-    let coordinates = moveableTiles.map(tile => {
-      return [tile.gridCoords, tile.x, tile.y];
+    solution = deepCopy(grid);
+
+    const tile1 = grid[0][0];
+    const tile2 = grid[0][1];
+    tile1.gridCoords = [0, 1];
+    tile2.gridCoords = [0, 0];
+    const tile2X = tile2.x;
+    const tile2Y = tile2.y;
+    tile2.x = tile1.x;
+    tile2.y = tile1.y;
+    tile1.x = tile2X;
+    tile1.y = tile2Y;
+    grid[0][0] = tile2;
+    grid[0][1] = tile1;
+  } else {
+    generateGrid();
+
+    let moveableTiles = grid.flat().filter(tile => {
+      return !tile.fixed;
     });
 
-    moveableTiles.forEach(tile => {
-      let coordinate = coordinates.splice(randomIndex(coordinates), 1)[0];
-      tile.gridCoords = coordinate[0];
-      grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
-      tile.x = coordinate[1];
-      tile.y = coordinate[2];
-    });
+    let puzzleSolved = true;
 
-    [...rowTotals, ...colTotals].forEach(tile => {
-      if (tile) {
-        let solvedResult = isSolved(tile, grid);
-        puzzleSolved = puzzleSolved && solvedResult;
-      }
-    });
+    while (puzzleSolved) {
+      let coordinates = moveableTiles.map(tile => {
+        return [tile.gridCoords, tile.x, tile.y];
+      });
+
+      moveableTiles.forEach(tile => {
+        let coordinate = coordinates.splice(randomIndex(coordinates), 1)[0];
+        tile.gridCoords = coordinate[0];
+        grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
+        tile.x = coordinate[1];
+        tile.y = coordinate[2];
+      });
+
+      [...rowTotals, ...colTotals].forEach(tile => {
+        if (tile) {
+          let solvedResult = isSolved(tile, grid);
+          puzzleSolved = puzzleSolved && solvedResult;
+        }
+      });
+    }
   }
+
+  updateForTutorialState();
 
   drawInstructions();
 

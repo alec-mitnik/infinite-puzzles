@@ -1,7 +1,8 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
+// Can't feasibly change sizes, as the solution steps need to fit in the offset
 const ROWS = 10;
 const COLS = 10;
 const MIRROR_RATIO = 0.67;
@@ -27,6 +28,207 @@ const MIRROR_SOUND = 'whir';
 const UNDO_SOUND = 'warp';
 const RESTART_SOUND = 'boing';
 const CHIME_SOUND = 'chime';
+
+const tutorials = [
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+        // mirrorDirection: DIRECTION.UP_LEFT,
+      }
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 0,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        solutionOrderIndex: 2,
+      },
+    ],
+    allowedTaps: 2,
+    allowedMirrors: 0,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : (x === 8 && y === 6 ? 2 : null),
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 1,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 2,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 6 && y === 6 || x === 7 && y === 7,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 2,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 9 && y === 7,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 3,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 9 && y === 7
+          || x === 6 && y === 6 || x === 7 && y === 7 || x === 8 && y === 8 || x === 9 && y === 9,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 3,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 9 && y === 7
+          || x === 6 && y === 6 || x === 7 && y === 7 || x === 8 && y === 8,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.LEFT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 4,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 9 && y === 7
+          || x === 6 && y === 6 || x === 7 && y === 7 || x === 8 && y === 8
+          || x === 4 && y === 5 || x === 3 && y === 6 || x === 2 && y === 7
+          || x === 5 && y === 6 || x === 4 && y === 7 || x === 3 && y === 8,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        solutionOrderIndex: 2,
+      },
+      {
+        mirrorDirection: DIRECTION.LEFT,
+      },
+    ],
+    allowedTaps: 2,
+    allowedMirrors: 4,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 7 && y === 5 || x === 8 && y === 6 || x === 9 && y === 7
+          || x === 6 && y === 6 || x === 7 && y === 7 || x === 8 && y === 8
+          || x === 4 && y === 4 || x === 3 && y === 4
+          || x === 0 && y === 5 || x === 1 && y === 6 || x === 0 && y === 7,
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : (x === 4 && y === 4 ? 2 : null),
+      filled: false,
+    }))),
+  },
+];
 
 let DIFFICULTY;
 let MOVES;
@@ -58,8 +260,6 @@ function generateGrid() {
 
   for (let i = 0; i < MOVES; i++) {
     if (i > 0 && Math.random() < MIRROR_RATIO) {
-      let oldGrid = deepCopy(grid);
-
       let directions = getAvailableMirrors(true);
 
       if (directions.length === 0) {
@@ -70,7 +270,7 @@ function generateGrid() {
 
         solutionSteps.push({
           solutionOrderIndex: i + 1,
-          mirrorDirection: randomDirection
+          mirrorDirection: randomDirection,
         });
 
         allowedMirrors++;
@@ -91,13 +291,6 @@ function generateGrid() {
     generateGrid();
     return;
   }
-
-  availableTaps = allowedTaps;
-  availableMirrors = allowedMirrors;
-  solution = deepCopy(grid);
-  gridHistory = [];
-  tapsHistory = [];
-  mirrorsHistory = [];
 }
 
 function getAvailableMirrors(forGeneratingSolution = false) {
@@ -476,13 +669,35 @@ function mirrorGrid(direction, forGeneratingSolution = false) {
  * INIT
  ***********************************************/
 export function init() {
-  DIFFICULTY = window.app.router.difficulty;
-  MOVES = 4 + 2 * DIFFICULTY;
-  MIN_MIRRORS = MOVES / 2;
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
 
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    allowedTaps = tutorial.allowedTaps;
+    allowedMirrors = tutorial.allowedMirrors;
+    grid = deepCopy(tutorial.grid);
+    solutionSteps = tutorial.solutionSteps;
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+    MOVES = 4 + 2 * DIFFICULTY;
+    MIN_MIRRORS = MOVES / 2;
+
+    generateGrid();
+  }
+
+  availableTaps = allowedTaps;
+  availableMirrors = allowedMirrors;
+  solution = deepCopy(grid);
+  gridHistory = [];
+  tapsHistory = [];
+  mirrorsHistory = [];
+
+  updateForTutorialState();
 
   drawInstructions();
 
@@ -491,9 +706,10 @@ export function init() {
 
 export function drawInstructions() {
   drawInstructionsHelper("🔆\uFE0E Grid Mirror Puzzle 🔆\uFE0E",
-      ["Use the alotted taps and mirrors to match the pattern."],
+      ["Use the allotted taps and mirrors to match the pattern."],
       ["Click or tap a grid tile to fill it.",
-          "Click or tap the arrows to mirror in that direction."]);
+          "Click or tap the arrows to mirror in that direction."],
+          window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {

@@ -215,6 +215,11 @@ function toggle(lightSwitch) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Quick: 3/3, Casual: 3/4, Challenging: 4/4, Intense: 4/5

@@ -243,6 +243,11 @@ function shiftAtIndex(index, direction) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   ROWS = DIFFICULTY < 2 ? 2 : (DIFFICULTY < 4 ? 3 : 4);

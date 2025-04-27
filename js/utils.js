@@ -78,7 +78,7 @@ export function onMiddleMouseUp() {
     }
 }
 
-export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLines) {
+export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLines, tutorialStage = 0, tutorialsTotal = 0) {
   if (!window.app.puzzleState.showingInstructions) {
     let instructionsButton = document.getElementById("instructionsButton");
     instructionsButton.classList.add("active");
@@ -102,26 +102,63 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     context.fillStyle = "#ffffff";
     context.fillText(puzzleTitle, CANVAS_WIDTH / 2, 150);
 
-    context.font = "40px Arial"
-    let yPos = 295;
+    context.font = "40px Arial";
+    let yPos = 265;
 
     descriptionLines.forEach(line => {
       yPos += 60;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
     });
 
-    yPos += 135;
+    yPos += 100;
 
     controlLines.forEach(line => {
       yPos += 60;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
     });
 
+    yPos += 160;
+
+    if (tutorialStage) {
+      context.fillText(`Tutorial ${tutorialStage}/${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
+    } else {
+      const selectText = "Select ";
+      const atomText = "⚛\uFE0E";
+      const tutorialText = " for an incremental tutorial.";
+
+      context.font = "96px Arial";
+      const atomTextWidth = context.measureText(atomText).width;
+
+      context.font = "40px Arial";
+      const selectTextWidth = context.measureText(selectText).width;
+      const tutorialTextWidth = context.measureText(tutorialText).width;
+
+      const totalWidth = selectTextWidth + atomTextWidth + tutorialTextWidth;
+
+      context.fillText(selectText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth / 2, yPos);
+      context.fillText(tutorialText, CANVAS_WIDTH / 2 + totalWidth / 2 - tutorialTextWidth / 2, yPos);
+
+      context.font = "96px Arial";
+      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 18);
+    }
+
     context.font = "bold 50px Arial"
     context.fillStyle = "#F9B70F";
-    context.fillText("Click or tap to " + (window.app.puzzleState.started ? "resume!" : "start!"), CANVAS_WIDTH / 2, 830);
+    context.fillText("Click or tap to " + (window.app.puzzleState.started ? "resume!" : "start!"), CANVAS_WIDTH / 2, 880);
   } else {
     startButtonClick();
+  }
+}
+
+export function updateForTutorialState() {
+  if (window.app.puzzleState.tutorialStage) {
+    document.getElementById('tutorialButton').classList.add('active');
+    document.getElementById('generateNewPuzzleButton').classList.add('hidden');
+    document.getElementById('nextTutorialButton').classList.remove('hidden');
+  } else {
+    document.getElementById('tutorialButton').classList.remove('active');
+    document.getElementById('generateNewPuzzleButton').classList.remove('hidden');
+    document.getElementById('nextTutorialButton').classList.add('hidden');
   }
 }
 

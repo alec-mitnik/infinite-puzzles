@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { containsCoord, deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord } from "../js/utils.js";
+import { containsCoord, deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialState } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_LINE_THICKNESS = 12;
@@ -11,6 +11,106 @@ const TILE_BORDER = 4;
 const CLEAR_SOUND = 'warp';
 const CLICK_SOUND = 'click';
 const CHIME_SOUND = 'chime';
+
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    loopGrid: [
+      [true],
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    loopGrid: [
+      [true],
+      [false],
+    ],
+  },
+  {
+    rows: 3,
+    cols: 3,
+    loopGrid: [
+      [true, true],
+      [true, true],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [true, true, true],
+      [true, true, true],
+      [true, true, true],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [true, true, true],
+      [true, false, false],
+      [true, true, true],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [true, true, true],
+      [true, true, false],
+      [true, true, true],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [true, true, false],
+      [true, true, true],
+      [false, true, true],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [true, false, false],
+      [true, true, false],
+      [true, false, false],
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    loopGrid: [
+      [false, true, false],
+      [true, true, true],
+      [false, true, false],
+    ],
+  },
+  {
+    rows: 5,
+    cols: 5,
+    loopGrid: [
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+      [true, true, true, true],
+    ],
+  },
+  {
+    rows: 5,
+    cols: 5,
+    loopGrid: [
+      [true, true, true, true],
+      [true, false, false, false],
+      [true, false, false, false],
+      [true, true, true, true],
+    ],
+  },
+];
 
 let DIFFICULTY;
 let ROWS;
@@ -185,8 +285,7 @@ function generateGrid() {
   let allPathsLoops = areAllPathsLoops(solution);
   let loops = getAllLoops(solution);
   let pathMatchesMarkers = doesPathMatchMarkers(solution);
-  let solutionValid = allPathsLoops && loops.length === 1
-      && pathMatchesMarkers;
+  let solutionValid = allPathsLoops && loops.length === 1 && pathMatchesMarkers;
 
   if (!solutionValid) {
     console.error("Will regenerate due to invalid solution:", solution, "\nall paths loops:",
@@ -543,6 +642,10 @@ function getGridPathNeighborCoords(gridCoord) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   ROWS = 5 + DIFFICULTY * 2;
@@ -559,7 +662,54 @@ export function init() {
   previousTouch = null;
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    LOOP_ROWS = ROWS - 1;
+    LOOP_COLS = COLS - 1;
+
+    CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+    NODE_SIZE = CELL_SIZE / 4;
+
+    loopGrid = tutorial.loopGrid;
+
+    grid = Array.from({length: COLS}, (_el, x) => Array.from({length: ROWS}, (_el, y) => {
+      return {
+        coord: [x, y],
+        neighborPaths: [],
+        marked: isGridCoordMarked([x, y])
+      };
+    }));
+
+    solution = deepCopy(grid);
+
+    for (let i = 0; i < COLS; i++) {
+      for (let j = 0; j < ROWS; j++) {
+        let tile = solution[i][j];
+        let neighbors = getGridPathNeighborCoords(tile.coord);
+        tile.neighborPaths = neighbors;
+      }
+    }
+
+    solutionLength = getPathLength(solution);
+
+    let allPathsLoops = areAllPathsLoops(solution);
+    let loops = getAllLoops(solution);
+    let pathMatchesMarkers = doesPathMatchMarkers(solution);
+    let solutionValid = allPathsLoops && loops.length === 1 && pathMatchesMarkers;
+
+    if (!solutionValid) {
+      console.error("Tutorial resulted in invalid solution:", solution, "\nall paths loops:",
+        allPathsLoops, "\nloops length:", loops.length, "\npath matches markers:", pathMatchesMarkers);
+      return;
+    }
+  } else {
+    generateGrid();
+  }
+
+  updateForTutorialState();
 
   drawInstructions();
 
@@ -572,7 +722,8 @@ export function drawInstructions() {
       //    "the locations of all straight segments before/after a turn."],
       ["Draw a loop of the given length, where the markers",
           "coincide with all straight segments before/after a turn."],
-      ["Drag over the cells to draw/erase loop path segments."]);
+      ["Drag over the cells to draw/erase loop path segments."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 function areAllPathsLoops(gridToDraw) {

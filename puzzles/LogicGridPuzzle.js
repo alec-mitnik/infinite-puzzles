@@ -1047,6 +1047,11 @@ function isOverlapping(node, nodeList) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Above 5/5 takes too much computation...!

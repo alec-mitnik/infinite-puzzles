@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 const TILE_VISIBILITY_RATE = 1;
 const GRID_MASK_SIZE = 5;
@@ -10,6 +10,266 @@ const LINE_THICKNESS = 12;
 const SNAP_SOUND = 'click';
 const ROTATE_SOUND = 'warp';
 const CHIME_SOUND = 'chime';
+
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+    ],
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            // CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+            // GRID_MASK_SIZE * CELL_SIZE * i + cell[0] * CELL_SIZE + CELL_SIZE/2;
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            // [0 or 1, 0 or 1]
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+    ],
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+    rotate: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+      [{
+        value: COLORS[1],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+    ],
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 4) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 2,
+    grid: [
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+      [{
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[0],
+        show: true,
+      },
+      {
+        value: COLORS[1],
+        show: true,
+      }],
+    ],
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [1, 1],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [1, 2],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
+            coordinates: [0, 2],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+    rotate: true,
+  },
+];
 
 let DIFFICULTY;
 let ROWS;
@@ -174,7 +434,7 @@ function flipTileset(tileset) {
   });
 }
 
-function flipTile(tile) {
+/* function flipTile(tile) {
   tile.cells.forEach(cell => {
     let cellCoord1 = cell.coordinates[1];
 
@@ -186,7 +446,7 @@ function flipTile(tile) {
       cell.y += CELL_SIZE;
     }
   });
-}
+} */
 
 // Rotates around mouse position
 /* function rotateTile(tile, event = null) {
@@ -333,7 +593,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🏁\uFE0E Color Pieces Grid Puzzle 🏁\uFE0E",
       ["Arrange the puzzle pieces into the grid by color."],
       ["Drag the pieces to move them.  While dragging,",
-          "right-click or tap with a 2nd finger to rotate the piece."]);
+          "right-click or tap with a 2nd finger to rotate the piece."],
+          window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 function puzzleSolved(playSound = true) {
@@ -444,81 +705,98 @@ function getGridCoordinatesForCell(cell) {
  * INIT
  ***********************************************/
 export function init() {
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 5/5/3, Casual: 5/5/0, Challenging: 10/10/20, Intense: 10/10/10
-  ROWS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
-  COLS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
-  FIXED_TILES = DIFFICULTY === 1 ? 2 : (DIFFICULTY === 2 ? 0 : (DIFFICULTY === 3 ? 20 : 10));
-  CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
-  CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
 
   dragging = null;
   previousTouch = null;
-  tiles = [];
   queuedSounds = [];
+  let rotateForTutorial;
 
-  grid = generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+    rotateForTutorial = tutorial.rotate;
 
-  for (let i = 0; i < COLS / GRID_MASK_SIZE; i++) {
-    for (let j = 0; j < ROWS / GRID_MASK_SIZE; j++) {
-      let gridMask = gridMasks[randomIndex(gridMasks)];
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+    CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
 
-      gridMask.forEach(tile => {
-        let cellObjects = [];
-        let tileMinCoordX = tile.reduce((total, cell) => {
-          return Math.min(total, cell[0]);
-        }, 999);
-        let tileMinCoordY = tile.reduce((total, cell) => {
-          return Math.min(total, cell[1]);
-        }, 999);
+    grid = deepCopy(tutorial.grid);
+    tiles = deepCopy(tutorial.tiles);
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
 
+    // Quick: 5/5/3, Casual: 5/5/0, Challenging: 10/10/20, Intense: 10/10/10
+    ROWS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
+    COLS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
+    FIXED_TILES = DIFFICULTY === 1 ? 2 : (DIFFICULTY === 2 ? 0 : (DIFFICULTY === 3 ? 20 : 10));
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+    CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
 
-        tile.forEach(cell => {
-          let cellX = GRID_MASK_SIZE * CELL_SIZE * i + cell[0] * CELL_SIZE + CELL_SIZE/2;
-          let cellY = GRID_MASK_SIZE * CELL_SIZE * j + cell[1] * CELL_SIZE + CELL_SIZE/2;
+    grid = generateGrid();
+    tiles = [];
 
-          let cellObject = {
-            value: grid[GRID_MASK_SIZE * i + cell[0]][GRID_MASK_SIZE * j + cell[1]].value,
-            x: cellX,
-            y: cellY,
-            coordinates: [cell[0] === tileMinCoordX ? 0 : 1, cell[1] === tileMinCoordY ? 0 : 1]
+    for (let i = 0; i < COLS / GRID_MASK_SIZE; i++) {
+      for (let j = 0; j < ROWS / GRID_MASK_SIZE; j++) {
+        let gridMask = gridMasks[randomIndex(gridMasks)];
+
+        gridMask.forEach(tile => {
+          let cellObjects = [];
+          let tileMinCoordX = tile.reduce((total, cell) => {
+            return Math.min(total, cell[0]);
+          }, 999);
+          let tileMinCoordY = tile.reduce((total, cell) => {
+            return Math.min(total, cell[1]);
+          }, 999);
+
+          tile.forEach(cell => {
+            let cellX = GRID_MASK_SIZE * CELL_SIZE * i + cell[0] * CELL_SIZE + CELL_SIZE/2;
+            let cellY = GRID_MASK_SIZE * CELL_SIZE * j + cell[1] * CELL_SIZE + CELL_SIZE/2;
+
+            let cellObject = {
+              value: grid[GRID_MASK_SIZE * i + cell[0]][GRID_MASK_SIZE * j + cell[1]].value,
+              x: cellX,
+              y: cellY,
+              coordinates: [cell[0] === tileMinCoordX ? 0 : 1, cell[1] === tileMinCoordY ? 0 : 1],
+            };
+            cellObjects.push(cellObject);
+          });
+
+          let tileObject = {
+            cells: cellObjects,
+            fixed: false,
           };
-          cellObjects.push(cellObject);
+
+          // Shuffle the data so the draw order doesn't reveal the solution
+          tiles.splice(randomIndex(tiles), 0, tileObject);
         });
+      }
+    }
 
-        let tileObject = {
-          cells: cellObjects,
-          fixed: false
-        };
+    let rotations = Math.floor(Math.random() * 4);
+    for (let i = 0; i < rotations; i++) {
+      rotateMatrix(grid);
+      rotateTileset(tiles);
+    }
 
-        // Shuffle the data so the draw order doesn't reveal the solution
-        tiles.splice(randomIndex(tiles), 0, tileObject);
+    if (Math.random() < 0.5) {
+      flipMatrix(grid);
+      flipTileset(tiles);
+    }
+
+    let moveableTiles = [...tiles];
+
+    for (let i = 0; i < FIXED_TILES; i++) {
+      let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
+      fixedTile.fixed = true;
+
+      fixedTile.cells.forEach(cell => {
+        let coord = getGridCoordinatesForCell(cell);
+        grid[coord[0]][coord[1]].show = false;
       });
     }
-  }
-
-  let rotations = Math.floor(Math.random() * 4);
-  for (let i = 0; i < rotations; i++) {
-    rotateMatrix(grid);
-    rotateTileset(tiles);
-  }
-
-  if (Math.random() < 0.5) {
-    flipMatrix(grid);
-    flipTileset(tiles);
-  }
-
-  let moveableTiles = [...tiles];
-
-  for (let i = 0; i < FIXED_TILES; i++) {
-    let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
-    fixedTile.fixed = true;
-
-    fixedTile.cells.forEach(cell => {
-      let coord = getGridCoordinatesForCell(cell);
-      grid[coord[0]][coord[1]].show = false;
-    });
   }
 
   solution = deepCopy(tiles);
@@ -527,9 +805,14 @@ export function init() {
   let bottomEdge = Math.random() < 0.5;
 
   do {
-    tiles.forEach(tile => {
+    tiles.forEach((tile, index) => {
       if (!tile.fixed) {
         let tileRotations = Math.floor(Math.random() * 4);
+
+        if (window.app.puzzleState.tutorialStage) {
+          tileRotations = index === 0 && rotateForTutorial ? 1 : 0;
+        }
+
         for (let i = 0; i < tileRotations; i++) {
           rotateTile(tile, false);
         }
@@ -566,6 +849,8 @@ export function init() {
       }
     });
   } while (puzzleSolved());
+
+  updateForTutorialState();
 
   drawInstructions();
 

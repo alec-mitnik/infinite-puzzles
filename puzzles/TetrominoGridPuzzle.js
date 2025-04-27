@@ -296,6 +296,11 @@ function getGridCoordinatesForCell(cell) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Quick: 6/6/7, Casual: 7/6/9, Challenging: 7/7/10, Intense: 8/7/12

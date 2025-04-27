@@ -201,6 +201,11 @@ function generateGrid() {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Quick: 10, Casual: 12, Challenging: 14, Intense: 16

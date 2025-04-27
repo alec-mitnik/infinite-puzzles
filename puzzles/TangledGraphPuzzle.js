@@ -438,6 +438,11 @@ function orientation(p, q, r) {
  * INIT
  ***********************************************/
 export function init() {
+  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+    window.app.puzzleState.tutorialStage = 0;
+    alert("Tutorials for this puzzle coming soon!");
+  }
+
   DIFFICULTY = window.app.router.difficulty;
 
   // Quick: 12/1, Casual: 14/2, Challenging: 16/3, Intense: 18/3
