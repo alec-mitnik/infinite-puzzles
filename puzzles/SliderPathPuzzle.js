@@ -203,7 +203,7 @@ function generateGrid() {
 export function init() {
   if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorials for this puzzle coming soon!");
+    alert("Tutorial for this puzzle coming soon!");
   }
 
   DIFFICULTY = window.app.router.difficulty;
