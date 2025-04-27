@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
 const ROWS = 10;
@@ -215,6 +215,8 @@ export function init() {
   queuedSounds = [];
 
   generateGrid();
+
+  updateForTutorialState();
 
   drawInstructions();
 
