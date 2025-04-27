@@ -139,7 +139,7 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
       context.fillText(tutorialText, CANVAS_WIDTH / 2 + totalWidth / 2 - tutorialTextWidth / 2, yPos);
 
       context.font = "96px Arial";
-      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 18);
+      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
     }
 
     context.font = "bold 50px Arial"
