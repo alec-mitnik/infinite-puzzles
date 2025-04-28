@@ -1,5 +1,12 @@
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 
+/* TODO:
+ * Fix audio issues on mobile, especially bad for tutorials
+ * Add message support for tutorials, at least for Marked Loop Puzzle, explaining invalid states more?
+ * Finish remaining tutorials
+ * Detect puzzle solved (not solution peek) and highlight the next/regenerate button
+ */
+
 class Router {
   constructor() {
     this.routes = {

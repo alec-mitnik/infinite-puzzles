@@ -120,7 +120,7 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     yPos += 160;
 
     if (tutorialStage) {
-      context.fillText(`Tutorial ${tutorialStage}/${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
+      context.fillText(`Tutorial  ${tutorialStage} / ${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
     } else {
       const selectText = "Select ";
       const atomText = "⚛\uFE0E";
