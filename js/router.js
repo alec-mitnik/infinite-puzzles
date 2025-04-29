@@ -2,9 +2,9 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 
 /* TODO:
  * Fix audio issues on mobile, especially bad for tutorials
- * Add message support for tutorials, at least for Marked Loop Puzzle, explaining invalid states more?
+ * Add message support for Marked Loop Puzzle tutorials, explaining invalid states more?
+ * Handle piece rotation on mobile more intuitively (especially for Circuit Grid Puzzle)
  * Finish remaining tutorials
- * Detect puzzle solved (not solution peek) and highlight the next/regenerate button
  */
 
 class Router {
@@ -170,6 +170,7 @@ class Router {
       context.reset();
 
       document.getElementById('kofi-button').classList.add('hidden');
+      document.getElementById('controls').classList.remove('solved');
 
       // Initialize the route
       this.routes[route].init(startTutorial);

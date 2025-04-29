@@ -99,6 +99,25 @@ canvas#puzzleCanvas {
   display: none;
 }
 
+#controls.solved {
+  #generateNewPuzzleButton, #nextTutorialButton {
+    > span {
+      color: #F9B70F;
+      transform: scale(1);
+      animation: scaleFlare 2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes scaleFlare {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+}
+
 .sidebar {
   margin: -1px 0;
   background: #333333;

@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 // Must not exceed 12 to ensure enough space to show solution steps
 const SHUFFLE_SHIFTS = Math.floor(Math.random() * 7) + 6;
@@ -433,9 +433,7 @@ export function drawPuzzle() {
   if (!window.app.puzzleState.showingSolution) {
     if (solved) {
       if (window.app.puzzleState.interactive) {
-        window.app.puzzleState.interactive = false;
-        window.app.puzzleState.ended = true;
-
+        endPuzzle();
         audioManager.play(CHIME_SOUND);
       }
     } else {

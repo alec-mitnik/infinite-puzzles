@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { containsCoord, deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialState } from "../js/utils.js";
+import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialState } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_LINE_THICKNESS = 12;
@@ -980,9 +980,7 @@ export function drawPuzzle() {
 
   if (!window.app.puzzleState.showingSolution) {
     if (solved && window.app.puzzleState.interactive) {
-      window.app.puzzleState.interactive = false;
-      window.app.puzzleState.ended = true;
-
+      endPuzzle();
       audioManager.play(CHIME_SOUND);
     } else {
       queuedSounds.forEach(sound => audioManager.play(sound));

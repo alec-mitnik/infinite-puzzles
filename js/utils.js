@@ -162,6 +162,12 @@ export function updateForTutorialState() {
   }
 }
 
+export function endPuzzle() {
+  window.app.puzzleState.ended = true;
+  window.app.puzzleState.interactive = false;
+  document.getElementById('controls').classList.add('solved');
+}
+
 export function containsCoord(array, coord) {
   return array.some(val => {
     return val[0] === coord[0] && val[1] === coord[1];

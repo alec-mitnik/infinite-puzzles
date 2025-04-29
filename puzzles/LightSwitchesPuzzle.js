@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
 const LIGHT_BORDER = 0;
@@ -54,9 +54,7 @@ export function drawPuzzle() {
 
   if (puzzleSolved) {
     if (window.app.puzzleState.interactive) {
-      window.app.puzzleState.interactive = false;
-      window.app.puzzleState.ended = true;
-
+      endPuzzle();
       audioManager.play(CHIME_SOUND);
     }
   } else {

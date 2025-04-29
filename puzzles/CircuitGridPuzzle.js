@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 const TILE_SIZE = 3;
 const MAX_TILE_CIRCUITS = TILE_SIZE * 2; // For reference
@@ -629,9 +629,7 @@ export function drawPuzzle() {
 
     if (!window.app.puzzleState.showingSolution) {
       if (window.app.puzzleState.interactive) {
-        window.app.puzzleState.interactive = false;
-        window.app.puzzleState.ended = true;
-
+        endPuzzle();
         audioManager.play(CHIME_SOUND);
       }
     }

@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
 const ROTATIONS = false;
 const TETROMINO_SIZE = 4;
@@ -193,9 +193,7 @@ function puzzleSolved(playSound = true) {
   }, true);
 
   if (window.app.puzzleState.interactive && solved && playSound) {
-    window.app.puzzleState.interactive = false;
-    window.app.puzzleState.ended = true;
-
+    endPuzzle();
     audioManager.play(CHIME_SOUND);
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));

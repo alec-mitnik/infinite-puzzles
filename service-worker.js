@@ -1,6 +1,6 @@
 // Keep incrementing CACHE_VERSION for local testing, then set to an incremented PUBLIC_CACHE_VERSION before deploy
-const CACHE_VERSION = 168;
-const PUBLIC_CACHE_VERSION = 168;
+const CACHE_VERSION = 169;
+const PUBLIC_CACHE_VERSION = 169;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 // List of files to cache for offline use
