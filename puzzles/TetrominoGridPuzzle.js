@@ -10,6 +10,513 @@ const SNAP_SOUND = 'click';
 const ROTATE_SOUND = 'warp';
 const CHIME_SOUND = 'chime';
 
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    grid: Array.from({length: 2}, () => Array.from({length: 2}, () => ({
+      occupied: false,
+    }))),
+    tiles: [
+      {
+        cells: [
+          {
+            // CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+            // let cellX = CELL_SIZE * cellCoord[0] + CELL_SIZE/2;
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            // coordinates: [cellCoord[0] - tileMinCoordX, cellCoord[1] - tileMinCoordY],
+            coordinates: [0, 0],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            coordinates: [0, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            coordinates: [1, 0],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 2),
+            coordinates: [1, 1],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    grid: Array.from({length: 4}, (_el, x) => Array.from({length: 4}, (_el, y) => ({
+      occupied: x >= 2 && (y <= 0 || y >= 3),
+    }))),
+    tiles: [
+      {
+        cells: [
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 1],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 2],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 1],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 2],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 0],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 1],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 2],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 3],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 0],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 2],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 3],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    grid: Array.from({length: 4}, () => Array.from({length: 4}, () => ({
+      occupied: false,
+    }))),
+    tiles: [
+      {
+        cells: [
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 0],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 1],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 0],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 1],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 2],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [2, 3],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 2],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [3, 3],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 0],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 0],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 2],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 1],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 2],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [0, 3],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 2),
+            coordinates: [1, 3],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    rows: 5,
+    cols: 5,
+    grid: Array.from({length: 5}, (_el, x) => Array.from({length: 5}, (_el, y) => ({
+      occupied: (x === 0 && y === 0) || (x === 1 && y === 3) || (x === 4 && (y === 0 || y === 3 || y === 4)),
+    }))),
+    tiles: [
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 0],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 0],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 0],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 1],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 1],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 1],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 2],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 3],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 4],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 4],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 2],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 2],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 2],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 2],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 3],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 3],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 4],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 4],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    rows: 5,
+    cols: 5,
+    grid: Array.from({length: 5}, (_el, x) => Array.from({length: 5}, (_el, y) => ({
+      occupied: (x === 2 && y === 2),
+    }))),
+    tiles: [
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 0],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 1],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 2],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 0],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 0],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 0],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 1],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 0],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 1],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 2],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 1],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 2],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 3],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 3],
+          },
+          {
+            x: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [4, 4],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 4],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 4],
+          },
+          {
+            x: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [3, 4],
+          },
+          {
+            x: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [2, 3],
+          },
+        ],
+      },
+      {
+        cells: [
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 2.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 2],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 3],
+          },
+          {
+            x: 0.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 4.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [0, 4],
+          },
+          {
+            x: 1.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            y: 3.5 * Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (5 + 2),
+            coordinates: [1, 3],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 let DIFFICULTY;
 let COLS;
 let ROWS;
@@ -27,7 +534,7 @@ let queuedSounds = [];
 function generateGrid() {
   grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => {
     return {
-      occupied: false
+      occupied: false,
     };
   }));
 
@@ -106,7 +613,7 @@ function generateGrid() {
         cellObjects.push({
           x: cellX,
           y: cellY,
-          coordinates: [cellCoord[0] - tileMinCoordX, cellCoord[1] - tileMinCoordY]
+          coordinates: [cellCoord[0] - tileMinCoordX, cellCoord[1] - tileMinCoordY],
         });
       });
 
@@ -208,7 +715,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🔲\uFE0E Tetromino Grid Puzzle 🔲\uFE0E",
       ["Fit all the tetromino pieces into the black area.",
           "Pieces must not overlap each other or the white area."],
-      ["Drag the pieces to move them."]);
+      ["Drag the pieces to move them."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -294,28 +802,38 @@ function getGridCoordinatesForCell(cell) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
   }
 
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 6/6/7, Casual: 7/6/9, Challenging: 7/7/10, Intense: 8/7/12
-  COLS = 6 + Math.floor(DIFFICULTY / 2);
-  ROWS = 5 + Math.floor((DIFFICULTY + 1) / 2);
-  TILES = 6 + DIFFICULTY + (DIFFICULTY > 1 ? 1 : 0) + (DIFFICULTY > 3 ? 1 : 0);
-
-  CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
-  CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
-
-  solution;
   dragging = null;
   previousTouch = null;
   tiles = [];
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+    CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
+
+    grid = deepCopy(tutorial.grid);
+    tiles = deepCopy(tutorial.tiles);
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+
+    // Quick: 6/6/7, Casual: 7/6/9, Challenging: 7/7/10, Intense: 8/7/12
+    COLS = 6 + Math.floor(DIFFICULTY / 2);
+    ROWS = 5 + Math.floor((DIFFICULTY + 1) / 2);
+    TILES = 6 + DIFFICULTY + (DIFFICULTY > 1 ? 1 : 0) + (DIFFICULTY > 3 ? 1 : 0);
+
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
+    CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
+
+    generateGrid();
+  }
 
   solution = deepCopy(tiles);
 

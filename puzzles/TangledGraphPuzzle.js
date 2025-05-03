@@ -5,12 +5,463 @@ import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleM
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
 
+const CLINK_SOUND = 'clink';
+const CHIME_SOUND = 'chime';
+
+const tutorials = [
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: false,
+        // x: setXtoGridCoordinates(GRAPH_SIZE - 1),
+        // y: setYtoGridCoordinates(1),
+        x: setXtoGridCoordinates(1, 6),
+        y: setYtoGridCoordinates(1, 6),
+        neighbors: [1],
+      },
+      {
+        id: 1,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 6),
+        y: setYtoGridCoordinates(4, 6),
+        neighbors: [0, 4, 2],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(2, 6),
+        y: setYtoGridCoordinates(5, 6),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: false,
+        x: setXtoGridCoordinates(4, 6),
+        y: setYtoGridCoordinates(5, 6),
+        neighbors: [2, 4],
+      },
+      {
+        id: 4,
+        fixed: false,
+        x: setXtoGridCoordinates(5, 6),
+        y: setYtoGridCoordinates(4, 6),
+        neighbors: [1, 3, 5],
+      },
+      {
+        id: 5,
+        fixed: false,
+        x: setXtoGridCoordinates(5, 6),
+        y: setYtoGridCoordinates(1, 6),
+        neighbors: [4],
+      },
+    ],
+    swaps: [
+      [0, 5],
+    ],
+  },
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 6),
+        y: setYtoGridCoordinates(1, 6),
+        neighbors: [1],
+      },
+      {
+        id: 1,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 6),
+        y: setYtoGridCoordinates(4, 6),
+        neighbors: [0, 4, 2],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(2, 6),
+        y: setYtoGridCoordinates(5, 6),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: false,
+        x: setXtoGridCoordinates(4, 6),
+        y: setYtoGridCoordinates(5, 6),
+        neighbors: [2, 4],
+      },
+      {
+        id: 4,
+        fixed: false,
+        x: setXtoGridCoordinates(5, 6),
+        y: setYtoGridCoordinates(4, 6),
+        neighbors: [1, 3, 5],
+      },
+      {
+        id: 5,
+        fixed: true,
+        x: setXtoGridCoordinates(5, 6),
+        y: setYtoGridCoordinates(1, 6),
+        neighbors: [4],
+      },
+    ],
+    swaps: [
+      [1, 4],
+      [2, 3],
+    ],
+  },
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [9, 1],
+      },
+      {
+        id: 1,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [0, 2],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [2, 4],
+      },
+      {
+        id: 4,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [3, 5],
+      },
+      {
+        id: 5,
+        fixed: true,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [4, 6],
+      },
+      {
+        id: 6,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [5, 7],
+      },
+      {
+        id: 7,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [6, 8],
+      },
+      {
+        id: 8,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [7, 9],
+      },
+      {
+        id: 9,
+        fixed: true,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [8, 0],
+      },
+    ],
+    swaps: [
+      [1, 8],
+      [3, 6],
+    ],
+  },
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [9, 1],
+      },
+      {
+        id: 1,
+        fixed: true,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [0, 2],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: true,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [2, 4],
+      },
+      {
+        id: 4,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [3, 5],
+      },
+      {
+        id: 5,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [4, 6],
+      },
+      {
+        id: 6,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [5, 7],
+      },
+      {
+        id: 7,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [6, 8],
+      },
+      {
+        id: 8,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [7, 9],
+      },
+      {
+        id: 9,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [8, 0],
+      },
+    ],
+    swaps: [
+      [0, 9],
+      [2, 7],
+      [4, 5],
+      [0, 4],
+      [5, 9],
+    ],
+  },
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [15, 1],
+      },
+      {
+        id: 1,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [0, 2, 15],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [2, 4, 5],
+      },
+      {
+        id: 4,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [3, 5],
+      },
+      {
+        id: 5,
+        fixed: false,
+        x: setXtoGridCoordinates(3, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [4, 6, 3],
+      },
+      {
+        id: 6,
+        fixed: false,
+        x: setXtoGridCoordinates(5, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [5, 7],
+      },
+      {
+        id: 7,
+        fixed: false,
+        x: setXtoGridCoordinates(7, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [6, 8, 9],
+      },
+      {
+        id: 8,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [7, 9],
+      },
+      {
+        id: 9,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(7, 10),
+        neighbors: [8, 10, 7],
+      },
+      {
+        id: 10,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(5, 10),
+        neighbors: [9, 11],
+      },
+      {
+        id: 11,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(3, 10),
+        neighbors: [10, 12, 13],
+      },
+      {
+        id: 12,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [11, 13],
+      },
+      {
+        id: 13,
+        fixed: false,
+        x: setXtoGridCoordinates(7, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [12, 14, 11],
+      },
+      {
+        id: 14,
+        fixed: false,
+        x: setXtoGridCoordinates(5, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [13, 15],
+      },
+      {
+        id: 15,
+        fixed: false,
+        x: setXtoGridCoordinates(3, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [14, 0, 1],
+      },
+    ],
+    swaps: [
+      [1, 11],
+      [3, 9],
+      [5, 15],
+      [7, 13],
+    ],
+  },
+  {
+    nodes: [
+      {
+        id: 0,
+        fixed: false,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [3, 1, 4],
+      },
+      {
+        id: 1,
+        fixed: true,
+        x: setXtoGridCoordinates(1, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [0, 2, 3, 5],
+      },
+      {
+        id: 2,
+        fixed: false,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(9, 10),
+        neighbors: [1, 3],
+      },
+      {
+        id: 3,
+        fixed: true,
+        x: setXtoGridCoordinates(9, 10),
+        y: setYtoGridCoordinates(1, 10),
+        neighbors: [2, 0, 1, 7],
+      },
+      {
+        id: 4,
+        fixed: false,
+        x: setXtoGridCoordinates(2, 10),
+        y: setYtoGridCoordinates(2, 10),
+        moveTo: [setXtoGridCoordinates(7, 10), setYtoGridCoordinates(7, 10)],
+        neighbors: [0, 5, 7],
+      },
+      {
+        id: 5,
+        fixed: false,
+        x: setXtoGridCoordinates(2, 10),
+        y: setYtoGridCoordinates(4, 10),
+        moveTo: [setXtoGridCoordinates(5, 10), setYtoGridCoordinates(7, 10)],
+        neighbors: [4, 1, 6],
+      },
+      {
+        id: 6,
+        fixed: true,
+        x: setXtoGridCoordinates(4, 10),
+        y: setYtoGridCoordinates(4, 10),
+        neighbors: [5, 7],
+      },
+      {
+        id: 7,
+        fixed: false,
+        x: setXtoGridCoordinates(4, 10),
+        y: setYtoGridCoordinates(2, 10),
+        moveTo: [setXtoGridCoordinates(7, 10), setYtoGridCoordinates(5, 10)],
+        neighbors: [4, 3, 6],
+      },
+    ],
+    swaps: [
+      [0, 2],
+    ],
+  },
+];
+
 let DIFFICULTY;
 let GRAPH_SIZE;
 let FIXED_NODES;
-
-const CLINK_SOUND = 'clink';
-const CHIME_SOUND = 'chime';
 
 let solution;
 let dragging = null;
@@ -24,25 +475,25 @@ function generateGraph() {
     fixed: false,
     x: setXtoGridCoordinates(1),
     y: setYtoGridCoordinates(1),
-    neighbors: []
+    neighbors: [],
   },{
     id: 1,
     fixed: false,
     x: setXtoGridCoordinates(GRAPH_SIZE - 1),
     y: setYtoGridCoordinates(1),
-    neighbors: []
+    neighbors: [],
   },{
     id: 2,
     fixed: false,
     x: setXtoGridCoordinates(GRAPH_SIZE - 1),
     y: setYtoGridCoordinates(GRAPH_SIZE - 1),
-    neighbors: []
+    neighbors: [],
   },{
     id: 3,
     fixed: false,
     x: setXtoGridCoordinates(1),
     y: setYtoGridCoordinates(GRAPH_SIZE - 1),
-    neighbors: []
+    neighbors: [],
   }];
   let nodeMap = [[1, 3], [0, 2, 3], [1, 3], [0, 1, 2]];
   let cycles = [[0, 1, 3],[1, 2, 3]];
@@ -107,7 +558,7 @@ function generateGraph() {
         fixed: false,
         x: (graph[nodeId].x + graph[neighborId].x) / 2,
         y: (graph[nodeId].y + graph[neighborId].y) / 2,
-        neighbors: []
+        neighbors: [],
       });
     } else {
       // Connect all the nodes of a cycle to a new node at its midpoint,
@@ -142,7 +593,7 @@ function generateGraph() {
           fixed: false,
           x: midPointX,
           y: midPointY,
-          neighbors: []
+          neighbors: [],
         });
       } else {
         i--;
@@ -159,7 +610,7 @@ function generateGraph() {
             fixed: false,
             x: (midPointX + graph[nodeId].x) / 2,
             y: (midPointY + graph[nodeId].y) / 2,
-            neighbors: []
+            neighbors: [],
           });
 
           let node = nodeMap[nodeId];
@@ -194,7 +645,7 @@ function generateGraph() {
       fixed: false,
       x: totalX / randomCycle.length,
       y: totalY / randomCycle.length,
-      neighbors: []
+      neighbors: [],
     });
   }
 
@@ -217,7 +668,7 @@ function generateGraph() {
       fixed: false,
       x: (graph[nodeId].x + graph[neighborId].x) / 2,
       y: (graph[nodeId].y + graph[neighborId].y) / 2,
-      neighbors: []
+      neighbors: [],
     });
   }
 
@@ -258,7 +709,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🕸︎\uFE0E Tangled Graph Puzzle 🕸︎\uFE0E",
       ["Untangle the graph so that no lines intersect.",
           "White nodes are fixed in place."],
-      ["Drag the nodes to move them."]);
+      ["Drag the nodes to move them."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 function drawStage() {
@@ -436,40 +888,76 @@ function orientation(p, q, r) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
   }
-
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 12/1, Casual: 14/2, Challenging: 16/3, Intense: 18/3
-  GRAPH_SIZE = 10 + 2 * DIFFICULTY;
-  FIXED_NODES = Math.min(DIFFICULTY, 3);
 
   dragging = null;
   previousTouch = null;
   nodes = [];
   queuedSounds = [];
 
-  generateGraph();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
 
-  let puzzleSolved = true;
+    nodes = deepCopy(tutorial.nodes);
+    solution = deepCopy(nodes);
 
-  while (puzzleSolved) {
-    nodes.forEach(node => {
-      if (!node.fixed) {
-        randomizeNodePosition(node);
+    nodes.forEach((node, j) => {
+      const neighbors = [];
+      const solutionNeighbors = [];
+
+      node.neighbors.forEach(neighborId => {
+        // For simplicity, keep IDs and indexes the same
+        neighbors.push(nodes[neighborId]);
+        solutionNeighbors.push(solution[neighborId]);
+      });
+
+      node.neighbors = neighbors;
+      solution[j].neighbors = solutionNeighbors;
+
+      if (node.moveTo) {
+        node.x = node.moveTo[0];
+        node.y = node.moveTo[1];
       }
     });
 
-    for (let i = 0; i < nodes.length && puzzleSolved; i++) {
-      let node = nodes[i];
+    for (const [node1Id, node2Id] of tutorial.swaps) {
+      const node1 = nodes[node1Id];
+      const node2 = nodes[node2Id];
+      const node1X = node1.x;
+      const node1Y = node1.y;
+      node1.x = node2.x;
+      node1.y = node2.y;
+      node2.x = node1X;
+      node2.y = node1Y;
+    }
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
 
-      for (let j = 0; j < node.neighbors.length && puzzleSolved; j++) {
-        let neighbor = node.neighbors[j];
-        let isOverlapping = pathIsOverlapping(node, neighbor, nodes);
-        puzzleSolved = puzzleSolved && !isOverlapping;
+    // Quick: 12/1, Casual: 14/2, Challenging: 16/3, Intense: 18/3
+    GRAPH_SIZE = 10 + 2 * DIFFICULTY;
+    FIXED_NODES = Math.min(DIFFICULTY, 3);
+
+    generateGraph();
+
+    let puzzleSolved = true;
+
+    while (puzzleSolved) {
+      nodes.forEach(node => {
+        if (!node.fixed) {
+          randomizeNodePosition(node);
+        }
+      });
+
+      for (let i = 0; i < nodes.length && puzzleSolved; i++) {
+        let node = nodes[i];
+
+        for (let j = 0; j < node.neighbors.length && puzzleSolved; j++) {
+          let neighbor = node.neighbors[j];
+          let isOverlapping = pathIsOverlapping(node, neighbor, nodes);
+          puzzleSolved = puzzleSolved && !isOverlapping;
+        }
       }
     }
   }
@@ -626,14 +1114,14 @@ function randomizeNodePosition(node) {
   node.y = Math.random() * (CANVAS_HEIGHT - NODE_SIZE) + NODE_SIZE / 2;
 }
 
-function setXtoGridCoordinates(gridX) {
+function setXtoGridCoordinates(gridX, graphSize = GRAPH_SIZE) {
   let gridWidth = CANVAS_WIDTH - NODE_SIZE;
-  return gridWidth *  gridX / GRAPH_SIZE + NODE_SIZE / 2;
+  return gridWidth *  gridX / graphSize + NODE_SIZE / 2;
 }
 
-function setYtoGridCoordinates(gridY) {
+function setYtoGridCoordinates(gridY, graphSize = GRAPH_SIZE) {
   let gridHeight = CANVAS_HEIGHT - NODE_SIZE;
-  return gridHeight * gridY / GRAPH_SIZE + NODE_SIZE / 2;
+  return gridHeight * gridY / graphSize + NODE_SIZE / 2;
 }
 
 function releaseNode(node, playSound = true) {

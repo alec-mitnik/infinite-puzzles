@@ -5,6 +5,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
  * Add message support for Marked Loop Puzzle tutorials, explaining invalid states more?
  * Handle piece rotation on mobile more intuitively (especially for Circuit Grid Puzzle)
  * Finish remaining tutorials
+ * Get the loading screen to actually show during loading, not after
  */
 
 class Router {

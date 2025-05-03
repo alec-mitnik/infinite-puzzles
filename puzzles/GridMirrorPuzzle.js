@@ -35,20 +35,6 @@ const tutorials = [
       {
         solutionOrderIndex: 1,
         // mirrorDirection: DIRECTION.UP_LEFT,
-      }
-    ],
-    allowedTaps: 1,
-    allowedMirrors: 0,
-    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
-      inSolution: x === 7 && y === 5,
-      solutionOrderIndex: x === 7 && y === 5 ? 1 : null,
-      filled: false,
-    }))),
-  },
-  {
-    solutionSteps: [
-      {
-        solutionOrderIndex: 1,
       },
       {
         solutionOrderIndex: 2,
