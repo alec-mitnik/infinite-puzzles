@@ -5,7 +5,8 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
  * Add message support for Marked Loop Puzzle tutorials, explaining invalid states more?
  * Handle piece rotation on mobile more intuitively (especially for Circuit Grid Puzzle)
  * Finish remaining tutorials
- * Get the loading screen to actually show during loading, not after
+ * Get the loading screen to actually show during loading (of whole app), not after
+ * Complex logic grid generation stalls on narrowColumnPossibilities...
  */
 
 class Router {
@@ -282,7 +283,6 @@ class Router {
 
       const canvasContainer = document.getElementById('canvasContainer');
       canvasContainer.classList.remove('started', 'home');
-      canvasContainer.classList.add('loading');
 
       // Dynamically import the puzzle module
       const puzzleModule = await import(`../puzzles/${puzzleName}.js`);
@@ -296,7 +296,8 @@ class Router {
 
       // Initialize puzzle
       if (typeof window.app.currentPuzzle.init === 'function') {
-        canvasContainer.classList.add("loading");
+        canvasContainer.classList.add('loading');
+        document.getElementById('startButton').disabled = true;
 
         if (window.app.puzzleState.tutorialStage) {
           window.app.puzzleState.tutorialStage++;

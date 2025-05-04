@@ -9,7 +9,7 @@ const LINE_THICKNESS = 6;
 //  const GREEK_LETTERS = "αβγδεζηθικλμνξοπρσςτυφχψω";
 const GREEK_LETTERS = "δζξλπφσςβψ";
 const SHAPE_SYMBOLS = "▲\uFE0E;◼\uFE0E;◆\uFE0E;▼\uFE0E;⬟\uFE0E;⬣\uFE0E";
-const CHESS_SYMBOLS = "♚\uFE0E;♛\uFE0E;♜\uFE0E;♞\uFE0E;♝\uFE0E;♟\uFE0E;♔\uFE0E;♕\uFE0E;♖\uFE0E;♘\uFE0E;♗\uFE0E;♙\uFE0E;";
+const CHESS_SYMBOLS = "♚\uFE0E;♛\uFE0E;♜\uFE0E;♞\uFE0E;♝\uFE0E;♟\uFE0E;♔\uFE0E;♕\uFE0E;♖\uFE0E;♘\uFE0E;♗\uFE0E;♙\uFE0E";
 const DIGITS = "1234567890";
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SYMBOL_SETS = [DIGITS, LETTERS, SHAPE_SYMBOLS, CHESS_SYMBOLS, GREEK_LETTERS];
@@ -17,6 +17,763 @@ const SYMBOL_SETS = [DIGITS, LETTERS, SHAPE_SYMBOLS, CHESS_SYMBOLS, GREEK_LETTER
 const CLINK_SOUND = 'clink';
 const SNAP_SOUND = 'click';
 const CHIME_SOUND = 'chime';
+
+const tutorials = [
+  {
+    rows: 2,
+    cols: 3,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        // CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+        // x: (i + 0.5) * CELL_SIZE,
+        // y: (j + 0.5) * CELL_SIZE,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[0],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[2],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[1],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {
+          // Turns out these aren't necessary after generation
+          [0]: SYMBOL_SETS[0].charAt(2),
+        },
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(1, 3)[1],
+        negation: false,
+        row: 1, // Only seems to be used for XOR rules
+        value: SYMBOL_SETS[0].charAt(2),
+        offset: 0, // Only seems to be used for XOR rules
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[0],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[1],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {
+          ['not' + 0]: [SYMBOL_SETS[0].charAt(2)],
+        },
+      },
+      {
+        id: getRowSymbols(1, 3)[2],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(1, 3)[1],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(2),
+        offset: 0,
+      },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 3,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 0.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[2],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[1],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 3)[0],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 1.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {
+          [0]: SYMBOL_SETS[0].charAt(2),
+        },
+      },
+      {
+        id: getRowSymbols(2, 3)[0],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 3,
+        y: 2.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 3)[1],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 3,
+        y: 2.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {
+          [1]: getRowSymbols(1, 3)[1],
+        },
+      },
+      {
+        id: getRowSymbols(2, 3)[2],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 3,
+        y: 2.5 * GRID_SIZE / 3,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(1, 3)[0],
+        negation: false,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(2),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 3)[1],
+        negation: false,
+        row: 1,
+        value: getRowSymbols(1, 3)[1],
+        offset: 0,
+      },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 4,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(3),
+        fixed: true,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[2],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[3],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[0],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[1],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[0],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[2],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[3],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[1],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(2, 4)[2],
+        negation: false,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(1),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 4)[2],
+        negation: false,
+        row: 1,
+        value: getRowSymbols(1, 4)[3],
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(1, 4)[0],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(3),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 4)[1],
+        negation: false,
+        row: 1,
+        value: getRowSymbols(1, 4)[1],
+        offset: 0,
+      },
+    ],
+  },
+  {
+    rows: 3,
+    cols: 4,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(3),
+        fixed: true,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[0],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[2],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[3],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[1],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[3],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[0],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[1],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[2],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(1, 4)[2],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(3),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(1, 4)[3],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(3),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(1, 4)[3],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(1),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 4)[0],
+        negation: true,
+        row: 1,
+        value: getRowSymbols(1, 4)[3],
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 4)[2],
+        negation: true,
+        row: 1,
+        value: getRowSymbols(1, 4)[3],
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(2, 4)[2],
+        negation: true,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(1),
+        offset: 0,
+      },
+    ],
+  },
+  {
+    rows: 4,
+    cols: 4,
+    nodes: [
+      {
+        id: SYMBOL_SETS[0].charAt(0),
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(1),
+        fixed: true,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(2),
+        fixed: true,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: SYMBOL_SETS[0].charAt(3),
+        fixed: true,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 0.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[0],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[3],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[0],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {
+          [0]: SYMBOL_SETS[0].charAt(1),
+        },
+      },
+      {
+        id: getRowSymbols(1, 4)[1],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(1, 4)[2],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 1.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[1],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[2],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[3],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(2, 4)[0],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {
+          [0]: SYMBOL_SETS[0].charAt(2),
+        },
+      },
+      {
+        id: getRowSymbols(2, 4)[1],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 2.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[2],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {
+          [1]: getRowSymbols(1, 4)[2],
+        },
+      },
+      {
+        id: getRowSymbols(3, 4)[1],
+        fixed: true,
+        x: 0.5 * GRID_SIZE / 4,
+        y: 3.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[3],
+        col: SYMBOL_SETS[0].charAt(0),
+        rules: {},
+      },
+      {
+        id: getRowSymbols(3, 4)[2],
+        fixed: false,
+        x: 1.5 * GRID_SIZE / 4,
+        y: 3.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[3],
+        col: SYMBOL_SETS[0].charAt(1),
+        rules: {
+          [2]: getRowSymbols(2, 4)[3],
+        },
+      },
+      {
+        id: getRowSymbols(3, 4)[0],
+        fixed: false,
+        x: 2.5 * GRID_SIZE / 4,
+        y: 3.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[3],
+        col: SYMBOL_SETS[0].charAt(2),
+        rules: {
+          [1]: getRowSymbols(1, 4)[1],
+        },
+      },
+      {
+        id: getRowSymbols(3, 4)[3],
+        fixed: false,
+        x: 3.5 * GRID_SIZE / 4,
+        y: 3.5 * GRID_SIZE / 4,
+        row: SYMBOL_SETS[3],
+        col: SYMBOL_SETS[0].charAt(3),
+        rules: {
+          [0]: SYMBOL_SETS[0].charAt(3),
+        },
+      },
+    ],
+    displayedRules: [
+      {
+        node: getRowSymbols(2, 4)[0],
+        negation: false,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(2),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(3, 4)[0],
+        negation: false,
+        row: 1,
+        value: getRowSymbols(1, 4)[1],
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(3, 4)[3],
+        negation: false,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(3),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(1, 4)[0],
+        negation: false,
+        row: 1,
+        value: SYMBOL_SETS[0].charAt(1),
+        offset: 0,
+      },
+      {
+        node: getRowSymbols(3, 4)[2],
+        negation: false,
+        row: 1,
+        value: getRowSymbols(2, 4)[3],
+        offset: 0,
+      },
+    ],
+  },
+];
 
 let DIFFICULTY;
 let ROWS;
@@ -33,13 +790,16 @@ let previousTouch = null;
 let displayedRules = [];
 let nodes = [];
 let queuedSounds = [];
+let isGenerating = false;
+let timeoutForAbortingGeneration = null;
+let generationStepCount = 0;
 
-function getRowSymbols(rowIndex) {
+function getRowSymbols(rowIndex, cols = COLS) {
   let splitChar = SYMBOL_SETS[rowIndex].indexOf(';') > -1;
-  let sliceIndex = COLS;
+  let sliceIndex = cols;
 
   if (splitChar) {
-    let n = COLS;
+    let n = cols;
     sliceIndex = -1;
 
     while (n-- && sliceIndex++ < SYMBOL_SETS[rowIndex].length) {
@@ -80,7 +840,7 @@ function generateLogic() {
         y: (j + 0.5) * CELL_SIZE,
         row: SYMBOL_SETS[j],
         col: SYMBOL_SETS[0].charAt(i),
-        rules: rules
+        rules,
       })
     }
 
@@ -93,12 +853,16 @@ function generateLogic() {
   let nodesToObscure = nodes.filter(node => !node.fixed);
 
   setTimeout(() => {
+    if (timeoutForAbortingGeneration) {
+      return;
+    }
+
     obscureNodes(nodesToObscure);
   });
 }
 
-function obscureNodes(nodesToObscure, tries = 0) {
-  //console.log("Obscuring...");
+async function obscureNodes(nodesToObscure, tries = 0) {
+  // console.log("Obscuring...");
 
   if (nodesToObscure.length > 0 && tries < 100) {
     tries++;
@@ -106,7 +870,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
     let index = randomIndex(nodesToObscure);
     let node = nodesToObscure[index];
 
-//      let pos = narrowColumnPossibilities(node);
+//      let pos = await narrowColumnPossibilities(node);
 //      console.log(node.id, pos);
 //
 //      if (pos.length > 1) {
@@ -115,7 +879,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
 
     node.rules[0] = null;
 
-    let colPossibilities = narrowColumnPossibilities(node, idsChecked);
+    let colPossibilities = await narrowColumnPossibilities(node, idsChecked);
     idsChecked[node.id] = colPossibilities;
 
     let derived = colPossibilities.length === 1;
@@ -131,7 +895,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
       while (notColNodes.length > 0) {
         let notNode = notColNodes.splice(randomIndex(notColNodes), 1)[0];
 
-        let notPos = narrowColumnPossibilities(notNode, idsChecked);
+        let notPos = await narrowColumnPossibilities(notNode, idsChecked);
         idsChecked[notNode.id] = notPos;
 
         if (notPos.length === 1) {
@@ -144,7 +908,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
       }
 
       //if (derived) {
-      //  let pos = narrowColumnPossibilities(node);
+      //  let pos = await narrowColumnPossibilities(node);
       //  console.log(node.id, pos);
 //
       //  if (pos.length > 1) {
@@ -166,7 +930,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
         while (rowNeighbors.length > 0) {
           let rowNeighbor = rowNeighbors.splice(randomIndex(rowNeighbors), 1)[0];
 
-          let rowPos = narrowColumnPossibilities(rowNeighbor, idsChecked);
+          let rowPos = await narrowColumnPossibilities(rowNeighbor, idsChecked);
           idsChecked[rowNeighbor.id] = rowPos;
 
           // For any row neighbor that can't exclude the node's column,
@@ -184,7 +948,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
             // node's column, and add a rule to the row neighbor for it
             while (colNeighbors.length > 0) {
               let colNeighbor = colNeighbors.splice(randomIndex(colNeighbors), 1)[0];
-              let colPos = narrowColumnPossibilities(colNeighbor, idsChecked);
+              let colPos = await narrowColumnPossibilities(colNeighbor, idsChecked);
 
               idsChecked[colNeighbor.id] = colPos;
 
@@ -208,7 +972,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
         }
 
         //console.log("A");
-//          let pos = narrowColumnPossibilities(node);
+//          let pos = await narrowColumnPossibilities(node);
 //          console.log(node.id, pos);
 //
 //          if (pos.length > 1) {
@@ -230,7 +994,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
           let colNeighbor = colNeighbors.splice(randomIndex(colNeighbors), 1)[0];
           let oRowIndex = SYMBOL_SETS.indexOf(colNeighbor.row);
 
-          let colPos = narrowColumnPossibilities(colNeighbor, idsChecked);
+          let colPos = await narrowColumnPossibilities(colNeighbor, idsChecked);
           idsChecked[colNeighbor.id] = colPos;
 
           let filteredColPos = colPos.filter(id => colPos.indexOf(id) > -1);
@@ -267,7 +1031,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
           while (notColNodes.length > 0) {
             let notNode = notColNodes.splice(randomIndex(notColNodes), 1)[0];
 
-            let notPos = narrowColumnPossibilities(notNode, idsChecked);
+            let notPos = await narrowColumnPossibilities(notNode, idsChecked);
             idsChecked[notNode.id] = notPos;
 
             if (notPos.length === 1) {
@@ -295,7 +1059,7 @@ function obscureNodes(nodesToObscure, tries = 0) {
           node.rules[0] = node.col;
 //            nodesToObscure.push(node);
         } else {
-//            let pos = narrowColumnPossibilities(node);
+//            let pos = await narrowColumnPossibilities(node);
 //            console.log(node.id, pos);
 //
 //            if (pos.length > 1) {
@@ -308,7 +1072,11 @@ function obscureNodes(nodesToObscure, tries = 0) {
     nodesToObscure.splice(index, 1);
 
     setTimeout(() => {
-      obscureNodes(nodesToObscure, tries);
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
+      obscureNodes(nodesToObscure/* , tries */);
     });
   } else {
     //console.log("Tries:", tries);
@@ -317,13 +1085,17 @@ function obscureNodes(nodesToObscure, tries = 0) {
     let nodesToSimplify = nodes.filter(node => !node.fixed);
 
     setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
       simplifyNodes(nodesToSimplify);
     });
   }
 }
 
-function simplifyNodes(nodesToSimplify) {
-  //console.log("Simplifying...");
+async function simplifyNodes(nodesToSimplify) {
+  // console.log("Simplifying...");
 
   let topLeft = getRowSymbols(0)[0];
   let firstColumnNodeIds = nodes.filter(node => node.col === topLeft).map(node => node.id);
@@ -331,7 +1103,7 @@ function simplifyNodes(nodesToSimplify) {
   if (nodesToSimplify.length > 0) {
     let node = nodesToSimplify.splice(randomIndex(nodesToSimplify), 1)[0];
 
-    let rows = Array.from({length: ROWS}, (arr, index) => index);
+    let rows = Array.from({length: ROWS}, (_arr, index) => index);
 
     while (rows.length > 0) {
       let row = rows.splice(randomIndex(rows), 1)[0];
@@ -342,8 +1114,8 @@ function simplifyNodes(nodesToSimplify) {
         let valueNode = getNodeWithValue(rule, nodes);
         node.rules[row] = null;
 
-        if (!canColumnBeDerivedForNode(node)
-            || !canColumnBeDerivedForNode(valueNode)) {
+        if (!(await canColumnBeDerivedForNode(node))
+            || !(await canColumnBeDerivedForNode(valueNode))) {
 //            node.rules['not'+row] = getRowSymbols(row).filter(symbol => symbol !== rule);
           node.rules[row] = rule;
         }
@@ -356,8 +1128,8 @@ function simplifyNodes(nodesToSimplify) {
         let notValueNode = getNodeWithValue(notRule, nodes);
         i--;
 
-        if (!canColumnBeDerivedForNode(node)
-            || !canColumnBeDerivedForNode(notValueNode)) {
+        if (!(await canColumnBeDerivedForNode(node))
+            || !(await canColumnBeDerivedForNode(notValueNode))) {
           notRules.splice(i, 0, notRule);
           i++;
         }
@@ -372,16 +1144,25 @@ function simplifyNodes(nodesToSimplify) {
     }
 
     setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
       simplifyNodes(nodesToSimplify);
     });
   } else {
     setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
       organizeRules();
     });
   }
 }
 
 function organizeRules() {
+  // console.log("Organizing rules...");
   let rulesList = [];
 
   nodes.filter(node => !node.fixed).forEach(node => {
@@ -392,7 +1173,7 @@ function organizeRules() {
           negation: false,
           row: k,
           value: node.rules[k],
-          offset: 0
+          offset: 0,
           });
       }
 
@@ -403,7 +1184,7 @@ function organizeRules() {
             negation: true,
             row: k,
             value: rowValue,
-            offset: 0
+            offset: 0,
           });
         });
       }
@@ -445,6 +1226,10 @@ function organizeRules() {
     let nonFixedNodes = nodes.filter(node => !node.fixed);
 
     setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
       generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes);
     });
   } else {
@@ -452,7 +1237,7 @@ function organizeRules() {
   }
 }
 
-function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes, idsChecked = {}) {
+async function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes, idsChecked = {}) {
   //console.log("Generating xor rules...");
 
   if (convertList.length > 0 && nonFixedNodes.length > 0) {
@@ -463,7 +1248,7 @@ function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedN
     let nodeIndex = randomIndex(nonFixedNodes);
     let randomNode = nonFixedNodes[nodeIndex];
     let nodeRow = SYMBOL_SETS.indexOf(randomNode.row);
-    let pos = narrowColumnPossibilities(randomNode, idsChecked);
+    let pos = await narrowColumnPossibilities(randomNode, idsChecked);
     idsChecked[randomNode.id] = pos;
 
     if (pos.length === 1) {
@@ -488,7 +1273,7 @@ function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedN
 
         let valueNode = nodes.filter(node => node.col === falseCol
             && SYMBOL_SETS.indexOf(node.row) === randomRow)[0];
-        let valuePos = narrowColumnPossibilities(valueNode, idsChecked);
+        let valuePos = await narrowColumnPossibilities(valueNode, idsChecked);
         idsChecked[valueNode.id] = valuePos;
 
         if (valuePos.length === 1) {
@@ -513,7 +1298,7 @@ function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedN
                 negation: negation,
                 row: randomRow,
                 value: valueNode.id,
-                offset: 0
+                offset: 0,
               };
               falseRules.push(falseRule);
               break;
@@ -552,6 +1337,10 @@ function generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedN
     }
 
     setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
       generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes, idsChecked);
     });
   } else {
@@ -592,9 +1381,19 @@ function finishRules(rulesList, xorList) {
   finishInit();
 }
 
-function narrowColumnPossibilities(node, idsChecked = {}) {
+function step() {
+  return new Promise(resolve => {
+    setTimeout(resolve);
+  });
+}
+
+async function narrowColumnPossibilities(node, idsChecked = {}) {
   let possibilities = getRowSymbols(0);
   possibilities.shift(); // Remove the first (fixed) column
+
+  if (!node || timeoutForAbortingGeneration) {
+    return possibilities;
+  }
 
   if (idsChecked[node.id] !== undefined) {
     return idsChecked[node.id].filter(id => possibilities.indexOf(id) > -1);
@@ -602,18 +1401,24 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
     idsChecked[node.id] = [node.col];
     return [node.col];
   } else {
-    possibilities =
-        possibilities.filter(id => node.rules['not0'].indexOf(id) < 0);
+    generationStepCount++;
+
+    if (generationStepCount % 5000 === 0) {
+      generationStepCount = 0;
+      await step();
+    }
+
+    possibilities = possibilities.filter(id => node.rules['not0'].indexOf(id) < 0);
 
     if (possibilities.length > 1) {
       idsChecked[node.id] = possibilities;
 
       for (let i = 0; i < ROWS; i++) {
-        let notRules = node.rules['not'+i];
+        let notRules = node.rules['not'+i] ?? [];
 
         for (let j = 0; j < notRules.length; j++) {
           let notNode = getNodeWithValue(notRules[j], nodes);
-          let notPoss = narrowColumnPossibilities(notNode, idsChecked);
+          let notPoss = await narrowColumnPossibilities(notNode, idsChecked);
 
           if (notPoss.length === 1) {
             let index = possibilities.indexOf(notPoss[0]);
@@ -639,13 +1444,12 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
 
       let notNodes = nodes.filter(notNode => {
         return possibilities.indexOf(notNode.col) > -1
-            && notNode.rules['not'+SYMBOL_SETS.indexOf(node.row)]
-            .indexOf(node.id) > -1;
+            && notNode.rules['not'+SYMBOL_SETS.indexOf(node.row)].indexOf(node.id) > -1;
       });
 
       for (let i = 0; i < notNodes.length; i++) {
         let notNode = notNodes[i];
-        let notPoss = narrowColumnPossibilities(notNode, idsChecked);
+        let notPoss = await narrowColumnPossibilities(notNode, idsChecked);
 
         if (notPoss.length === 1) {
           let index = possibilities.indexOf(notPoss[0]);
@@ -665,8 +1469,7 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
       idsChecked[node.id] = possibilities;
 
       let columnNeighbors = nodes.filter(oNode => {
-        return node.id !== oNode.id && node.col === oNode.col
-            && !oNode.fixed;
+        return node.id !== oNode.id && node.col === oNode.col && !oNode.fixed;
       });
 
       for (let i = 0; i < columnNeighbors.length; i++) {
@@ -676,9 +1479,8 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
 
         if ((oNode.rules[nodeRowIndex] === node.id
             || node.rules[oRowIndex] === oNode.id)) {
-          let oPoss = narrowColumnPossibilities(oNode, idsChecked);
-          possibilities =
-              possibilities.filter(id => oPoss.indexOf(id) > -1);
+          let oPoss = await narrowColumnPossibilities(oNode, idsChecked);
+          possibilities = possibilities.filter(id => oPoss.indexOf(id) > -1);
 
           if (possibilities.length < 2) {
             break;
@@ -691,19 +1493,17 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
       idsChecked[node.id] = possibilities;
 
       let rowNeighbors = nodes.filter(oNode => {
-        return node.id !== oNode.id && node.row === oNode.row
-            && !oNode.fixed;
+        return node.id !== oNode.id && node.row === oNode.row && !oNode.fixed;
       });
 
       let allNeighborPossibilities = [];
 
       for (let i = 0; i < rowNeighbors.length; i++) {
         let oNode = rowNeighbors[i];
-        let oPossibilities = narrowColumnPossibilities(oNode, idsChecked);
+        let oPossibilities = await narrowColumnPossibilities(oNode, idsChecked);
 
         if (oPossibilities.length === 1) {
-          possibilities =
-              possibilities.filter(id => id !== oPossibilities[0]);
+          possibilities = possibilities.filter(id => id !== oPossibilities[0]);
 
           if (possibilities.length < 2) {
             break;
@@ -727,15 +1527,16 @@ function narrowColumnPossibilities(node, idsChecked = {}) {
   }
 }
 
-function canColumnBeDerivedForNode(node) {
-  return narrowColumnPossibilities(node).length < 2;
+async function canColumnBeDerivedForNode(node) {
+  return await narrowColumnPossibilities(node).length < 2;
 }
 
 export function drawInstructions() {
   drawInstructionsHelper("💭\uFE0E Logic Grid Puzzle 💭\uFE0E",
       ["Place each token in the grid row for its symbol set",
           "and the column which follows the stated logic rules."],
-      ["Drag tokens to move them."]);
+      ["Drag tokens to move them."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -821,13 +1622,13 @@ export function drawPuzzle() {
       let offsetValue1 = "";
 
       if (!rule1.negation && rule1.offset !== 0) {
-        offsetValue = rule1.offset > 0 ? "+" + rule1.offset : rule1.offset;
+        offsetValue1 = rule1.offset > 0 ? "+" + rule1.offset : rule1.offset;
       }
 
       let offsetValue2 = "";
 
       if (!rule2.negation && rule2.offset !== 0) {
-        offsetValue = rule2.offset > 0 ? "+" + rule2.offset : rule2.offset;
+        offsetValue2 = rule2.offset > 0 ? "+" + rule2.offset : rule2.offset;
       }
 
       ruleText += rule1.node + "⇒" + (rule1.negation ? "¬" : "") + rule1.value + offsetValue1;
@@ -1045,27 +1846,24 @@ function isOverlapping(node, nodeList) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
-    window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
+  if (isGenerating) {
+    clearTimeout(timeoutForAbortingGeneration);
+
+    timeoutForAbortingGeneration = setTimeout(() => {
+      isGenerating = false;
+      timeoutForAbortingGeneration = null;
+      init();
+    }, 100);
+
+    return;
   }
 
-  DIFFICULTY = window.app.router.difficulty;
+  isGenerating = true;
+  generationStepCount = 0
 
-  // Above 5/5 takes too much computation...!
-  // Quick: 4/4, Casual: 4/5, Challenging: 5/5, Intense: 5/6
-  ROWS = 3 + Math.floor((DIFFICULTY + 1) / 2);
-  COLS = 4 + Math.floor(DIFFICULTY / 2);
-  USE_XOR = false;
-  // Quick: 4/4/simple, Casual: 5/5/simple, Challenging: 4/4/xor, Intense: 5/5/xor
-  // ROWS = 4 + ((DIFFICULTY + 1) % 2);
-  // COLS = 4 + ((DIFFICULTY + 1) % 2);
-  // USE_XOR = DIFFICULTY > 2;
-
-  CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
-  GRID_WIDTH = CELL_SIZE * COLS;
-  GRID_HEIGHT = CELL_SIZE * ROWS;
-  NODE_SIZE = CELL_SIZE / 3;
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
+    window.app.puzzleState.tutorialStage = 0;
+  }
 
   dragging = null;
   previousTouch = null;
@@ -1073,18 +1871,62 @@ export function init() {
   nodes = [];
   queuedSounds = [];
 
-  // Allow opportunity for loading screen to show
-  setTimeout(generateLogic, 100);
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+
+    USE_XOR = false;
+    CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+    GRID_WIDTH = CELL_SIZE * COLS;
+    GRID_HEIGHT = CELL_SIZE * ROWS;
+    NODE_SIZE = CELL_SIZE / 3;
+
+    nodes = deepCopy(tutorial.nodes);
+    displayedRules = deepCopy(tutorial.displayedRules);
+    solution = deepCopy(nodes);
+
+    finishInit();
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+
+    // Above 5/5 takes too much computation...!
+    // Quick: 4/4, Casual: 4/5, Challenging: 5/5, Intense: 5/6
+    ROWS = 3 + Math.floor((DIFFICULTY + 1) / 2);
+    COLS = 4 + Math.floor(DIFFICULTY / 2);
+    USE_XOR = false;
+    // Quick: 4/4/simple, Casual: 5/5/simple, Challenging: 4/4/xor, Intense: 5/5/xor
+    // ROWS = 4 + ((DIFFICULTY + 1) % 2);
+    // COLS = 4 + ((DIFFICULTY + 1) % 2);
+    // USE_XOR = DIFFICULTY > 2;
+
+    CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
+    GRID_WIDTH = CELL_SIZE * COLS;
+    GRID_HEIGHT = CELL_SIZE * ROWS;
+    NODE_SIZE = CELL_SIZE / 3;
+
+    // Allow opportunity for loading screen to show
+    setTimeout(() => {
+      if (timeoutForAbortingGeneration) {
+        return;
+      }
+
+      generateLogic();
+    }, 100);
+  }
 }
 
 function finishInit() {
   // let puzzleSolved = true;
-  let moveableNodes = nodes.filter(node => !node.fixed);
+  const moveableNodes = nodes.filter(node => !node.fixed);
+  const moveableNodesPerSet = COLS - 1;
 
 //    while (puzzleSolved) {
   moveableNodes.forEach((node, i) => {
-    node.x = (i - Math.floor(i / (COLS - 1))) * (CELL_SIZE / 2) + CELL_SIZE / 2;
-    node.y = CANVAS_HEIGHT - CELL_SIZE / 2 - ((i % (COLS - 1)) * CELL_SIZE / 2);
+    const setIndex = Math.floor(i / moveableNodesPerSet);
+    node.x = (moveableNodesPerSet > 2 ? i - setIndex : i) * (CELL_SIZE / 2) + CELL_SIZE / 2;
+    node.y = CANVAS_HEIGHT - CELL_SIZE / 2 - ((i % moveableNodesPerSet) * CELL_SIZE / 2);
   });
 
     /*for (let i = 0; i < moveableNodes.length && puzzleSolved; i++) {
@@ -1098,6 +1940,8 @@ function finishInit() {
   updateForTutorialState();
 
   drawInstructions();
+
+  isGenerating = false;
 
   finishedLoading();
 }
