@@ -27,6 +27,304 @@ const SAVE_SOUND = "click";
 const LOAD_SOUND = "boing";
 const CHIME_SOUND = "chime";
 
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    // grid: Array.from({length: COLS}, (_el, x) => Array.from({length: ROWS}, (_el, y) => ({
+    //   id: (1000 * x + y),
+    //   coord: [x, y],
+    //   connections: [DIRECTION.UP],
+    // }))),
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.RIGHT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.LEFT, DIRECTION.DOWN],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+    ],
+    startingTileId: 1,
+    shuffles: [
+      {
+        direction: DIRECTION.DOWN,
+        rowOrColIndex: 1,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.UP, DIRECTION.RIGHT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.DOWN],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.LEFT],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+    ],
+    startingTileId: 0,
+    shuffles: [
+      {
+        direction: DIRECTION.DOWN,
+        rowOrColIndex: 1,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.RIGHT, DIRECTION.LEFT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.LEFT, DIRECTION.DOWN],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP, DIRECTION.RIGHT],
+        },
+      ],
+      [
+        {
+          id: 2000,
+          coord: [2, 0],
+          connections: [DIRECTION.RIGHT],
+        },
+        {
+          id: 2001,
+          coord: [2, 1],
+          connections: [DIRECTION.LEFT],
+        },
+      ],
+    ],
+    startingTileId: 0,
+    shuffles: [
+      {
+        direction: DIRECTION.UP,
+        rowOrColIndex: 2,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.RIGHT, DIRECTION.LEFT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.LEFT, DIRECTION.DOWN],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP, DIRECTION.RIGHT],
+        },
+      ],
+      [
+        {
+          id: 2000,
+          coord: [2, 0],
+          connections: [DIRECTION.RIGHT],
+        },
+        {
+          id: 2001,
+          coord: [2, 1],
+          connections: [DIRECTION.LEFT],
+        },
+      ],
+    ],
+    startingTileId: 0,
+    shuffles: [
+      {
+        direction: DIRECTION.RIGHT,
+        rowOrColIndex: 1,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.RIGHT, DIRECTION.LEFT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.LEFT, DIRECTION.DOWN],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP, DIRECTION.RIGHT],
+        },
+      ],
+      [
+        {
+          id: 2000,
+          coord: [2, 0],
+          connections: [DIRECTION.RIGHT],
+        },
+        {
+          id: 2001,
+          coord: [2, 1],
+          connections: [DIRECTION.LEFT],
+        },
+      ],
+    ],
+    startingTileId: 0,
+    shuffles: [
+      {
+        direction: DIRECTION.UP,
+        rowOrColIndex: 2,
+      },
+      {
+        direction: DIRECTION.RIGHT,
+        rowOrColIndex: 1,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    grid: [
+      [
+        {
+          id: 0,
+          coord: [0, 0],
+          connections: [DIRECTION.DOWN, DIRECTION.RIGHT],
+        },
+        {
+          id: 1,
+          coord: [0, 1],
+          connections: [DIRECTION.UP],
+        },
+      ],
+      [
+        {
+          id: 1000,
+          coord: [1, 0],
+          connections: [DIRECTION.LEFT, DIRECTION.DOWN],
+        },
+        {
+          id: 1001,
+          coord: [1, 1],
+          connections: [DIRECTION.UP, DIRECTION.RIGHT],
+        },
+      ],
+      [
+        {
+          id: 2000,
+          coord: [2, 0],
+          connections: [DIRECTION.DOWN],
+        },
+        {
+          id: 2001,
+          coord: [2, 1],
+          connections: [DIRECTION.LEFT, DIRECTION.UP],
+        },
+      ],
+    ],
+    startingTileId: 1001,
+    shuffles: [
+      {
+        direction: DIRECTION.DOWN,
+        rowOrColIndex: 0,
+      },
+      {
+        direction: DIRECTION.LEFT,
+        rowOrColIndex: 0,
+      },
+      {
+        direction: DIRECTION.DOWN,
+        rowOrColIndex: 0,
+      },
+      {
+        direction: DIRECTION.RIGHT,
+        rowOrColIndex: 0,
+      },
+      {
+        direction: DIRECTION.UP,
+        rowOrColIndex: 0,
+      },
+    ],
+  },
+];
+
 let DIFFICULTY;
 let ROWS;
 let COLS;
@@ -43,12 +341,11 @@ let solutionSteps;
 let queuedSounds = [];
 
 function generateGrid() {
-  grid = Array.from({length: COLS}, (_el, x) => Array.from({length: ROWS},
-      (_el, y) => ({
-        id: (1000 * x + y),
-        coord: [x, y],
-        connections: [],
-      })));
+  grid = Array.from({length: COLS}, (_el, x) => Array.from({length: ROWS}, (_el, y) => ({
+    id: (1000 * x + y),
+    coord: [x, y],
+    connections: [],
+  })));
 
   let tiles = grid.flat();
   startingTile = tiles[randomIndex(tiles)];
@@ -84,16 +381,15 @@ function generateGrid() {
 
   solution = deepCopy(grid);
   solutionStartingTile = getStartingTileForGrid(solution);
-  gridHistory = [];
 }
 
-function getStartingTileForGrid(gridToUse) {
+function getStartingTileForGrid(gridToUse, startingTileId = startingTile?.id) {
   let tiles = gridToUse.flat();
 
   for (let i = 0; i < tiles.length; i++) {
     let tile = tiles[i];
 
-    if (tile.id === startingTile.id) {
+    if (tile.id === startingTileId) {
       return tile;
     }
   }
@@ -243,77 +539,103 @@ function shiftAtIndex(index, direction) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
   }
 
-  DIFFICULTY = window.app.router.difficulty;
-
-  ROWS = DIFFICULTY < 2 ? 2 : (DIFFICULTY < 4 ? 3 : 4);
-  COLS = DIFFICULTY < 3 ? 3 : 4;
-  CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
-  NODE_SIZE = CELL_SIZE / 6;
-
   queuedSounds = [];
+  gridHistory = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
 
-  let directions = Object.values(DIRECTION);
-  let solved = true;
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+    NODE_SIZE = CELL_SIZE / 6;
 
-  while (solved) {
+    const startingTileId = tutorial.startingTileId;
+    grid = deepCopy(tutorial.grid);
+    solution = deepCopy(grid);
+    startingTile = getStartingTileForGrid(grid, startingTileId);
+    solutionStartingTile = getStartingTileForGrid(solution);
+
+    const shuffles = tutorial.shuffles;
     solutionSteps = [];
 
-    let stepsToNotUndo = [];
-    let prevShiftHorizontal = null;
+    for (const {direction, rowOrColIndex} of shuffles) {
+      shiftAtIndex(rowOrColIndex, direction);
 
-    for (let i = 0; i < SHUFFLE_SHIFTS; i++) {
-      let randomDirection = directions[randomIndex(directions)];
-      let randomIndexValue = -1;
-      let newShiftHorizontal = true;
+      solutionSteps.unshift(
+        [rowOrColIndex + 1, getDirectionComplement(direction)]
+      );
+    }
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
 
-      if (randomDirection === DIRECTION.UP
-          || randomDirection === DIRECTION.DOWN) {
-        newShiftHorizontal = false;
-        randomIndexValue = Math.floor(Math.random() * COLS);
-      } else {
-        randomIndexValue = Math.floor(Math.random() * ROWS);
-      }
+    ROWS = DIFFICULTY < 2 ? 2 : (DIFFICULTY < 4 ? 3 : 4);
+    COLS = DIFFICULTY < 3 ? 3 : 4;
+    CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
+    NODE_SIZE = CELL_SIZE / 6;
 
-      if (stepsToNotUndo.length) {
-        let wastefulShift = false;
+    generateGrid();
 
-        for (let i = 0; i < stepsToNotUndo.length; i++) {
-          let stepIndex = stepsToNotUndo[i][0];
-          let stepDirection = stepsToNotUndo[i][1];
+    let directions = Object.values(DIRECTION);
+    let solved = true;
 
-          if (randomIndexValue === stepIndex
-              && randomDirection === getDirectionComplement(stepDirection)) {
-            wastefulShift = true;
-            break;
+    while (solved) {
+      solutionSteps = [];
+
+      let stepsToNotUndo = [];
+      let prevShiftHorizontal = null;
+
+      for (let i = 0; i < SHUFFLE_SHIFTS; i++) {
+        let randomDirection = directions[randomIndex(directions)];
+        let randomIndexValue = -1;
+        let newShiftHorizontal = true;
+
+        if (randomDirection === DIRECTION.UP
+            || randomDirection === DIRECTION.DOWN) {
+          newShiftHorizontal = false;
+          randomIndexValue = Math.floor(Math.random() * COLS);
+        } else {
+          randomIndexValue = Math.floor(Math.random() * ROWS);
+        }
+
+        if (stepsToNotUndo.length) {
+          let wastefulShift = false;
+
+          for (let i = 0; i < stepsToNotUndo.length; i++) {
+            let stepIndex = stepsToNotUndo[i][0];
+            let stepDirection = stepsToNotUndo[i][1];
+
+            if (randomIndexValue === stepIndex
+                && randomDirection === getDirectionComplement(stepDirection)) {
+              wastefulShift = true;
+              break;
+            }
+          }
+
+          if (wastefulShift) {
+            i--;
+            continue;
           }
         }
 
-        if (wastefulShift) {
-          i--;
-          continue;
+        if (newShiftHorizontal != prevShiftHorizontal) {
+          prevShiftHorizontal = newShiftHorizontal;
+          stepsToNotUndo = [];
         }
+
+        stepsToNotUndo.push([randomIndexValue, randomDirection]);
+
+        shiftAtIndex(randomIndexValue, randomDirection);
+        solutionSteps.unshift(
+            [randomIndexValue + 1, getDirectionComplement(randomDirection)]);
       }
 
-      if (newShiftHorizontal != prevShiftHorizontal) {
-        prevShiftHorizontal = newShiftHorizontal;
-        stepsToNotUndo = [];
-      }
-
-      stepsToNotUndo.push([randomIndexValue, randomDirection]);
-
-      shiftAtIndex(randomIndexValue, randomDirection);
-      solutionSteps.unshift(
-          [randomIndexValue + 1, getDirectionComplement(randomDirection)]);
+      solved = puzzleSolved();
     }
-
-    solved = puzzleSolved();
   }
 
   updateForTutorialState();
@@ -333,7 +655,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🚂\uFE0E Shifting Grid Puzzle 🚂\uFE0E",
       ["Shift tiles to connect all the tracks to the station.",
           "Tracks and shifted tiles both loop back around."],
-      ["Click or tap the arrows to shift the row or column."]);
+      ["Click or tap the arrows to shift the row or column."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 function getConnectedTiles(tile, connectedTiles, gridToDraw) {
