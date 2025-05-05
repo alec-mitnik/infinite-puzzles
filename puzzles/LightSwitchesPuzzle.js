@@ -10,6 +10,142 @@ const SWITCH_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const SWITCH_SOUND = 'click';
 const CHIME_SOUND = 'chime';
 
+const tutorials = [
+  {
+    rows: 2,
+    cols: 2,
+    // ROWS + COLS
+    lightSwitches: [
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === 0 && y === 0;
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === 1 && y === 0;
+        })),
+        toggled: false,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, _y) => {
+          return x === 1;
+        })),
+        toggled: false,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === 1 || (x === 0 && y === 1);
+        })),
+        toggled: true,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 2,
+    lightSwitches: [
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === y;
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === 1 && y === 0;
+        })),
+        toggled: false,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, x) => Array.from({length: 2}, (_elY, _y) => {
+          return x === 1;
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 2}, (_elX, _x) => Array.from({length: 2}, (_elY, y) => {
+          return y === 1;
+        })),
+        toggled: true,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    lightSwitches: [
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return !(x === 0 && y === 0);
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return !(x === 1 && y === 0);
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return !(x === 2 && y === 0);
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, _x) => Array.from({length: 2}, (_elY, y) => {
+          return y === 1;
+        })),
+        toggled: false,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, _x) => Array.from({length: 2}, (_elY, y) => {
+          return y === 0;
+        })),
+        toggled: true,
+      },
+    ],
+  },
+  {
+    rows: 2,
+    cols: 3,
+    lightSwitches: [
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return (x === 1 && y === 0) || x === 2;
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return !((x === 0 && y === 1) || (x=== 2 && y === 0));
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, _y) => {
+          return x !== 0;
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return !(x === y + 1);
+        })),
+        toggled: true,
+      },
+      {
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x === 0 && y === 0;
+        })),
+        toggled: true,
+      },
+    ],
+  },
+];
+
 let DIFFICULTY;
 let ROWS;
 let COLS;
@@ -25,7 +161,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🚨\uFE0E Light Switches Puzzle 🚨\uFE0E",
       ["Activate the correct switches to light all the grid tiles.",
           "Each switch toggles a specific set of tiles."],
-      ["Click or tap a switch to toggle it."]);
+      ["Click or tap a switch to toggle it."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -90,23 +227,22 @@ function getSwitchCoord(lightSwitch, switchesToCheck = lightSwitches) {
     lightX = CELL_SIZE * (COLS + 0.5);
     lightY = CELL_SIZE * (i + 0.5);
   } else {
-    lightX = CELL_SIZE * (i - ROWS + 0.5);
+    // Start at right edge, so that order goes down the right side, then left along the bottom
+    lightX = CELL_SIZE * (COLS - (i - ROWS + 0.5));
     lightY = CELL_SIZE * (ROWS + 0.5);
   }
 
   return [lightX, lightY];
 }
 
-function generateGrid() {
+function generateSwitches() {
   lightSwitches = [];
 
-  grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
-
-  let offGrid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
+  const offGrid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
   let anyToggled = false;
 
   for (let i = 0; i < COLS + ROWS - 1; i++) {
-    let isToggled = Math.random() < 0.5;
+    const isToggled = Math.random() < 0.5;
     anyToggled ||= isToggled;
 
     let connections;
@@ -144,12 +280,12 @@ function generateGrid() {
 
     lightSwitches.push({
       lightToggles: connections,
-      toggled: isToggled
+      toggled: isToggled,
     });
   }
 
   if (!anyToggled) {
-    let toggledSwitch = lightSwitches[randomIndex(lightSwitches)];
+    const toggledSwitch = lightSwitches[randomIndex(lightSwitches)];
     toggledSwitch.toggled = true;
 
     for (let j = 0; j < COLS; j++) {
@@ -161,16 +297,18 @@ function generateGrid() {
     }
   }
 
-  let offGridToggles = offGrid.flat().filter(connection => connection).length;
-  let allOn = offGridToggles === COLS * ROWS;
+  const offGridToggles = offGrid.flat().filter(connection => connection).length;
+  const allOn = offGridToggles === COLS * ROWS;
 
   if (allOn) {
     // Toggled switches cancel each other out, so redo the generation
-    generateGrid();
+    generateSwitches();
     return;
   }
 
-  let allOff = offGridToggles === 0;
+  let lastSwitchConnections;
+  const lastSwitchIndex = randomIndex(lightSwitches);
+  const allOff = offGridToggles === 0;
 
   if (allOff) {
     // Toggled switches already span the whole grid,
@@ -182,19 +320,34 @@ function generateGrid() {
       connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => Math.random() < SWITCH_RATE));
     }
 
-    lightSwitches.splice(randomIndex(lightSwitches), 0, {
+    lastSwitchConnections = connections;
+    lightSwitches.splice(lastSwitchIndex, 0, {
       lightToggles: connections,
       toggled: false
     });
   } else {
-    lightSwitches.splice(randomIndex(lightSwitches), 0, {
+    lastSwitchConnections = offGrid;
+    lightSwitches.splice(lastSwitchIndex, 0, {
       lightToggles: offGrid,
       toggled: true,
     });
   }
 
-  solutionGrid = deepCopy(grid);
-  solutionSwitches = deepCopy(lightSwitches);
+  // Make sure the last switch isn't a duplicate, otherwise redo the generation
+  let connectionsString = lastSwitchConnections.flat().map(toggle => toggle.toString()).join('');
+
+  for (let j = 0; j < lightSwitches.length; j++) {
+    if (j === lastSwitchIndex) {
+      continue;
+    }
+
+    let lightSwitch = lightSwitches[j];
+
+    if (lightSwitch.lightToggles.flat().map(toggle => toggle.toString()).join('') === connectionsString) {
+      generateSwitches();
+      return;
+    }
+  }
 }
 
 function toggle(lightSwitch) {
@@ -213,21 +366,35 @@ function toggle(lightSwitch) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
   }
-
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 3/3, Casual: 3/4, Challenging: 4/4, Intense: 4/5
-  ROWS = 3 + (DIFFICULTY > 2 ? 1 : 0);
-  COLS = 2 + DIFFICULTY - (DIFFICULTY > 2 ? 1 : 0);
-  CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
 
   queuedSounds = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    ROWS = tutorial.rows;
+    COLS = tutorial.cols;
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
+    grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
+
+    lightSwitches = deepCopy(tutorial.lightSwitches);
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+
+    // Quick: 3/3, Casual: 3/4, Challenging: 4/4, Intense: 4/5
+    ROWS = 3 + (DIFFICULTY > 2 ? 1 : 0);
+    COLS = 2 + DIFFICULTY - (DIFFICULTY > 2 ? 1 : 0);
+    CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
+    grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
+
+    generateSwitches();
+  }
+
+  solutionGrid = deepCopy(grid);
+  solutionSwitches = deepCopy(lightSwitches);
 
   lightSwitches.forEach(lightSwitch => {
     if (lightSwitch.toggled) {

@@ -249,19 +249,344 @@ const tutorials = [
             value: COLORS[0],
             x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
             y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
-            coordinates: [1, 1],
+            coordinates: [1, 0],
           },
           {
             value: COLORS[1],
             x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
             y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
-            coordinates: [1, 2],
+            coordinates: [1, 1],
           },
           {
             value: COLORS[1],
             x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
             y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 5) / 2,
-            coordinates: [0, 2],
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+    rotate: true,
+  },
+  {
+    rows: 4,
+    cols: 3,
+    grid: Array.from({length: 3}, (_elX, x) => Array.from({length: 4}, (_elY, y) => {
+      return {
+        value: ((x === 0 && y !== 2) || (x === 1 && y === 0) || y === 3) ? COLORS[0] : COLORS[1],
+        show: !(x === 1 && (y === 1 || y === 2)),
+      };
+    })),
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 1],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: true,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+    rotate: true,
+  },
+  {
+    rows: 4,
+    cols: 3,
+    grid: Array.from({length: 3}, (_elX, x) => Array.from({length: 4}, (_elY, y) => {
+      return {
+        value: (x === y) ? COLORS[0] : COLORS[1],
+        show: true,
+      };
+    })),
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 1],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 1],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+    ],
+    rotate: true,
+  },
+  {
+    rows: 4,
+    cols: 3,
+    grid: Array.from({length: 3}, (_elX, x) => Array.from({length: 4}, (_elY, y) => {
+      return {
+        value: (x === 0 || (x === 1 && (y === 1 || y === 2))) ? COLORS[0] : COLORS[1],
+        show: true,
+      };
+    })),
+    tiles: [
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 1],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[0],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [1, 0],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
+          },
+        ],
+        fixed: false,
+      },
+      {
+        cells: [
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 0],
+          },
+          {
+            value: COLORS[1],
+            x: 2 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            y: 3 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) + (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 6) / 2,
+            coordinates: [0, 1],
           },
         ],
         fixed: false,

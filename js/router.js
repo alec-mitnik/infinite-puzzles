@@ -4,7 +4,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
  * Fix audio issues on mobile, especially bad for tutorials
  * Add message support for Marked Loop Puzzle tutorials, explaining invalid states more?
  * Handle piece rotation on mobile more intuitively (especially for Circuit Grid Puzzle)
- * Finish remaining tutorials
+ * Finish remaining slider-path tutorial, and improve circuit-grid and marked-loop tutorials
  * Get the loading screen to actually show during loading (of whole app), not after
  * Complex logic grid generation stalls on narrowColumnPossibilities...
  */
