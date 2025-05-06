@@ -2,8 +2,6 @@ import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
 
-// Must not exceed 12 to ensure enough space to show solution steps
-const SHUFFLE_SHIFTS = Math.floor(Math.random() * 7) + 6;
 const HISTORY_LIMIT = 100;
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
@@ -326,6 +324,7 @@ const tutorials = [
 ];
 
 let DIFFICULTY;
+let SHUFFLE_SHIFTS;
 let ROWS;
 let COLS;
 let CELL_SIZE;
@@ -535,6 +534,10 @@ function shiftAtIndex(index, direction) {
   }
 }
 
+function isHorizontal(direction) {
+  return direction === DIRECTION.LEFT || direction === DIRECTION.RIGHT;
+}
+
 /***********************************************
  * INIT
  ***********************************************/
@@ -567,12 +570,14 @@ export function init() {
       shiftAtIndex(rowOrColIndex, direction);
 
       solutionSteps.unshift(
-        [rowOrColIndex + 1, getDirectionComplement(direction)]
+        [rowOrColIndex, getDirectionComplement(direction)]
       );
     }
   } else {
     DIFFICULTY = window.app.router.difficulty;
 
+    // Must not exceed 12 to ensure enough space to show solution steps
+    SHUFFLE_SHIFTS = Math.floor(Math.random() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
     ROWS = DIFFICULTY < 2 ? 2 : (DIFFICULTY < 4 ? 3 : 4);
     COLS = DIFFICULTY < 3 ? 3 : 4;
     CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
@@ -584,54 +589,54 @@ export function init() {
     let solved = true;
 
     while (solved) {
+      // [[index, direction], ...]
       solutionSteps = [];
-
-      let stepsToNotUndo = [];
-      let prevShiftHorizontal = null;
+      let latestShiftLengths = {
+        true: {},
+        false: {},
+      };
 
       for (let i = 0; i < SHUFFLE_SHIFTS; i++) {
-        let randomDirection = directions[randomIndex(directions)];
-        let randomIndexValue = -1;
-        let newShiftHorizontal = true;
+        let prevDirection = solutionSteps.length ? solutionSteps[0][1] : null;
+        let isPrevShiftHorizontal = prevDirection ? isHorizontal(prevDirection) : false;
+        let randomDirection;
+        let isShiftHorizontal;
+        let randomIndexUpperLimit;
+        let randomIndexValue;
+        let currentShift;
 
-        if (randomDirection === DIRECTION.UP
-            || randomDirection === DIRECTION.DOWN) {
-          newShiftHorizontal = false;
-          randomIndexValue = Math.floor(Math.random() * COLS);
-        } else {
-          randomIndexValue = Math.floor(Math.random() * ROWS);
-        }
+        do {
+          randomDirection = directions[randomIndex(directions)];
+          isShiftHorizontal = isHorizontal(randomDirection);
+          randomIndexUpperLimit = isShiftHorizontal ? ROWS : COLS;
+          randomIndexValue = Math.floor(Math.random() * randomIndexUpperLimit);
+          currentShift = latestShiftLengths[isShiftHorizontal][randomIndexValue] ?? {count: 0, direction: randomDirection};
+        } while (solutionSteps.length && ((
+            randomDirection === getDirectionComplement(currentShift.direction)
+          ) || (
+            currentShift.count + 1 > randomIndexUpperLimit * 0.5
+          ) || (
+            Object.keys(latestShiftLengths[isShiftHorizontal]).length >= randomIndexUpperLimit - 1
+            && Object.entries(latestShiftLengths[isShiftHorizontal]).every(([index, shift]) => {
+              return index === randomIndexValue || shift.direction === randomDirection;
+            })
+          ))
+        );
 
-        if (stepsToNotUndo.length) {
-          let wastefulShift = false;
+        currentShift.count++;
+        latestShiftLengths[isShiftHorizontal][randomIndexValue] = currentShift;
 
-          for (let i = 0; i < stepsToNotUndo.length; i++) {
-            let stepIndex = stepsToNotUndo[i][0];
-            let stepDirection = stepsToNotUndo[i][1];
+        if (solutionSteps.length && isShiftHorizontal !== isPrevShiftHorizontal) {
+          const shiftKeys = Object.keys(latestShiftLengths[isPrevShiftHorizontal]);
 
-            if (randomIndexValue === stepIndex
-                && randomDirection === getDirectionComplement(stepDirection)) {
-              wastefulShift = true;
-              break;
-            }
+          for (let i = 0; i < shiftKeys.length; i++) {
+            delete latestShiftLengths[isPrevShiftHorizontal][shiftKeys[i]];
           }
-
-          if (wastefulShift) {
-            i--;
-            continue;
-          }
         }
-
-        if (newShiftHorizontal != prevShiftHorizontal) {
-          prevShiftHorizontal = newShiftHorizontal;
-          stepsToNotUndo = [];
-        }
-
-        stepsToNotUndo.push([randomIndexValue, randomDirection]);
 
         shiftAtIndex(randomIndexValue, randomDirection);
         solutionSteps.unshift(
-            [randomIndexValue + 1, getDirectionComplement(randomDirection)]);
+            [randomIndexValue, getDirectionComplement(randomDirection)]);
       }
 
       solved = puzzleSolved();
@@ -907,7 +912,7 @@ export function drawPuzzle() {
 
       context.font = "bold " + (ARROW_SIZE * 5 / 12) + "px Arial"
       context.fillStyle = "#000000";
-      context.fillText(horizontal ? step[0] : letters.charAt(step[0] - 1),
+      context.fillText(horizontal ? step[0] + 1 : letters.charAt(step[0]),
           coord[0], coord[1] + ARROW_SIZE * 5 / 36);
     });
   }

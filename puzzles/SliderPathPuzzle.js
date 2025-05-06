@@ -17,6 +17,113 @@ const UNDO_SOUND = 'whir';
 const RESTART_SOUND = 'boing';
 const CHIME_SOUND = 'chime';
 
+const tutorials = [
+  {
+    grid: Array.from({length: COLS}, (_elX, x) => Array.from({length: ROWS}, (_elY, y) => ({
+      path: false, // Only matters for generation
+      block: x === 0 && y === 5,
+      brokenBlock: false, // Only matters during play
+      // Starts from 1
+      keyNumber: (x === 0 && y === 4) ? 1 : (
+        (x === COLS - 1 && y === 4) ? 2 : (
+          (x === COLS - 1 && y === ROWS - 1) ? 3 : NaN
+        )
+      ),
+      goal: x === COLS - 1 && y === ROWS - 1,
+      containsSlider: x === 0 && y === 0,
+    }))),
+  },
+  {
+    grid: Array.from({length: COLS}, (_elX, x) => Array.from({length: ROWS}, (_elY, y) => ({
+      path: false,
+      block: x === 0 && y === 5,
+      brokenBlock: false,
+      keyNumber: (x === COLS - 1 && y === 0) ? 1 : (
+        (x === COLS - 1 && y === ROWS - 1) ? 2 : (
+          (x === 0 && y === ROWS - 1) ? 3 : (
+            (x === 0 && y === 6) ? 4 : (
+              (x === COLS - 1 && y === 6) ? 5 : NaN
+            )
+          )
+        )
+      ),
+      goal: x === COLS - 1 && y === 6,
+      containsSlider: x === 0 && y === 0,
+    }))),
+  },
+  {
+    grid: Array.from({length: COLS}, (_elX, x) => Array.from({length: ROWS}, (_elY, y) => ({
+      path: false,
+      block: (x === 0 && y === 5) || (x === COLS - 1 && y === 0) || (x === COLS - 1 && y === 6),
+      brokenBlock: false,
+      keyNumber: (x === COLS - 2 && y === 0) ? 1 : (
+        (x === COLS - 2 && y === ROWS - 1) ? 2 : (
+          (x === 0 && y === ROWS - 1) ? 3 : (
+            (x === 0 && y === 6) ? 4 : (
+              (x === COLS - 2 && y === 6) ? 5 : NaN
+            )
+          )
+        )
+      ),
+      goal: x === COLS - 2 && y === 6,
+      containsSlider: x === 0 && y === 0,
+    }))),
+  },
+  {
+    grid: Array.from({length: COLS}, (_elX, x) => Array.from({length: ROWS}, (_elY, y) => ({
+      path: false,
+      block: (x === 3 && y === 0) || (x === 5 && y === 0) || (x === 4 && y === ROWS - 1)
+          || (x === 4 && y === ROWS - 2),
+      brokenBlock: false,
+      keyNumber: (x === 0 && y === 4) ? 1 : (
+        (x === 0 && y === 0) ? 2 : (
+          (x === 2 && y === 0) ? 3 : (
+            (x === 2 && y === ROWS - 1) ? 4 : (
+              (x === 3 && y === ROWS - 1) ? 5 : (
+                (x === 3 && y === 0) ? 6 : (
+                  (x === 4 && y === 0) ? 7 : (
+                    (x === 4 && y === ROWS - 3) ? 8 : NaN
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      goal: x === 4 && y === ROWS - 3,
+      containsSlider: x === 4 && y === 4,
+    }))),
+  },
+  {
+    grid: Array.from({length: COLS}, (_elX, x) => Array.from({length: ROWS}, (_elY, y) => ({
+      path: false,
+      block: (x === COLS - 1 && y === 0) || (x === COLS - 2 && y === ROWS - 1) || (x === 0 && y === ROWS - 2)
+          || (x === 1 && y === 1) || (x === COLS - 3 && y === 2) || (x === COLS - 4 && y === ROWS - 3)
+          || (x === 2 && y === ROWS - 4) || (x === 3 && y === 3) || (x === COLS - 5 && y === 4),
+      brokenBlock: false,
+      keyNumber: (x === COLS - 1 && y === 0) ? 1 : (
+        (x === COLS - 2 && y === ROWS - 1) ? 2 : (
+          (x === 0 && y === ROWS - 2) ? 3 : (
+            (x === 1 && y === 1) ? 4 : (
+              (x === COLS - 3 && y === 2) ? 5 : (
+                (x === COLS - 4 && y === ROWS - 3) ? 6 : (
+                  (x === 2 && y === ROWS - 4) ? 7 : (
+                    (x === 3 && y === 3) ? 8 : (
+                      (x === COLS - 5 && y === 4) ? 9 : NaN
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      goal: x === 4 && y === 4,
+      containsSlider: x === 0 && y === 0,
+    }))),
+  },
+];
+
 let DIFFICULTY;
 let MAX_BLOCKS;
 
@@ -99,15 +206,14 @@ function availableStops(directionVertical, x, y, goalPlacement = false) {
 }
 
 function generateGrid() {
-  grid = Array.from({length: COLS}, () => Array.from({length: ROWS},
-      () => ({
-        path: false,
-        block: false,
-        brokenBlock: false,
-        keyNumber: NaN,
-        goal: false,
-        containsSlider: false
-      })));
+  grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => ({
+    path: false,
+    block: false,
+    brokenBlock: false,
+    keyNumber: NaN,
+    goal: false,
+    containsSlider: false,
+  })));
 
   let x = Math.floor(Math.random() * (COLS - 2)) + 1;
   let y = Math.floor(Math.random() * (ROWS - 2)) + 1;
@@ -181,7 +287,6 @@ function generateGrid() {
       grid[x][y].keyNumber = keyNum;
       keyNum++;
 
-//        directionVertical = Math.random() < 0.5;
       directionVertical = !directionVertical;
     }
   }
@@ -192,29 +297,34 @@ function generateGrid() {
   }
 
   grid[x][y].goal = true;
-
-  gridHistory = [];
-  solution = deepCopy(grid);
 }
 
 /***********************************************
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > 0 /* tutorials.length */) {
+  if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
-    alert("Tutorial for this puzzle coming soon!");
   }
-
-  DIFFICULTY = window.app.router.difficulty;
-
-  // Quick: 10, Casual: 12, Challenging: 14, Intense: 16
-  MAX_BLOCKS = 8 + 2 * DIFFICULTY;
 
   alternateToVerticalHistory = [];
   queuedSounds = [];
+  gridHistory = [];
 
-  generateGrid();
+  if (window.app.puzzleState.tutorialStage) {
+    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+
+    grid = deepCopy(tutorial.grid);
+  } else {
+    DIFFICULTY = window.app.router.difficulty;
+
+    // Quick: 10, Casual: 12, Challenging: 14, Intense: 16
+    MAX_BLOCKS = 8 + 2 * DIFFICULTY;
+
+    generateGrid();
+  }
+
+  solution = deepCopy(grid);
 
   updateForTutorialState();
 
@@ -227,7 +337,8 @@ export function drawInstructions() {
   drawInstructionsHelper("🚩\uFE0E Slider Path Puzzle 🚩\uFE0E",
       ["Break all the white blocks and land in the goal.",
           "Hint: alternate vertical and horizontal moves."],
-      ["Click or tap the arrows to move the slider."]);
+      ["Click or tap the arrows to move the slider."],
+      window.app.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {

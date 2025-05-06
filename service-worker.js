@@ -1,5 +1,5 @@
-// Keep incrementing CACHE_VERSION for local testing, then set to an incremented PUBLIC_CACHE_VERSION before deploy
-const CACHE_VERSION = 173;
+let CACHE_VERSION = 174;
+// CACHE_VERSION = Date.now();
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 // List of files to cache for offline use
@@ -40,7 +40,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Caching for new service worker install');
+        console.log('Caching for new service worker install:', CACHE_NAME);
         return cache.addAll(FILES_TO_CACHE);
       })
       .then(() => {
@@ -56,7 +56,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keyList => {
       return Promise.all(keyList.map(key => {
         if (key !== CACHE_NAME) {
-          console.log('Removing old cache', key);
+          console.log('Removing old cache:', key);
           return caches.delete(key);
         }
       }));

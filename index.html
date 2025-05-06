@@ -19,8 +19,16 @@
 <link rel="stylesheet" href="styles.css" />
 
 <script type="module">
-  // Register service worker
+  // Register service worker and online status
   if ('serviceWorker' in navigator) {
+    if (navigator.onLine) {
+      document.getElementById('kofi-button').style.display = null;
+      const kofiIframe = document.getElementById('kofi-iframe');
+      kofiIframe.src = kofiIframe.dataset.src;
+    }
+
+    console.log('App loaded as ' + (navigator.onLine ? 'online' : 'offline'));
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./service-worker.js')
         .then(registration => {
@@ -252,9 +260,9 @@
     </button>
 
     <!-- Ko-fi tipping button -->
-    <button id="kofi-button" onclick="document.getElementById('kofi-dialog').showModal()"
+    <button id="kofi-button" style="display: none;" onclick="document.getElementById('kofi-dialog').showModal()"
         ontouchend="document.getElementById('kofi-dialog').showModal(); event.preventDefault();">
-      <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi donations">
+      <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi donations">
       Support my projects
     </button>
   </div>
@@ -294,8 +302,10 @@
       <button autofocus class="close-button" aria-label="Close tipping dialog" onclick="document.getElementById('kofi-dialog').close();">
         <span>❌&#65038;</span>
       </button>
+      <!-- Set data-src value to src attribute to trigger load at chosen moment -->
       <iframe
-        src="https://ko-fi.com/alecmitnik/?hidefeed=true&widget=true&embed=true&preview=true"
+        id="kofi-iframe"
+        data-src="https://ko-fi.com/alecmitnik/?hidefeed=true&widget=true&embed=true&preview=true"
         style="border: none; border-radius: 8px; width: 100%; height: 100%;"
       ></iframe>
     </div>
