@@ -214,6 +214,62 @@ const tutorials = [
       filled: false,
     }))),
   },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.UP_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.UP,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 4,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 0 && y === 0 || x === 1 && y === 0 || x === 0 && y === 1
+          || x === 1 && y === 1 || x === 2 && y === 2 || x === 3 && y === 3
+          || x === 4 && y === 4 || x === 4 && y === 5,
+      solutionOrderIndex: x === 2 && y === 2 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 4,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 3 && y === 3 || x === 2 && y === 4 || x === 1 && y === 5
+          || x === 0 && y === 6 || x === 0 && y === 7 || x === 1 && y === 8
+          || x === 2 && y === 9 || x === 9 && y === 9,
+      solutionOrderIndex: x === 3 && y === 3 ? 1 : null,
+      filled: false,
+    }))),
+  },
 ];
 
 let DIFFICULTY;
