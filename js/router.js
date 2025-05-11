@@ -7,8 +7,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
  * Enforce or at least highlight tutorials for new players, detected using local storage
  * Complex logic grid puzzle generation stalls on narrowColumnPossibilities...
  * Confetti or color bloom effect or something for solving puzzles, or at least for completing the tutorial?
- * Use localStorage to highlight (or better yet, default to) tutorial for players who haven't solved that puzzle before?
- * Option to recreate a puzzle from a URL?
+ * Option to share and recreate a puzzle from a URL?
  */
 
 class Router {

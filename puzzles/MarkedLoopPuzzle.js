@@ -836,7 +836,7 @@ function doesMarkerBelong(gridCoord, gridToDraw) {
     let tile = gridToDraw[gridCoord[0]][gridCoord[1]];
 
     return tile.neighborPaths.some(neighbor => {
-      return isPathCorner(neighbor, gridToDraw)
+      return isPathCorner(neighbor, gridToDraw);
     });
   }
 
@@ -885,7 +885,7 @@ export function drawPuzzle() {
     for (let j = 0; j < ROWS; j++) {
       let tile = gridToDraw[i][j];
       let coord = getDrawCoord(tile.coord);
-      let centerCoord = getDrawCoord(tile.coord, true);
+      // let centerCoord = getDrawCoord(tile.coord, true);
 
       context.beginPath();
       context.lineWidth = TILE_BORDER;
@@ -950,17 +950,18 @@ export function drawPuzzle() {
 
   for (let i = 0; i < COLS; i++) {
     for (let j = 0; j < ROWS; j++) {
-      let tile = gridToDraw[i][j];
+      const tile = gridToDraw[i][j];
 
-      let markerMatchesPath =
+      const markerMatchesPath =
           doesMarkerBelong(tile.coord, gridToDraw) === tile.marked
+      const markerOnCorner = tile.marked && isPathCorner([i, j], gridToDraw);
 
       if (tile.marked ||
           (allPathsLoops && loops.length === 1 && !markerMatchesPath)) {
         let centerCoord = getDrawCoord(tile.coord, true);
         context.fillStyle = tile.marked ? "#000000" : ALERT_COLOR;
         context.strokeStyle = solved ? SUCCESS_COLOR
-            : (!allPathsLoops || loops.length !== 1 || markerMatchesPath ?
+            : (!markerOnCorner && (!allPathsLoops || loops.length !== 1 || markerMatchesPath) ?
                 "#808080" : ALERT_COLOR);
         context.lineCap = "round";
         context.beginPath();
