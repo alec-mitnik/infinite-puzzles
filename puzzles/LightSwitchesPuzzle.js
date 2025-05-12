@@ -95,8 +95,8 @@ const tutorials = [
         toggled: true,
       },
       {
-        lightToggles: Array.from({length: 3}, (_elX, _x) => Array.from({length: 2}, (_elY, y) => {
-          return y === 1;
+        lightToggles: Array.from({length: 3}, (_elX, x) => Array.from({length: 2}, (_elY, y) => {
+          return x !== 1 && y === 1;
         })),
         toggled: false,
       },

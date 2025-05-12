@@ -956,12 +956,11 @@ export function drawPuzzle() {
           doesMarkerBelong(tile.coord, gridToDraw) === tile.marked
       const markerOnCorner = tile.marked && isPathCorner([i, j], gridToDraw);
 
-      if (tile.marked ||
-          (allPathsLoops && loops.length === 1 && !markerMatchesPath)) {
+      if (tile.marked || !markerMatchesPath) {
         let centerCoord = getDrawCoord(tile.coord, true);
         context.fillStyle = tile.marked ? "#000000" : ALERT_COLOR;
         context.strokeStyle = solved ? SUCCESS_COLOR
-            : (!markerOnCorner && (!allPathsLoops || loops.length !== 1 || markerMatchesPath) ?
+            : (!markerOnCorner && (((!allPathsLoops || loops.length !== 1) && tile.marked) || markerMatchesPath) ?
                 "#808080" : ALERT_COLOR);
         context.lineCap = "round";
         context.beginPath();
