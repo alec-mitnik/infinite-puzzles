@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const TILE_VISIBILITY_RATE = 1;
 const GRID_MASK_SIZE = 5;
@@ -928,7 +928,7 @@ function puzzleSolved(playSound = true) {
   }, true);
 
   if (window.app.puzzleState.interactive && solved && playSound) {
-    endPuzzle();
+    endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
     audioManager.play(CHIME_SOUND);
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
@@ -1030,6 +1030,7 @@ function getGridCoordinatesForCell(cell) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   dragging = null;

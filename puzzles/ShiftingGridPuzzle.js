@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const HISTORY_LIMIT = 100;
 
@@ -544,6 +544,7 @@ function isHorizontal(direction) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   queuedSounds = [];
@@ -761,7 +762,7 @@ export function drawPuzzle() {
   if (!window.app.puzzleState.showingSolution) {
     if (solved) {
       if (window.app.puzzleState.interactive) {
-        endPuzzle();
+        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {

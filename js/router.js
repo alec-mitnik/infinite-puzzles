@@ -1,11 +1,9 @@
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
+import { updateForTutorialRecommendation } from './utils.js';
 
 /* TODO:
- * Fix audio issues on mobile, especially bad for tutorials
- * Handle piece rotation on mobile more intuitively (especially for Circuit Grid Puzzle)
- * Improve circuit-grid and marked-loop tutorials
- * Enforce or at least highlight tutorials for new players, detected using local storage
  * Complex logic grid puzzle generation stalls on narrowColumnPossibilities...
+ * Improve circuit-grid tutorial?
  * Confetti or color bloom effect or something for solving puzzles, or at least for completing the tutorial?
  * Option to share and recreate a puzzle from a URL?
  */
@@ -280,6 +278,7 @@ class Router {
         showingInstructions: false,
         showingSolution: false,
         loaded: false,
+        puzzleName,
       };
 
       const canvasContainer = document.getElementById('canvasContainer');
@@ -307,6 +306,8 @@ class Router {
         if (startTutorial) {
           window.app.puzzleState.tutorialStage = 1;
         }
+
+        updateForTutorialRecommendation();
 
         window.app.currentPuzzle.init();
       } else {

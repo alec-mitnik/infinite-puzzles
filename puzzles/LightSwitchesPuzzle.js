@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
 const LIGHT_BORDER = 0;
@@ -181,7 +181,7 @@ export function drawPuzzle() {
     for (let j = 0; j < ROWS; j++) {
       let light = gridToDraw[i][j];
 
-      puzzleSolved &= light;
+      puzzleSolved &&= light;
 
       context.fillStyle = light ? SUCCESS_COLOR : "#808080";
       context.fillRect(i * CELL_SIZE + LIGHT_BORDER, j * CELL_SIZE + LIGHT_BORDER,
@@ -191,7 +191,7 @@ export function drawPuzzle() {
 
   if (puzzleSolved) {
     if (window.app.puzzleState.interactive) {
-      endPuzzle();
+      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -368,6 +368,7 @@ function toggle(lightSwitch) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   queuedSounds = [];

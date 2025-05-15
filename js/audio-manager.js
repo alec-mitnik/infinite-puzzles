@@ -26,14 +26,21 @@ class AudioManager {
   setUpInitHandlers() {
     const initEvents = ['click', 'touchstart', 'keydown'];
 
-    const initFunction = () => {
+    const initFunction = async () => {
       if (!this.initialized) {
-        this.initialize();
+        try {
+          await this.initialize();
 
-        // Remove the event listeners once initialized
-        initEvents.forEach(event => {
-          document.removeEventListener(event, initFunction);
-        });
+          console.log('All sounds loaded successfully');
+          this.initialized = true;
+
+          // Remove the event listeners once initialized
+          initEvents.forEach(event => {
+            document.removeEventListener(event, initFunction);
+          });
+        } catch (error) {
+          console.error('Error loading sounds:', error);
+        }
       }
     };
 
@@ -49,32 +56,26 @@ class AudioManager {
 
   // Initialize the audio context and load sounds
   initialize() {
-    try {
-      // Create audio context
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.context = new AudioContext();
+    // Hack to ensure "unlock" of playback by playing a silent sound immediately after the user gesture
+    const unlockAudio = () => {
+      const buffer = this.context.createBuffer(1, 1, 22050);
+      const source = this.context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.context.destination);
+      source.start(0);
+    };
 
-      // Load all the sounds
-      const promises = Object.entries(this.soundFiles).map(([name, file]) => {
-        return this.loadSound(name, file);
-      });
+    // Create audio context
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    this.context = new AudioContext();
+    unlockAudio();
 
-      Promise.all(promises)
-        .then(() => {
-          console.log('All sounds loaded successfully');
-          this.initialized = true;
-        })
-        .catch(error => {
-          console.error('Error loading sounds:', error);
-        });
+    // Load all the sounds
+    const promises = Object.entries(this.soundFiles).map(([name, file]) => {
+      return this.loadSound(name, file);
+    });
 
-      // Resume the audio context (needed for Safari)
-      if (this.context.state === 'suspended') {
-        this.context.resume();
-      }
-    } catch (error) {
-      console.error('AudioContext not supported or other audio error:', error);
-    }
+    return Promise.all(promises);
   }
 
   // Load a single sound file
@@ -110,6 +111,11 @@ class AudioManager {
     }
 
     try {
+      // Resume the audio context (needed for Safari)
+      if (this.context.state === 'suspended') {
+        this.context.resume();
+      }
+
       // Create source node
       const source = this.context.createBufferSource();
       source.buffer = sound.buffer;

@@ -109,6 +109,12 @@ canvas#puzzleCanvas {
   }
 }
 
+#tutorialButton.recommended:not(.active) > span {
+  color: #F9B70F;
+  transform: scale(1);
+  animation: scaleFlare 2s ease-in-out infinite;
+}
+
 @keyframes scaleFlare {
   0%, 100% {
     transform: scale(1);
@@ -165,37 +171,37 @@ button > span {
   }
 }
 
-.sidebar button span {
+.sidebar button > span {
   padding: 20px 10px;
   line-height: 1.35;
 }
 
-.sidebar button.smaller span {
+.sidebar button.smaller > span {
   font-size: 80%;
 }
 
-.sidebar button.larger span {
+.sidebar button.larger > span {
   font-size: 120%;
   line-height: 1;
 }
 
-#tutorialButton.active span {
+#tutorialButton.active > span {
   background-color: #F9B70F;
 }
 
-#instructionsButton.active span {
+#instructionsButton.active > span {
   background-color: #0062A5;
 }
 
-#solutionButton.active span {
+#solutionButton.active > span {
   background-color: #F9B70F;
 }
 
-#settings button.faded span {
+#settings button.faded > span {
   opacity: 0.5;
 }
 
-#settings button.selected span {
+#settings button.selected > span {
   opacity: 1;
 }
 
@@ -203,7 +209,7 @@ button > span {
   padding: 10px 0;
 }
 
-.sidebar button.selected span {
+.sidebar button.selected > span {
   padding: 0;
   border-radius: 15px;
   box-shadow: inset 0 0 2px 3px #ffffff;

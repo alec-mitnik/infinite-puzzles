@@ -162,10 +162,31 @@ export function updateForTutorialState() {
   }
 }
 
-export function endPuzzle() {
+export function updateForTutorialRecommendation() {
+  if (!window.app.puzzleState.tutorialStage && !getTutorialDone()) {
+    document.getElementById('tutorialButton').classList.add('recommended');
+  } else {
+    document.getElementById('tutorialButton').classList.remove('recommended');
+  }
+}
+
+export function endPuzzle(lastTutorialStage) {
   window.app.puzzleState.ended = true;
   window.app.puzzleState.interactive = false;
   document.getElementById('controls').classList.add('solved');
+
+  if (!window.app.puzzleState.tutorialStage || lastTutorialStage) {
+    setTutorialDone();
+    updateForTutorialRecommendation();
+  }
+}
+
+export function getTutorialDone() {
+  return localStorage.getItem(`${window.app.puzzleState.puzzleName}_TutorialDone`) === 'true';
+}
+
+export function setTutorialDone() {
+  return localStorage.setItem(`${window.app.puzzleState.puzzleName}_TutorialDone`, 'true');
 }
 
 export function containsCoord(array, coord) {

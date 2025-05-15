@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 // Can't feasibly change sizes, as the solution steps need to fit in the offset
 const ROWS = 10;
@@ -23,7 +23,8 @@ const DIRECTION = Object.freeze({
   "UP_LEFT": 8
 });
 
-const TAP_SOUND = 'clink';
+const TAP_SOUND = 'click';
+const TAP_FAIL_SOUND = 'clink';
 const MIRROR_SOUND = 'whir';
 const UNDO_SOUND = 'warp';
 const RESTART_SOUND = 'boing';
@@ -713,6 +714,7 @@ function mirrorGrid(direction, forGeneratingSolution = false) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   queuedSounds = [];
@@ -821,7 +823,7 @@ export function drawPuzzle() {
 
     if (solved) {
       if (window.app.puzzleState.interactive) {
-        endPuzzle();
+        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {
@@ -1133,7 +1135,11 @@ function handleLeftClickOrTap(coord) {
         queuedSounds.push(TAP_SOUND);
 
         drawPuzzle();
+      } else {
+        audioManager.play(TAP_FAIL_SOUND);
       }
+    } else {
+      audioManager.play(TAP_FAIL_SOUND);
     }
   } else if (availableMirrors > 0) {
     let mirrorDirections = getAvailableMirrors();

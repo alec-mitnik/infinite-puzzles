@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
   "UP": 1,
@@ -840,7 +840,7 @@ export function drawPuzzle() {
       context.fillRect(CANVAS_WIDTH - CELL_SIZE, CANVAS_HEIGHT - CELL_SIZE,
           CELL_SIZE, CELL_SIZE);
 
-      endPuzzle();
+      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -1009,6 +1009,7 @@ function isOverlapping(node) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   dragging = null;

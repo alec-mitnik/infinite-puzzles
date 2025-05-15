@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const SKIPPED_ROWS = 0;
 const SKIPPED_COLS = 0;
@@ -10,6 +10,7 @@ const TILE_PROPORTION = 0.6;
 const LINE_THICKNESS = 12;
 
 const SELECT_SOUND = 'click';
+const SELECT_FAIL_SOUND = 'clink';
 const SWAP_SOUND = 'whir';
 const CHIME_SOUND = 'chime';
 
@@ -545,7 +546,7 @@ export function drawPuzzle() {
 
   if (puzzleSolved) {
     if (window.app.puzzleState.interactive) {
-      endPuzzle();
+      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -577,6 +578,7 @@ export function drawPuzzle() {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   DIFFICULTY = window.app.router.difficulty;
@@ -673,8 +675,13 @@ export function onMouseDown(event) {
       for (let i = 0; i < tiles.length; i++) {
         let tile = tiles[i];
 
-        if (!tile.fixed && Math.abs(mouseX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
+        if (Math.abs(mouseX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
             && Math.abs(mouseY - (tile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
+          if (tile.fixed) {
+            audioManager.play(SELECT_FAIL_SOUND);
+            return;
+          }
+
           if (selection) {
             if (selection === tile) {
               audioManager.play(SELECT_SOUND);
@@ -709,6 +716,16 @@ export function onMouseDown(event) {
           return;
         }
       }
+
+      for (const endTile of [...rowTotals, ...colTotals]) {
+        if (Math.abs(mouseX - (endTile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
+            && Math.abs(mouseY - (endTile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
+          // if (endTile.fixed) {
+            audioManager.play(SELECT_FAIL_SOUND);
+            return;
+          // }
+        }
+      }
     }
 
   // Middle click
@@ -732,8 +749,13 @@ export function onTouchStart(event) {
     for (let i = 0; i < tiles.length; i++) {
       let tile = tiles[i];
 
-      if (!tile.fixed && Math.abs(touchX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
+      if (Math.abs(touchX - (tile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
           && Math.abs(touchY - (tile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
+        if (tile.fixed) {
+          audioManager.play(SELECT_FAIL_SOUND);
+          return;
+        }
+
         if (selection) {
           if (selection === tile) {
             audioManager.play(SELECT_SOUND);
@@ -766,6 +788,16 @@ export function onTouchStart(event) {
         }
 
         return;
+      }
+    }
+
+    for (const endTile of [...rowTotals, ...colTotals]) {
+      if (Math.abs(touchX - (endTile.x + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2
+          && Math.abs(touchY - (endTile.y + TILE_PROPORTION * CELL_SIZE / 2)) < CELL_SIZE * TILE_PROPORTION / 2 + LINE_THICKNESS / 2) {
+        // if (endTile.fixed) {
+          audioManager.play(SELECT_FAIL_SOUND);
+          return;
+        // }
       }
     }
   }

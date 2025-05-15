@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
 const ROWS = 10;
@@ -305,6 +305,7 @@ function generateGrid() {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   alternateToVerticalHistory = [];
@@ -460,7 +461,7 @@ export function drawPuzzle() {
       }
 
       if (window.app.puzzleState.interactive) {
-        endPuzzle();
+        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {

@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const TILE_SIZE = 3;
 const MAX_TILE_CIRCUITS = TILE_SIZE * 2; // For reference
@@ -629,7 +629,7 @@ export function drawPuzzle() {
 
     if (!window.app.puzzleState.showingSolution) {
       if (window.app.puzzleState.interactive) {
-        endPuzzle();
+        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     }
@@ -717,6 +717,7 @@ function getCoordinatePath(gridCoords, coord) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   DIFFICULTY = window.app.router.difficulty;

@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
@@ -788,7 +788,7 @@ export function drawPuzzle() {
     });
 
     if (window.app.puzzleState.interactive) {
-      endPuzzle();
+      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -890,6 +890,7 @@ function orientation(p, q, r) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   dragging = null;
@@ -981,8 +982,13 @@ export function onMouseDown(event) {
       for (let i = nodes.length - 1; i >= 0; i--) {
         let node = nodes[i];
 
-        if (!node.fixed && Math.sqrt(Math.pow(mouseX - node.x, 2)
+        if (Math.sqrt(Math.pow(mouseX - node.x, 2)
             + Math.pow(mouseY - node.y, 2)) < NODE_SIZE / 3) {
+          if (node.fixed) {
+            audioManager.play(CLINK_SOUND, 0.5);
+            return;
+          }
+
           dragging = node;
           return;
         }
@@ -1011,8 +1017,13 @@ export function onTouchStart(event) {
     for (let i = nodes.length - 1; i >= 0; i--) {
       let node = nodes[i];
 
-      if (!node.fixed && Math.sqrt(Math.pow(touchX - node.x, 2)
+      if (Math.sqrt(Math.pow(touchX - node.x, 2)
           + Math.pow(touchY - node.y, 2)) < NODE_SIZE / 2) {
+        if (node.fixed) {
+          audioManager.play(CLINK_SOUND, 0.5);
+          return;
+        }
+
         previousTouch = touch;
         dragging = node;
         return;
@@ -1098,7 +1109,7 @@ export function onTouchEnd(event) {
   }
 }
 
-export function onMouseOut(event) {
+export function onMouseOut() {
   if (window.app.puzzleState.interactive && dragging) {
     releaseNode(dragging);
     dragging = null;

@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialState } from "../js/utils.js";
+import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_LINE_THICKNESS = 12;
@@ -644,6 +644,7 @@ function getGridPathNeighborCoords(gridCoord) {
 export function init() {
   if (window.app.puzzleState.tutorialStage > tutorials.length) {
     window.app.puzzleState.tutorialStage = 0;
+    updateForTutorialRecommendation();
   }
 
   DIFFICULTY = window.app.router.difficulty;
@@ -980,7 +981,7 @@ export function drawPuzzle() {
 
   if (!window.app.puzzleState.showingSolution) {
     if (solved && window.app.puzzleState.interactive) {
-      endPuzzle();
+      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     } else {
       queuedSounds.forEach(sound => audioManager.play(sound));
