@@ -198,7 +198,7 @@ const tutorials = [
         mirrorDirection: DIRECTION.DOWN_LEFT,
       },
       {
-        solutionOrderIndex: 2,
+        solutionOrderIndex: 5,
       },
       {
         mirrorDirection: DIRECTION.LEFT,
@@ -211,7 +211,7 @@ const tutorials = [
           || x === 6 && y === 6 || x === 7 && y === 7 || x === 8 && y === 8
           || x === 4 && y === 4 || x === 3 && y === 4
           || x === 0 && y === 5 || x === 1 && y === 6 || x === 0 && y === 7,
-      solutionOrderIndex: x === 7 && y === 5 ? 1 : (x === 4 && y === 4 ? 2 : null),
+      solutionOrderIndex: x === 7 && y === 5 ? 1 : (x === 4 && y === 4 ? 5 : null),
       filled: false,
     }))),
   },
@@ -221,25 +221,44 @@ const tutorials = [
         solutionOrderIndex: 1,
       },
       {
+        solutionOrderIndex: 2,
+      },
+      {
+        mirrorDirection: DIRECTION.UP_LEFT,
+      },
+    ],
+    allowedTaps: 2,
+    allowedMirrors: 1,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 0 && y === 0 || x === 3 && y === 0 || x === 2 && y === 2,
+      solutionOrderIndex: x === 2 && y === 2 ? 1 : (x === 3 && y === 0 ? 2 : null),
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        solutionOrderIndex: 2,
+      },
+      {
         mirrorDirection: DIRECTION.UP_LEFT,
       },
       {
-        mirrorDirection: DIRECTION.LEFT,
+        solutionOrderIndex: 4,
       },
       {
         mirrorDirection: DIRECTION.DOWN_RIGHT,
       },
-      {
-        mirrorDirection: DIRECTION.UP,
-      },
     ],
-    allowedTaps: 1,
-    allowedMirrors: 4,
+    allowedTaps: 3,
+    allowedMirrors: 2,
     grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
-      inSolution: x === 0 && y === 0 || x === 1 && y === 0 || x === 0 && y === 1
-          || x === 1 && y === 1 || x === 2 && y === 2 || x === 3 && y === 3
-          || x === 4 && y === 4 || x === 4 && y === 5,
-      solutionOrderIndex: x === 2 && y === 2 ? 1 : null,
+      inSolution: x === 0 && y === 3 || x === 6 && y === 9 || x === 3 && y === 6
+          || x === 9 && y === 2 || x === 7 && y === 0,
+      solutionOrderIndex: x === 3 && y === 6 ? 1 : (x === 7 && y === 0 ? 2 : (x === 9 && y === 2 ? 4 : null)),
       filled: false,
     }))),
   },
@@ -268,6 +287,34 @@ const tutorials = [
           || x === 0 && y === 6 || x === 0 && y === 7 || x === 1 && y === 8
           || x === 2 && y === 9 || x === 9 && y === 9,
       solutionOrderIndex: x === 3 && y === 3 ? 1 : null,
+      filled: false,
+    }))),
+  },
+  {
+    solutionSteps: [
+      {
+        solutionOrderIndex: 1,
+      },
+      {
+        mirrorDirection: DIRECTION.UP_LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.LEFT,
+      },
+      {
+        mirrorDirection: DIRECTION.DOWN_RIGHT,
+      },
+      {
+        mirrorDirection: DIRECTION.UP,
+      },
+    ],
+    allowedTaps: 1,
+    allowedMirrors: 4,
+    grid: Array.from({length: ROWS}, (_el, x) => Array.from({length: COLS}, (_el, y) => ({
+      inSolution: x === 0 && y === 0 || x === 1 && y === 0 || x === 0 && y === 1
+          || x === 1 && y === 1 || x === 2 && y === 2 || x === 3 && y === 3
+          || x === 4 && y === 4 || x === 4 && y === 5,
+      solutionOrderIndex: x === 2 && y === 2 ? 1 : null,
       filled: false,
     }))),
   },
