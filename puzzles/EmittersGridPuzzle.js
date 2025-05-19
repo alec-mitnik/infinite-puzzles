@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
   "UP": 1,
@@ -673,7 +673,7 @@ export function drawInstructions() {
 }
 
 export function drawPuzzle() {
-  let canvas = document.getElementById("puzzleCanvas");
+  let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
   context.fillStyle = BACKGROUND_COLOR;
@@ -1082,7 +1082,7 @@ export function onMouseDown(event) {
     if (window.app.puzzleState.interactive) {
       dragging = null;
 
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
@@ -1120,7 +1120,7 @@ export function onTouchStart(event) {
     previousTouch = null;
 
     let touch = event.changedTouches[0];
-    let canvasRect = event.target.getBoundingClientRect();
+    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
@@ -1147,7 +1147,7 @@ export function onMouseMove(event) {
   if (window.app.puzzleState.interactive && dragging) {
     // Can happen if mouse down triggered from touch end...
     if (!isNaN(event.movementX) && !isNaN(event.movementY)) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
 
       dragging.canvasCoord[0] += event.movementX / window.devicePixelRatio * CANVAS_WIDTH / canvasRect.width;
       dragging.canvasCoord[1] += event.movementY / window.devicePixelRatio * CANVAS_HEIGHT / canvasRect.height;
@@ -1170,7 +1170,7 @@ export function onTouchMove(event) {
     }
 
     if (movedTouch) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let movementX = movedTouch.clientX - previousTouch.clientX;
       let movementY = movedTouch.clientY - previousTouch.clientY;
 

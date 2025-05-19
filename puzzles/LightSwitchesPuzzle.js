@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
 const LIGHT_BORDER = 0;
@@ -169,7 +169,7 @@ export function drawPuzzle() {
   let gridToDraw = window.app.puzzleState.showingSolution ? solutionGrid : grid;
   let switchesToDraw = window.app.puzzleState.showingSolution ? solutionSwitches : lightSwitches;
 
-  let canvas = document.getElementById("puzzleCanvas");
+  let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
   context.fillStyle = BACKGROUND_COLOR;
@@ -414,7 +414,7 @@ export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
     if (window.app.puzzleState.interactive) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
@@ -442,7 +442,7 @@ export function onMouseDown(event) {
 export function onTouchStart(event) {
   if (window.app.puzzleState.interactive && event.changedTouches.length === 1) {
     let touch = event.changedTouches[0];
-    let canvasRect = event.target.getBoundingClientRect();
+    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 

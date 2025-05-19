@@ -1,5 +1,5 @@
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
-import { updateForTutorialRecommendation } from './utils.js';
+import { getPuzzleCanvas, updateForTutorialRecommendation } from './utils.js';
 
 /* TODO:
  * Complex logic grid puzzle generation stalls on narrowColumnPossibilities...
@@ -85,7 +85,7 @@ class Router {
       }
     }, { passive: false });
 
-    let puzzleCanvas = document.getElementById('puzzleCanvas');
+    let puzzleCanvas = getPuzzleCanvas();
     puzzleCanvas?.addEventListener('mousedown', (event) => {
       if (typeof window.app.currentPuzzle?.onMouseDown === 'function') {
         window.app.currentPuzzle.onMouseDown(event);
@@ -101,6 +101,9 @@ class Router {
         window.app.currentPuzzle.onMouseUp(event);
       }
     });
+
+    // Touch end is triggered even if outside the target, but mouse up is only triggered on the target,
+    // so need to handle mouse out as cancelling the action
     puzzleCanvas?.addEventListener('mouseout', (event) => {
       if (typeof window.app.currentPuzzle?.onMouseOut === 'function') {
         window.app.currentPuzzle.onMouseOut(event);
@@ -166,7 +169,7 @@ class Router {
     }
 
     if (!skipInitialization) {
-      let canvas = document.getElementById("puzzleCanvas");
+      let canvas = getPuzzleCanvas();
       let context = canvas.getContext("2d");
       context.reset();
 
@@ -231,7 +234,7 @@ class Router {
       window.app.puzzleState.tutorialStage = 0;
     }
 
-    let canvas = document.getElementById("puzzleCanvas");
+    let canvas = getPuzzleCanvas();
     let context = canvas.getContext("2d");
 
     context.fillStyle = BACKGROUND_COLOR;

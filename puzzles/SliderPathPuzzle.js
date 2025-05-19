@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
 const ROWS = 10;
@@ -343,7 +343,7 @@ export function drawInstructions() {
 }
 
 export function drawPuzzle() {
-  let canvas = document.getElementById("puzzleCanvas");
+  let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
   context.fillStyle = BACKGROUND_COLOR;
@@ -771,7 +771,7 @@ export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
     if (window.app.puzzleState.interactive) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
@@ -789,7 +789,7 @@ export function onTouchStart(event) {
   if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
     event.preventDefault();
 
-    let canvasRect = event.target.getBoundingClientRect();
+    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touch = event.changedTouches[0];
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;

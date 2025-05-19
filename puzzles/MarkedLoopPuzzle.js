@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_LINE_THICKNESS = 12;
@@ -851,7 +851,7 @@ function doesPathMatchMarkers(gridToDraw) {
 }
 
 export function drawPuzzle() {
-  let canvas = document.getElementById("puzzleCanvas");
+  let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
   context.fillStyle = BACKGROUND_COLOR;
@@ -1069,7 +1069,7 @@ export function onMouseDown(event) {
     if (window.app.puzzleState.interactive) {
       dragging = true;
 
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
       let coord = convertToGridCoord(mouseX, mouseY);
@@ -1089,7 +1089,7 @@ export function onTouchStart(event) {
 
     let touch = event.changedTouches[0];
     previousTouch = touch;
-    let canvasRect = event.target.getBoundingClientRect();
+    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
@@ -1099,7 +1099,7 @@ export function onTouchStart(event) {
 
 export function onMouseMove(event) {
   if (window.app.puzzleState.interactive && dragging) {
-    let canvasRect = event.target.getBoundingClientRect();
+    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
     let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
@@ -1122,7 +1122,7 @@ export function onTouchMove(event) {
     if (movedTouch) {
       previousTouch = movedTouch;
 
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let touchX = (movedTouch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
       let touchY = (movedTouch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
@@ -1160,7 +1160,7 @@ export function onTouchEnd(event) {
   }
 }
 
-export function onMouseOut(event) {
+export function onMouseOut() {
   dragging = false;
   draggingValue = null;
 }

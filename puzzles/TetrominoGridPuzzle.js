@@ -1,6 +1,6 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
 
 const ROTATIONS = false;
 const TETROMINO_SIZE = 4;
@@ -720,7 +720,7 @@ export function drawInstructions() {
 }
 
 export function drawPuzzle() {
-  let canvas = document.getElementById("puzzleCanvas");
+  let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
   let solved = puzzleSolved();
@@ -894,7 +894,7 @@ export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
     if (window.app.puzzleState.interactive) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = (event.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
       let mouseY = (event.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
@@ -943,7 +943,7 @@ export function onTouchStart(event) {
       event.preventDefault();
 
       let touch = event.changedTouches[0];
-      let canvasRect = document.getElementById("puzzleCanvas").getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
       let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
@@ -983,7 +983,7 @@ export function onMouseMove(event) {
   if (window.app.puzzleState.interactive && dragging) {
     // Can happen if mouse down triggered from touch end...
     if (!isNaN(event.movementX) && !isNaN(event.movementY)) {
-      let canvasRect = event.target.getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
 
       dragging.cells.forEach(cell => {
         cell.x += event.movementX * CANVAS_WIDTH / canvasRect.width;
@@ -1008,7 +1008,7 @@ export function onTouchMove(event) {
     }
 
     if (movedTouch) {
-      let canvasRect = document.getElementById("puzzleCanvas").getBoundingClientRect();
+      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
 
       // Detect drag-out
       if (movedTouch.clientX < canvasRect.left

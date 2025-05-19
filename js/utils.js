@@ -91,7 +91,7 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     document.getElementById('canvasContainer').classList.remove('started');
     window.app.puzzleState.interactive = false;
 
-    let canvas = document.getElementById("puzzleCanvas");
+    let canvas = getPuzzleCanvas();
     let context = canvas.getContext("2d");
 
     context.fillStyle = BACKGROUND_COLOR;
@@ -240,4 +240,8 @@ export function deepCopy(inObject) {
   }
 
   return outObject;
+}
+
+export function getPuzzleCanvas() {
+  return document.getElementById('puzzleCanvas');
 }
