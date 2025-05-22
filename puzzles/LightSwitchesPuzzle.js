@@ -385,9 +385,9 @@ export function init() {
   } else {
     DIFFICULTY = window.app.router.difficulty;
 
-    // Quick: 3/3, Casual: 3/4, Challenging: 4/4, Intense: 4/5
-    ROWS = 3 + (DIFFICULTY > 2 ? 1 : 0);
-    COLS = 2 + DIFFICULTY - (DIFFICULTY > 2 ? 1 : 0);
+    // Quick: 2/3, Casual: 3/3, Challenging: 3/4, Intense: 4/4
+    ROWS = DIFFICULTY <= 1 ? 2 : (DIFFICULTY <= 3 ? 3 : 4);
+    COLS = DIFFICULTY <= 2 ? 3 : 4;
     CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 1);
     grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => true));
 

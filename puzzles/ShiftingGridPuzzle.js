@@ -579,8 +579,9 @@ export function init() {
 
     // Must not exceed 12 to ensure enough space to show solution steps
     SHUFFLE_SHIFTS = Math.floor(Math.random() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
-    ROWS = DIFFICULTY < 2 ? 2 : (DIFFICULTY < 4 ? 3 : 4);
-    COLS = DIFFICULTY < 3 ? 3 : 4;
+    // 2x3/2x4/3x3/3x4
+    ROWS = DIFFICULTY <= 2 ? 2 : 3;
+    COLS = DIFFICULTY % 2 === 0 ? 4 : 3;
     CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
     NODE_SIZE = CELL_SIZE / 6;
 

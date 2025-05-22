@@ -940,9 +940,9 @@ export function init() {
   } else {
     DIFFICULTY = window.app.router.difficulty;
 
-    // Quick: 12/1, Casual: 14/2, Challenging: 16/3, Intense: 18/3
-    GRAPH_SIZE = 10 + 2 * DIFFICULTY;
-    FIXED_NODES = Math.min(DIFFICULTY, 3);
+    // Quick: 11/0, Casual: 12/1, Challenging: 13/2, Intense: 14/3
+    GRAPH_SIZE = 10 + DIFFICULTY;
+    FIXED_NODES = DIFFICULTY - 1;
 
     generateGraph();
 
