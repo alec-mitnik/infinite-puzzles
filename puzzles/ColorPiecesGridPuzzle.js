@@ -7,9 +7,9 @@ const GRID_MASK_SIZE = 5;
 const COLORS = ["#000000", "#ffffff"]; //, "#ff0000", "#0000ff", "#ffff00"
 const LINE_THICKNESS = 12;
 
-const SNAP_SOUND = 'click';
-const ROTATE_SOUND = 'warp';
-const CHIME_SOUND = 'chime';
+const SNAP_SOUND = audioManager.SoundEffects.CLICK;
+const ROTATE_SOUND = audioManager.SoundEffects.WARP;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

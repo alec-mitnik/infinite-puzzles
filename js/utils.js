@@ -1,4 +1,29 @@
+import audioManager from "./audio-manager.js";
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "./config.js";
+
+const CONFETTI_DURATION = 10000;
+const CONFETTI_OPTIONS = {
+  angle: 90,
+  spread: 180,
+  particleCount: 150,
+  origin: { x: 0.5, y: -0.1 },
+  ticks: 1000,
+  shapes: ['star', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square',
+      'circle', 'square', 'circle', 'square', 'circle', 'square', 'circle', 'square'],
+  scalar: 2,
+  disableForReducedMotion: true,
+};
+
+let confettiDurationTimeoutId = null;
+let confettiTimeoutId = null;
 
 export function finishedLoading() {
   // Add delay so pending clicks don't end up succeeding
@@ -175,10 +200,63 @@ export function endPuzzle(lastTutorialStage) {
   window.app.puzzleState.interactive = false;
   document.getElementById('controls').classList.add('solved');
 
+  if (lastTutorialStage) {
+    audioManager.stop(audioManager.SoundEffects.CHIME);
+    audioManager.play(audioManager.SoundEffects.GRADUATION);
+
+    // Start showing confetti
+    if (confettiDurationTimeoutId) {
+      clearTimeout(confettiDurationTimeoutId);
+      confettiDurationTimeoutId = null;
+    }
+
+    showConfetti();
+  }
+
   if (!window.app.puzzleState.tutorialStage || lastTutorialStage) {
     setTutorialDone();
     updateForTutorialRecommendation();
   }
+}
+
+function showConfetti() {
+  if (audioManager.isSoundPlaying(audioManager.SoundEffects.GRADUATION)) {
+    if (!confettiDurationTimeoutId) {
+      confettiDurationTimeoutId = setTimeout(() => {
+        if (confettiTimeoutId) {
+          clearTimeout(confettiTimeoutId);
+          confettiTimeoutId = null;
+        }
+
+        confettiDurationTimeoutId = null;
+      }, CONFETTI_DURATION);
+    }
+
+    if (confettiTimeoutId) {
+      clearTimeout(confettiTimeoutId);
+    }
+
+    // Trigger the confetti effect
+    window.confetti(CONFETTI_OPTIONS);
+
+    confettiTimeoutId = setTimeout(() => {
+      showConfetti();
+    }, 1000);
+  }
+}
+
+export function stopConfetti() {
+  if (confettiDurationTimeoutId) {
+    clearTimeout(confettiDurationTimeoutId);
+    confettiDurationTimeoutId = null;
+  }
+
+  if (confettiTimeoutId) {
+    clearTimeout(confettiTimeoutId);
+    confettiTimeoutId = null;
+  }
+
+  window.confetti.reset();
 }
 
 export function getTutorialDone() {

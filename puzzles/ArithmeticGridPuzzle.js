@@ -9,10 +9,10 @@ const LARGEST_NUMBER = 4;
 const TILE_PROPORTION = 0.6;
 const LINE_THICKNESS = 12;
 
-const SELECT_SOUND = 'click';
-const SELECT_FAIL_SOUND = 'clink';
-const SWAP_SOUND = 'whir';
-const CHIME_SOUND = 'chime';
+const SELECT_SOUND = audioManager.SoundEffects.CLICK;
+const SELECT_FAIL_SOUND = audioManager.SoundEffects.CLINK;
+const SWAP_SOUND = audioManager.SoundEffects.WHIR;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const TUTORIAL_CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 3;
 

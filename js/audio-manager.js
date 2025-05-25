@@ -1,19 +1,31 @@
 class AudioManager {
   constructor() {
-    this.sounds = {};
+    this.loadedSounds = {};
+    this.playingSounds = [];
     this.context = null;
     this.muted = false;
     this.initialized = false;
 
+    this.SoundEffects = {
+      CLINK: 'clink',
+      BOING: 'boing',
+      CHIME: 'chime',
+      CLICK: 'click',
+      WARP: 'warp',
+      WHIR: 'whir',
+      GRADUATION: 'graduation',
+    };
+
     // List of sound files to preload.
     // Keep in sync with service worker cache!
     this.soundFiles = {
-      clink: 'sounds/AnvilImpact.mp3',
-      boing: 'sounds/BoingSound.mp3',
-      chime: 'sounds/Chime_musical_BLASTWAVEFX_16367.mp3',
-      click: 'sounds/Click.mp3',
-      warp: 'sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
-      whir: 'sounds/space_beep_3.mp3'
+      [this.SoundEffects.CLINK]: 'sounds/AnvilImpact.mp3',
+      [this.SoundEffects.BOING]: 'sounds/BoingSound.mp3',
+      [this.SoundEffects.CHIME]: 'sounds/Chime_musical_BLASTWAVEFX_16367.mp3',
+      [this.SoundEffects.CLICK]: 'sounds/Click.mp3',
+      [this.SoundEffects.WARP]: 'sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
+      [this.SoundEffects.WHIR]: 'sounds/space_beep_3.mp3',
+      [this.SoundEffects.GRADUATION]: 'sounds/Graduation.mp3',
     };
 
     // Set up initialization handlers for different browsers
@@ -85,10 +97,8 @@ class AudioManager {
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
 
-      this.sounds[name] = {
+      this.loadedSounds[name] = {
         buffer: audioBuffer,
-        volume: 1.0,
-        playing: false
       };
 
       return audioBuffer;
@@ -101,13 +111,17 @@ class AudioManager {
   // Play a sound with optional volume adjustment
   play(name, volume = 1.0) {
     if (!this.initialized || this.muted) {
-      return null;
+      return;
     }
 
-    const sound = this.sounds[name];
+    if (name === this.SoundEffects.CHIME && this.isSoundPlaying(this.SoundEffects.GRADUATION)) {
+      return;
+    }
+
+    const sound = this.loadedSounds[name];
     if (!sound) {
       console.warn(`Sound '${name}' not found`);
-      return null;
+      return;
     }
 
     try {
@@ -128,14 +142,45 @@ class AudioManager {
       source.connect(gainNode);
       gainNode.connect(this.context.destination);
 
-      // Start playback
-      source.start(0);
+      this.playingSounds.push({
+        name,
+        source,
+        gainNode,
+        originalVolume: volume,
+      });
 
-      // Return the source for potential stopping
-      return source;
+      // Handle end of playback
+      source.onended = () => {
+        const soundIndex = this.playingSounds.findIndex(s => s.source === source);
+
+        if (soundIndex >= 0) {
+          this.playingSounds.splice(soundIndex, 1);
+        }
+      }
+
+      // Start playback
+      source.start();
     } catch (error) {
       console.error(`Error playing sound ${name}:`, error);
-      return null;
+    }
+  }
+
+  isSoundPlaying(name) {
+    return this.playingSounds.some(sound => sound.name === name);
+  }
+
+  stopAllSounds() {
+    this.playingSounds.forEach(sound => sound.source.stop());
+    this.playingSounds = [];
+  }
+
+  stop(name) {
+    const soundIndex = this.playingSounds.findIndex(s => s.name === name);
+
+    if (soundIndex >= 0) {
+      const sound = this.playingSounds[soundIndex];
+      sound.source.stop();
+      this.playingSounds.splice(soundIndex, 1);
     }
   }
 
@@ -149,9 +194,19 @@ class AudioManager {
     let muteButton = document.getElementById("muteButton");
 
     if (this.muted) {
+      // Mute all playing sounds
+      this.playingSounds.forEach(sound => {
+        sound.gainNode.gain.value = 0;
+      });
+
       muteButton.classList.add("muted");
       localStorage.setItem('muted', 'true');
     } else {
+      // Unmute all playing sounds
+      this.playingSounds.forEach(sound => {
+        sound.gainNode.gain.value = sound.originalVolume;
+      });
+
       muteButton.classList.remove("muted");
       localStorage.removeItem('muted');
 

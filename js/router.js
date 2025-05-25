@@ -1,10 +1,8 @@
+import audioManager from './audio-manager.js';
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
-import { getPuzzleCanvas, updateForTutorialRecommendation } from './utils.js';
+import { getPuzzleCanvas, stopConfetti, updateForTutorialRecommendation } from './utils.js';
 
 /* TODO:
- * Complex logic grid puzzle generation stalls on narrowColumnPossibilities...
- * Improve circuit-grid tutorial?
- * Confetti or color bloom effect or something for solving puzzles, or at least for completing the tutorial?
  * Option to share and recreate a puzzle from a URL?
  */
 
@@ -155,6 +153,12 @@ class Router {
 
     // Update current route
     this.currentRoute = route;
+
+    // Stop all sounds
+    audioManager.stopAllSounds();
+
+    // Stop any confetti
+    stopConfetti();
 
     // Update title
     document.title = this.routes[route].title;

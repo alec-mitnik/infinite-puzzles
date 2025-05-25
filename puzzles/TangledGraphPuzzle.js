@@ -5,8 +5,8 @@ import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzle
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
 
-const CLINK_SOUND = 'clink';
-const CHIME_SOUND = 'chime';
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

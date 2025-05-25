@@ -16,10 +16,10 @@ const NODE_TYPE = Object.freeze({
   "RECEIVER": 3,
 });
 
-const CLINK_SOUND = 'clink';
-const SNAP_SOUND = 'click';
-const RESET_SOUND = 'boing';
-const CHIME_SOUND = 'chime';
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const SNAP_SOUND = audioManager.SoundEffects.CLICK;
+const RESET_SOUND = audioManager.SoundEffects.BOING;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

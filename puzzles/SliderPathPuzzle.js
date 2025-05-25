@@ -12,10 +12,10 @@ const CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Ma
 const NODE_SIZE = 1.5 * CELL_SIZE;
 const LINE_THICKNESS = 6;
 
-const CLINK_SOUND = 'clink';
-const UNDO_SOUND = 'whir';
-const RESTART_SOUND = 'boing';
-const CHIME_SOUND = 'chime';
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const UNDO_SOUND = audioManager.SoundEffects.WHIR;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

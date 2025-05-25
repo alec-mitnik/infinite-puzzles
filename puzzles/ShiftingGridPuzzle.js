@@ -18,12 +18,12 @@ const DIRECTION = Object.freeze({
   "LEFT": 4,
 });
 
-const SHIFT_SOUND = "whir";
-const UNDO_SOUND = "warp";
-const RESTART_SOUND = "boing";
-const SAVE_SOUND = "click";
-const LOAD_SOUND = "boing";
-const CHIME_SOUND = "chime";
+const SHIFT_SOUND = audioManager.SoundEffects.WHIR;
+const UNDO_SOUND = audioManager.SoundEffects.WARP;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const SAVE_SOUND = audioManager.SoundEffects.CLICK;
+const LOAD_SOUND = audioManager.SoundEffects.BOING;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

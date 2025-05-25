@@ -1,4 +1,4 @@
-let CACHE_VERSION = 181;
+let CACHE_VERSION = 182;
 // CACHE_VERSION = Date.now();
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
@@ -32,7 +32,8 @@ const FILES_TO_CACHE = [
   '/sounds/Chime_musical_BLASTWAVEFX_16367.mp3',
   '/sounds/Click.mp3',
   '/sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
-  '/sounds/space_beep_3.mp3'
+  '/sounds/space_beep_3.mp3',
+  '/sounds/Graduation.mp3',
 ];
 
 // Install event - cache all static assets

@@ -10,10 +10,10 @@ const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const LINE_THICKNESS = 12;
 const TILE_BORDER = 2;
 
-const SELECT_SOUND = 'click';
-const SWAP_SOUND = 'whir';
-const ROTATE_SOUND = 'warp';
-const CHIME_SOUND = 'chime';
+const SELECT_SOUND = audioManager.SoundEffects.CLICK;
+const SWAP_SOUND = audioManager.SoundEffects.WHIR;
+const ROTATE_SOUND = audioManager.SoundEffects.WARP;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const TUTORIAL_CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / 2;
 
@@ -119,33 +119,70 @@ const tutorials = [
         gridCoords: [0, 0],
         x: OFFSET_SIZE,
         y: OFFSET_SIZE,
-        circuitPaths: [[[2, 0], [0, 2]]],
+        circuitPaths: [[[2, 0], [0, 2]], [[3, (TILE_SIZE + 1)], [(TILE_SIZE + 1), 3]]],
         fixed: false,
       },
       {
         gridCoords: [0, 1],
         x: OFFSET_SIZE,
         y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
-        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]]],
+        circuitPaths: [[[3, 0], [(TILE_SIZE + 1), 1]]],
         fixed: false,
       }],
       [{
         gridCoords: [1, 0],
         x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
         y: OFFSET_SIZE,
-        circuitPaths: [[[1, (TILE_SIZE + 1)], [3, (TILE_SIZE + 1)]]],
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]]],
         fixed: true,
       },
       {
         gridCoords: [1, 1],
         x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
         y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
-        circuitPaths: [[[1, 0], [3, 0]]],
+        circuitPaths: [[[0, 1], [1, 0]]],
         fixed: true,
       }]
     ],
-    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2],
-        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1]],
+    circuitEnds: [[2, 0], [0, 2]],
+    rotate: false,
+    swap: true,
+  },
+  {
+    rows: 2,
+    cols: 2,
+    grid: [
+      [{
+        gridCoords: [0, 0],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[2, 0], [0, 2]], [[3, (TILE_SIZE + 1)], [(TILE_SIZE + 1), 3]]],
+        fixed: false,
+      },
+      {
+        gridCoords: [0, 1],
+        x: OFFSET_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[3, 0], [(TILE_SIZE + 1), 1]]],
+        fixed: false,
+      }],
+      [{
+        gridCoords: [1, 0],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE,
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[3, 0], [3, (TILE_SIZE + 1)]]],
+        fixed: true,
+      },
+      {
+        gridCoords: [1, 1],
+        x: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
+        circuitPaths: [[[0, 1], [1, 0]], [[3, 0], [3, (TILE_SIZE + 1)]]],
+        fixed: false,
+      }]
+    ],
+    circuitEnds: [[2, 0], [0, 2], [(TILE_SIZE + 2) + 3, 0], [(TILE_SIZE + 2) + 3, 2 * (TILE_SIZE + 2) - 1]],
+    rotate: true,
     swap: true,
   },
   {
@@ -202,7 +239,7 @@ const tutorials = [
         gridCoords: [0, 1],
         x: OFFSET_SIZE,
         y: OFFSET_SIZE + TUTORIAL_CELL_SIZE,
-        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]],
+        circuitPaths: [[[0, 3], [1, (TILE_SIZE + 1)]], [[0, 2], [2, (TILE_SIZE + 1)]], [[0, 1], [3, (TILE_SIZE + 1)]],
             [[(TILE_SIZE + 1), 2], [(TILE_SIZE + 1), 3]]],
         fixed: false,
       }],
@@ -221,8 +258,8 @@ const tutorials = [
         fixed: false,
       }]
     ],
-    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2],
-        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1], [2 * (TILE_SIZE + 2) - 1, 3],
+    circuitEnds: [[2, 0], [0, 2], [0, (TILE_SIZE + 2) + 3], [0, (TILE_SIZE + 2) + 2], [0, (TILE_SIZE + 2) + 1],
+        [1, 2 * (TILE_SIZE + 2) - 1], [2, 2 * (TILE_SIZE + 2) - 1], [3, 2 * (TILE_SIZE + 2) - 1], [2 * (TILE_SIZE + 2) - 1, 3],
         [(TILE_SIZE + 2) + 2, 0], [(TILE_SIZE + 2) + 2, 2 * (TILE_SIZE + 2) - 1], [0, 3]],
     rotate: true,
     swap: true,

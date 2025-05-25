@@ -14,9 +14,9 @@ const DIGITS = "1234567890";
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SYMBOL_SETS = [DIGITS, LETTERS, SHAPE_SYMBOLS, CHESS_SYMBOLS, GREEK_LETTERS];
 
-const CLINK_SOUND = 'clink';
-const SNAP_SOUND = 'click';
-const CHIME_SOUND = 'chime';
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const SNAP_SOUND = audioManager.SoundEffects.CLICK;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {
@@ -1892,10 +1892,10 @@ export function init() {
   } else {
     DIFFICULTY = window.app.router.difficulty;
 
-    // Above 5/5 takes too much computation...!
-    // Quick: 4/4, Casual: 4/5, Challenging: 5/5, Intense: 5/6
-    ROWS = 3 + Math.floor((DIFFICULTY + 1) / 2);
-    COLS = 4 + Math.floor(DIFFICULTY / 2);
+    // Above 5/5 takes too much computation!
+    // Quick: 4/4, Casual: 5/4, Challenging: 4/5, Intense: 5/5
+    ROWS = DIFFICULTY % 2 === 0 ? 5 : 4;
+    COLS = DIFFICULTY <= 2 ? 4 : 5;
     USE_XOR = false;
     // Quick: 4/4/simple, Casual: 5/5/simple, Challenging: 4/4/xor, Intense: 5/5/xor
     // ROWS = 4 + ((DIFFICULTY + 1) % 2);

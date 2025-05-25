@@ -6,9 +6,9 @@ const ROTATIONS = false;
 const TETROMINO_SIZE = 4;
 const LINE_THICKNESS = 12;
 
-const SNAP_SOUND = 'click';
-const ROTATE_SOUND = 'warp';
-const CHIME_SOUND = 'chime';
+const SNAP_SOUND = audioManager.SoundEffects.CLICK;
+const ROTATE_SOUND = audioManager.SoundEffects.WARP;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

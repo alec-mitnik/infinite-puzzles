@@ -7,8 +7,8 @@ const LIGHT_BORDER = 0;
 const LINE_THICKNESS = 12;
 const SWITCH_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 
-const SWITCH_SOUND = 'click';
-const CHIME_SOUND = 'chime';
+const SWITCH_SOUND = audioManager.SoundEffects.CLICK;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

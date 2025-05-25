@@ -23,12 +23,12 @@ const DIRECTION = Object.freeze({
   "UP_LEFT": 8
 });
 
-const TAP_SOUND = 'click';
-const TAP_FAIL_SOUND = 'clink';
-const MIRROR_SOUND = 'whir';
-const UNDO_SOUND = 'warp';
-const RESTART_SOUND = 'boing';
-const CHIME_SOUND = 'chime';
+const TAP_SOUND = audioManager.SoundEffects.CLICK;
+const TAP_FAIL_SOUND = audioManager.SoundEffects.CLINK;
+const MIRROR_SOUND = audioManager.SoundEffects.WHIR;
+const UNDO_SOUND = audioManager.SoundEffects.WARP;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {

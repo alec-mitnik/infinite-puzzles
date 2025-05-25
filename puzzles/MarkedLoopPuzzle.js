@@ -8,9 +8,9 @@ const TEXT_SIZE = OFFSET_SIZE / 3;
 const LINE_THICKNESS = 18;
 const TILE_BORDER = 4;
 
-const CLEAR_SOUND = 'warp';
-const CLICK_SOUND = 'click';
-const CHIME_SOUND = 'chime';
+const CLEAR_SOUND = audioManager.SoundEffects.WARP;
+const CLICK_SOUND = audioManager.SoundEffects.CLICK;
+const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
   {
