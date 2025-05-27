@@ -262,7 +262,7 @@ const tutorials = [
         colTotalIndex: null,
         x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
         y: TUTORIAL_CELL_SIZE * 0 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
-        fixed: true,
+        fixed: false,
       },
       {
         num: 0,
@@ -271,7 +271,7 @@ const tutorials = [
         colTotalIndex: null,
         x: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
         y: TUTORIAL_CELL_SIZE * 1 + (1 - TILE_PROPORTION) / 2 * TUTORIAL_CELL_SIZE,
-        fixed: true,
+        fixed: false,
       }],
     ],
     signGrid: Array.from({length: 3 }, () => Array.from({length: 3}, () => -1)),
