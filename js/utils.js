@@ -163,6 +163,10 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
       context.fillText(selectText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth / 2, yPos);
       context.fillText(tutorialText, CANVAS_WIDTH / 2 + totalWidth / 2 - tutorialTextWidth / 2, yPos);
 
+      if (document.querySelector('#tutorialButton.recommended:not(.active)')) {
+        context.fillStyle = "#F9B70F";
+      }
+
       context.font = "96px Arial";
       context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
     }
