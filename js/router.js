@@ -3,6 +3,10 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 import { getPuzzleCanvas, stopConfetti, updateForTutorialRecommendation } from './utils.js';
 
 /* TODO:
+ * Change difficulty buttons to radio options with attributes like aria-posinset="1" aria-setsize="4"
+in a container with role="radiogroup" and aria-label, and then can query for selected value like:
+document.querySelector('<container> input[name="difficulty"]:checked')?.value
+ * Look more into accessibility in general
  * Option to share and recreate a puzzle from a URL?
  */
 

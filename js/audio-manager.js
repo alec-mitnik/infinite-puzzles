@@ -200,6 +200,7 @@ class AudioManager {
       });
 
       muteButton.classList.add("muted");
+      muteButton.ariaLabel = "Unmute Sounds";
       localStorage.setItem('muted', 'true');
     } else {
       // Unmute all playing sounds
@@ -208,6 +209,7 @@ class AudioManager {
       });
 
       muteButton.classList.remove("muted");
+      muteButton.ariaLabel = "Mute Sounds";
       localStorage.removeItem('muted');
 
       // Play a test sound to ensure audio is working

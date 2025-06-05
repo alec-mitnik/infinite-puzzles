@@ -111,8 +111,8 @@
     if (!fullScreenEnabled) {
       fullScreenButton.classList.add("hidden");
     } else {
-      fullScreenButton.addEventListener('click', () => {
-        toggleFullScreen();
+      fullScreenButton.addEventListener('click', (event) => {
+        toggleFullScreen(event.currentTarget);
       });
     }
 
@@ -135,11 +135,13 @@
            document.msFullscreenElement;
   }
 
-  function toggleFullScreen() {
+  function toggleFullScreen(button) {
     if (isFullScreen()) {
       exitFullScreen();
+      button.ariaLabel = "Enter Fullscreen Mode";
     } else {
       requestFullScreen(document.documentElement);
+      button.ariaLabel = "Exit Fullscreen Mode";
     }
   }
 
@@ -272,7 +274,7 @@
 
   <div id="settings" class="sidebar">
     <!-- Volume -->
-    <button aria-label="Toggle Mute" id="muteButton">
+    <button aria-label="Mute Sounds" id="muteButton">
       <span id="soundIcon" tabindex="-1">&#128266;</span>
       <span id="noSoundIcon" tabindex="-1">&#128264;</span>
     </button>
@@ -292,14 +294,14 @@
     <button aria-label="Difficulty: Intense" id="difficulty4" class="faded">
       <span tabindex="-1">&#129327;</span>
     </button>
-    <button aria-label="Toggle Fullscreen" id="fullScreenButton">
+    <button aria-label="Enter Fullscreen Mode" id="fullScreenButton">
       <span id="fullScreenOnIcon" tabindex="-1">&#128241;</span>
       <span id="fullScreenOffIcon" tabindex="-1">&#128244;</span>
     </button>
   </div>
 
   <!-- Ko-fi tipping dialog -->
-  <dialog id="kofi-dialog" style="width: 350px; max-width: 100%; height: 675px; max-height: 100%;">
+  <dialog id="kofi-dialog" aria-label="Support My Projects" style="width: 350px; max-width: 100%; height: 675px; max-height: 100%;">
     <div id="kofi-backdrop" class="modal-backdrop" onclick="document.getElementById('kofi-dialog').close();"></div>
     <div class="modal">
       <button autofocus class="close-button" aria-label="Close tipping dialog" onclick="document.getElementById('kofi-dialog').close();">
