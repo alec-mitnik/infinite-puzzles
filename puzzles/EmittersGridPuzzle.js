@@ -665,7 +665,7 @@ function isCoordReceivingFromDirection(coord, direction) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("📻\uFE0E Emitters Grid Puzzle 📻\uFE0E",
+  drawInstructionsHelper("Emitters Grid Puzzle", "📻\uFE0E",
       ["Place a 4-way emitter and a block in each row/column,",
           "activating each white receiver but no black ones."],
       ["Drag emitters and blocks to move them."],

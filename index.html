@@ -192,82 +192,83 @@
   <!-- Put more intuitive puzzles at the top/left -->
   <div class="puzzleLinks sidebar">
     <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
-      <span tabindex="-1">&#128680;&#xFE0E;</span>
+      <span role="img" aria-Label="Light Switches Puzzle">&#128680;&#xFE0E;</span>
     </button>
     <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
-      <span tabindex="-1">&#128681;&#xFE0E;</span>
+      <span role="img" aria-Label="Slider Path Puzzle">&#128681;&#xFE0E;</span>
     </button>
     <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
-      <span tabindex="-1">&#128251;&#xFE0E;</span>
+      <span role="img" aria-Label="Emitters Grid Puzzle">&#128251;&#xFE0E;</span>
     </button>
     <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
-      <span tabindex="-1">&#x1F506;&#xFE0E;</span>
+      <span role="img" aria-Label="Grid Mirror Puzzle">&#x1F506;&#xFE0E;</span>
     </button>
     <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
-      <span tabindex="-1">&#128268;&#xFE0E;</span>
+      <span role="img" aria-Label="Circuit Grid Puzzle">&#128268;&#xFE0E;</span>
     </button>
     <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
-      <span tabindex="-1">&#128141;&#xFE0E;</span>
+      <span role="img" aria-Label="Marked Loop Puzzle">&#128141;&#xFE0E;</span>
     </button>
   </div>
   <div class="puzzleLinks sidebar">
     <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
-      <span tabindex="-1">&#128306;&#xFE0E;</span>
+      <span role="img" aria-Label="Tetromino Grid Puzzle">&#128306;&#xFE0E;</span>
     </button>
     <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
-      <span tabindex="-1">&#128221;&#xFE0E;</span>
+      <span role="img" aria-Label="Arithmetic Grid Puzzle">&#128221;&#xFE0E;</span>
     </button>
     <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
-      <span tabindex="-1">&#128376;&#xFE0E;</span>
+      <span role="img" aria-Label="Tangled Graph Puzzle">&#128376;&#xFE0E;</span>
     </button>
     <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
-      <span tabindex="-1">&#128173;&#xFE0E;</span>
+      <span role="img" aria-Label="Logic Grid Puzzle">&#128173;&#xFE0E;</span>
     </button>
     <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
-      <span tabindex="-1">&#128642;&#xFE0E;</span>
+      <span role="img" aria-Label="Shifting Grid Puzzle">&#128642;&#xFE0E;</span>
     </button>
     <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
-      <span tabindex="-1">&#127937;&#xFE0E;</span>
+      <span role="img" aria-Label="Color Pieces Grid Puzzle">&#127937;&#xFE0E;</span>
     </button>
   </div>
 
   <div id="controls" class="sidebar hidden">
     <!-- Home -->
     <button aria-label="Home">
-      <span tabindex="-1">&#10094;</span>
+      <span role="img" aria-Label="Home">&#10094;</span>
     </button>
-    <!-- Toggle Tutorial -->
-    <button aria-label="Toggle Tutorial" class="larger" id="tutorialButton">
-      <span tabindex="-1">&#9883;&#xFE0E;</span>
+    <!-- Tutorial -->
+    <button aria-label="Start Tutorial" class="larger" id="tutorialButton">
+      <span role="img" aria-Label="Start Tutorial">&#9883;&#xFE0E;</span>
     </button>
     <!-- Instructions -->
-    <button aria-label="Toggle Instructions" class="larger" id="instructionsButton">
-      <span tabindex="-1">?</span>
+    <button aria-label="Show Instructions" class="larger" id="instructionsButton">
+      <span role="img" aria-Label="Show Instructions">?</span>
     </button>
     <!-- Solution -->
-    <button aria-label="Toggle Solution" class="larger" id="solutionButton">
-      <span tabindex="-1">&#9745;&#xFE0E;</span>
+    <button aria-label="Show Solution" class="larger" id="solutionButton">
+      <span role="img" aria-Label="Show Solution">&#9745;&#xFE0E;</span>
     </button>
     <!-- Generate New Puzzle -->
     <button aria-label="Generate New Puzzle" class="larger" id="generateNewPuzzleButton">
-      <span tabindex="-1">&#8634;</span>
+      <span role="img" aria-Label="Generate New Puzzle">&#8634;</span>
     </button>
     <!-- Next Tutorial -->
     <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
-      <span tabindex="-1">&#9197;&#xFE0E;</span>
+      <span role="img" aria-Label="Next Tutorial">&#9197;&#xFE0E;</span>
     </button>
   </div>
 
   <div id="canvasContainer">
-    <canvas id="puzzleCanvas" oncontextmenu="return false;"></canvas>
-    <button disabled id="startButton">
-      <span tabindex="-1"></span>
+    <canvas id="puzzleCanvas" tabindex="0" aria-label="Puzzle Canvas" oncontextmenu="return false;"></canvas>
+
+    <button disabled id="startButton" aria-label="Start Puzzle">
+      <span></span>
     </button>
 
     <!-- Ko-fi tipping button -->
     <button id="kofi-button" style="display: none;" onclick="document.getElementById('kofi-dialog').showModal()"
         ontouchend="document.getElementById('kofi-dialog').showModal(); event.preventDefault();">
-      <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi donations">
+      <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="">
       Support my projects
     </button>
   </div>
@@ -275,28 +276,37 @@
   <div id="settings" class="sidebar">
     <!-- Volume -->
     <button aria-label="Mute Sounds" id="muteButton">
-      <span id="soundIcon" tabindex="-1">&#128266;</span>
-      <span id="noSoundIcon" tabindex="-1">&#128264;</span>
+      <span id="soundIcon" role="img" aria-label="Mute Sounds">&#128266;</span>
+      <span id="noSoundIcon"role="img" aria-label="Unmute Sounds">&#128264;</span>
     </button>
-    <!-- Tongue Out -->
-    <button aria-label="Difficulty: Quick" id="difficulty1" class="faded"">
-      <span tabindex="-1">&#128523;</span>
-    </button>
-    <!-- Thinking -->
-    <button aria-label="Difficulty: Casual" id="difficulty2" class="faded">
-      <span tabindex="-1">&#129300;</span>
-    </button>
-    <!-- Bracing -->
-    <button aria-label="Difficulty: Challenging" id="difficulty3" class="faded">
-      <span tabindex="-1">&#128548;</span>
-    </button>
-    <!-- Mind Blown -->
-    <button aria-label="Difficulty: Intense" id="difficulty4" class="faded">
-      <span tabindex="-1">&#129327;</span>
-    </button>
+
+    <fieldset id="difficulty-group">
+      <legend>Puzzle Difficulty</legend>
+      <!-- Tongue Out -->
+      <label id="difficulty1" class="faded">
+        <input type="radio" name="difficulty" />
+        <span role="img" aria-label="Quick">&#128523;</span>
+      </label>
+      <!-- Thinking -->
+      <label id="difficulty2" class="faded">
+        <input type="radio" name="difficulty" />
+        <span role="img" aria-label="Casual">&#129300;</span>
+      </label>
+      <!-- Bracing -->
+      <label id="difficulty3" class="faded">
+        <input type="radio" name="difficulty" />
+        <span role="img" aria-label="Challenging">&#128548;</span>
+      </label>
+      <!-- Mind Blown -->
+      <label id="difficulty4" class="faded">
+        <input type="radio" name="difficulty" />
+        <span role="img" aria-label="Intense">&#129327;</span>
+      </label>
+    </fieldset>
+
     <button aria-label="Enter Fullscreen Mode" id="fullScreenButton">
-      <span id="fullScreenOnIcon" tabindex="-1">&#128241;</span>
-      <span id="fullScreenOffIcon" tabindex="-1">&#128244;</span>
+      <span id="fullScreenOnIcon" role="img" aria-label="Enter Fullscreen Mode">&#128241;</span>
+      <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">&#128244;</span>
     </button>
   </div>
 

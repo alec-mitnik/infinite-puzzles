@@ -38,11 +38,15 @@ export function finishedLoading() {
 export function startButtonClick() {
   if (window.app.puzzleState.loaded) {
     window.app.puzzleState.showingInstructions = false;
+    getPuzzleCanvas().ariaDescription = null;
 
     window.app.currentPuzzle.drawPuzzle();
 
     document.getElementById('canvasContainer').classList.add('started');
-    document.getElementById('instructionsButton').classList.remove('active');
+    const instructionsButton = document.getElementById('instructionsButton');
+    instructionsButton.classList.remove('active');
+    instructionsButton.ariaLabel = 'Show Instructions';
+    instructionsButton.querySelector('span').ariaLabel = 'Show Instructions';
 
     if (!window.app.puzzleState.ended) {
       window.app.puzzleState.interactive = true;
@@ -51,28 +55,42 @@ export function startButtonClick() {
   }
 }
 
+function showSolution() {
+  let solutionButton = document.getElementById("solutionButton");
+  solutionButton.classList.add("active");
+  const newLabel = "Hide Solution";
+  solutionButton.ariaLabel = newLabel;
+  solutionButton.querySelector("span").ariaLabel = newLabel;
+  window.app.puzzleState.showingSolution = true;
+  window.app.puzzleState.interactive = false;
+
+  window.app.currentPuzzle.drawPuzzle();
+}
+
+function hideSolution() {
+  let solutionButton = document.getElementById("solutionButton");
+  solutionButton.classList.remove("active");
+  const newLabel = "Show Solution";
+  solutionButton.ariaLabel = newLabel;
+  solutionButton.querySelector("span").ariaLabel = newLabel;
+  window.app.puzzleState.showingSolution = false;
+
+  window.app.currentPuzzle.drawPuzzle();
+
+  if (!window.app.puzzleState.ended) {
+    window.app.puzzleState.interactive = true;
+  }
+}
+
 export function solutionToggle() {
   if (window.app.puzzleState.showingInstructions) {
     startButtonClick();
   }
 
-  let solutionButton = document.getElementById("solutionButton");
-
   if (!window.app.puzzleState.showingSolution) {
-    solutionButton.classList.add("active");
-    window.app.puzzleState.showingSolution = true;
-    window.app.puzzleState.interactive = false;
-
-    window.app.currentPuzzle.drawPuzzle();
+    showSolution();
   } else {
-    solutionButton.classList.remove("active");
-    window.app.puzzleState.showingSolution = false;
-
-    window.app.currentPuzzle.drawPuzzle();
-
-    if (!window.app.puzzleState.ended) {
-      window.app.puzzleState.interactive = true;
-    }
+    hideSolution();
   }
 }
 
@@ -81,43 +99,33 @@ export function onMiddleMouseDown() {
     startButtonClick();
   }
 
-  let solutionButton = document.getElementById("solutionButton");
-  solutionButton.classList.add("active");
-  window.app.puzzleState.showingSolution = true;
-  window.app.puzzleState.interactive = false;
-
-  window.app.currentPuzzle.drawPuzzle();
+  showSolution();
 }
 
 export function onMiddleMouseUp() {
   if (window.app.puzzleState.showingSolution) {
-      let solutionButton = document.getElementById("solutionButton");
-      solutionButton.classList.remove("active");
-      window.app.puzzleState.showingSolution = false;
-
-      window.app.currentPuzzle.drawPuzzle();
-
-      if (!window.app.puzzleState.ended) {
-        window.app.puzzleState.interactive = true;
-      }
-    }
+    hideSolution();
+  }
 }
 
-export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLines, tutorialStage = 0, tutorialsTotal = 0) {
+export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLines, controlLines, tutorialStage = 0, tutorialsTotal = 0) {
   if (!window.app.puzzleState.showingInstructions) {
     let instructionsButton = document.getElementById("instructionsButton");
     instructionsButton.classList.add("active");
-    window.app.puzzleState.showingInstructions = true;
+    instructionsButton.ariaLabel = "Hide Instructions";
+    instructionsButton.querySelector("span").ariaLabel = "Hide Instructions";
 
-    let solutionButton = document.getElementById("solutionButton");
-    solutionButton.classList.remove("active");
-    window.app.puzzleState.showingSolution = false;
+    hideSolution();
+
+    window.app.puzzleState.showingInstructions = true;
 
     document.getElementById('canvasContainer').classList.remove('started');
     window.app.puzzleState.interactive = false;
 
-    let canvas = getPuzzleCanvas();
-    let context = canvas.getContext("2d");
+    const canvas = getPuzzleCanvas();
+    canvas.focus();
+    const context = canvas.getContext("2d");
+    const compiledInstructions = [];
 
     context.fillStyle = BACKGROUND_COLOR;
     context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -125,7 +133,8 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     context.font = "bold 60px Arial"
     context.textAlign = "center";
     context.fillStyle = "#ffffff";
-    context.fillText(puzzleTitle, CANVAS_WIDTH / 2, 150);
+    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, 150);
+    compiledInstructions.push(`${puzzleTitle} Instructions:`);
 
     context.font = "40px Arial";
     let yPos = 265;
@@ -133,6 +142,7 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     descriptionLines.forEach(line => {
       yPos += 60;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(line);
     });
 
     yPos += 100;
@@ -140,12 +150,14 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
     controlLines.forEach(line => {
       yPos += 60;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(line);
     });
 
     yPos += 160;
 
     if (tutorialStage) {
       context.fillText(`Tutorial  ${tutorialStage} / ${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(`Tutorial  ${tutorialStage} of ${tutorialsTotal}.`);
     } else {
       const selectText = "Select ";
       const atomText = "⚛\uFE0E";
@@ -169,23 +181,43 @@ export function drawInstructionsHelper(puzzleTitle, descriptionLines, controlLin
 
       context.font = "96px Arial";
       context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
+      compiledInstructions.push(`${selectText}the Start Tutorial button${tutorialText}`);
     }
 
     context.font = "bold 50px Arial"
     context.fillStyle = "#F9B70F";
-    context.fillText("Click or tap to " + (window.app.puzzleState.started ? "resume!" : "start!"), CANVAS_WIDTH / 2, 880);
+    const promptText = "Click or tap to ";
+    const promptTextAction = window.app.puzzleState.started ? "resume" : "start";
+    // Screen reader pronounces it like "résumé" otherwise...
+    const promptTextActionPhonetic = window.app.puzzleState.started ? "re-zoom" : "start";
+    context.fillText(`${promptText}${promptTextAction}!`, CANVAS_WIDTH / 2, 880);
+    compiledInstructions.push(`${promptText}${promptTextActionPhonetic}!`);
+
+    canvas.ariaDescription = compiledInstructions.join('\n');
+
+    // This one it pronounces fine...
+    document.getElementById('startButton').ariaLabel = window.app.puzzleState.started ? 'Resume Puzzle' : 'Start Puzzle';
   } else {
     startButtonClick();
   }
 }
 
 export function updateForTutorialState() {
+  const tutorialButton = document.getElementById('tutorialButton');
+  const tutorialButtonSpan = tutorialButton.querySelector('span');
+
   if (window.app.puzzleState.tutorialStage) {
-    document.getElementById('tutorialButton').classList.add('active');
+    tutorialButton.classList.add('active');
+    tutorialButton.ariaLabel = 'Exit Tutorial';
+    tutorialButtonSpan.ariaLabel = 'Exit Tutorial';
+
     document.getElementById('generateNewPuzzleButton').classList.add('hidden');
     document.getElementById('nextTutorialButton').classList.remove('hidden');
   } else {
-    document.getElementById('tutorialButton').classList.remove('active');
+    tutorialButton.classList.remove('active');
+    tutorialButton.ariaLabel = 'Start Tutorial';
+    tutorialButtonSpan.ariaLabel = 'Start Tutorial';
+
     document.getElementById('generateNewPuzzleButton').classList.remove('hidden');
     document.getElementById('nextTutorialButton').classList.add('hidden');
   }

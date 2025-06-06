@@ -659,7 +659,7 @@ function puzzleSolved() {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🚂\uFE0E Shifting Grid Puzzle 🚂\uFE0E",
+  drawInstructionsHelper("Shifting Grid Puzzle", "🚂\uFE0E",
       ["Shift tiles to connect all the tracks to the station.",
           "Tracks and shifted tiles both loop back around."],
       ["Click or tap the arrows to shift the row or column."],

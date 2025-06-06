@@ -796,7 +796,7 @@ export function init() {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🔆\uFE0E Grid Mirror Puzzle 🔆\uFE0E",
+  drawInstructionsHelper("Grid Mirror Puzzle", "🔆\uFE0E",
       ["Use the allotted taps and mirrors to match the pattern."],
       ["Click or tap a grid tile to fill it.",
           "Click or tap the arrows to mirror in that direction."],

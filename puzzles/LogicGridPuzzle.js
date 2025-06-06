@@ -1532,7 +1532,7 @@ async function canColumnBeDerivedForNode(node) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("💭\uFE0E Logic Grid Puzzle 💭\uFE0E",
+  drawInstructionsHelper("Logic Grid Puzzle", "💭\uFE0E",
       ["Place each token in the grid row for its symbol set",
           "and the column which follows the stated logic rules."],
       ["Drag tokens to move them."],

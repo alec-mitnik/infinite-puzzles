@@ -712,7 +712,7 @@ function puzzleSolved(playSound = true) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🔲\uFE0E Tetromino Grid Puzzle 🔲\uFE0E",
+  drawInstructionsHelper("Tetromino Grid Puzzle", "🔲\uFE0E",
       ["Fit all the tetromino pieces into the black area.",
           "Pieces must not overlap each other or the white area."],
       ["Drag the pieces to move them."],

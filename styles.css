@@ -30,7 +30,7 @@ html {
 }
 
 html::before {
-  content: '\1F300\FE0E';
+  content: '\1F300\FE0E' / '';
   color: #F9B70F00;
   text-shadow: 0 0 0 #F9B70F;
   position: absolute;
@@ -101,18 +101,26 @@ canvas#puzzleCanvas {
 
 #controls.solved {
   #generateNewPuzzleButton, #nextTutorialButton {
+    /* Prevent the scaling from affecting the focus outline */
+    overflow: hidden;
+
     > span {
-      color: #F9B70F;
       transform: scale(1);
       animation: scaleFlare 2s ease-in-out infinite;
+      color: #F9B70F;
     }
   }
 }
 
-#tutorialButton.recommended:not(.active) > span {
-  color: #F9B70F;
-  transform: scale(1);
-  animation: scaleFlare 2s ease-in-out infinite;
+#tutorialButton.recommended:not(.active) {
+  /* Prevent the scaling from affecting the focus outline */
+  overflow: hidden;
+
+  > span {
+    transform: scale(1);
+    animation: scaleFlare 2s ease-in-out infinite;
+    color: #F9B70F;
+  }
 }
 
 @keyframes scaleFlare {
@@ -133,7 +141,37 @@ canvas#puzzleCanvas {
   align-items: stretch;
 }
 
-button {
+#difficulty-group {
+  flex: 4;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  appearance: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+
+  legend {
+    appearance: none;
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  input[type="radio"] {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+button, .sidebar label {
   text-decoration: none;
   cursor: pointer;
   padding: 0;
@@ -143,46 +181,62 @@ button {
   display: flex;
   justify-content: center;
   align-items: stretch;
+
+  > span {
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+  }
+
+  &:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 button:disabled {
   cursor: default;
 }
 
-button > span {
-  outline: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
+.sidebar {
+  button, label {
+    color: #ffffff;
+    font-size: 60px;
+    flex: 1;
 
-.sidebar button {
-  color: #ffffff;
-  font-size: 60px;
-  flex: 1;
+    @media (hover: hover) {
+      &:hover:not(:disabled):not(.selected):not(:checked) {
+        background-color: #555;
+      }
+    }
 
-  @media (hover: hover) {
-    &:hover:not(:disabled) {
-      background-color: #555;
+    > span {
+      padding: 20px 10px;
+      line-height: 1.35;
+    }
+
+    &.smaller > span {
+      font-size: 80%;
+    }
+
+    &.larger > span {
+      font-size: 120%;
+      line-height: 1;
+    }
+
+    &.selected {
+      padding: 10px 0;
+
+      > span {
+        padding: 0;
+        border-radius: 15px;
+        box-shadow: inset 0 0 2px 3px #ffffff;
+      }
     }
   }
-}
-
-.sidebar button > span {
-  padding: 20px 10px;
-  line-height: 1.35;
-}
-
-.sidebar button.smaller > span {
-  font-size: 80%;
-}
-
-.sidebar button.larger > span {
-  font-size: 120%;
-  line-height: 1;
 }
 
 #tutorialButton.active > span {
@@ -197,22 +251,16 @@ button > span {
   background-color: #F9B70F;
 }
 
-#settings button.faded > span {
-  opacity: 0.5;
-}
+#settings {
+  button, label {
+    &.faded > span {
+      opacity: 0.5;
+    }
 
-#settings button.selected > span {
-  opacity: 1;
-}
-
-.sidebar button.selected {
-  padding: 10px 0;
-}
-
-.sidebar button.selected > span {
-  padding: 0;
-  border-radius: 15px;
-  box-shadow: inset 0 0 2px 3px #ffffff;
+    &.selected > span {
+      opacity: 1;
+    }
+  }
 }
 
 #muteButton:not(.muted) #noSoundIcon {
@@ -251,26 +299,36 @@ button > span {
   .sidebar {
     flex-direction: column;
     margin: 0 -1px;
+
+    button, label {
+      &.selected {
+        padding: 0 10px;
+      }
+
+      > span {
+        padding: 10px 20px;
+      }
+    }
   }
 
-  .sidebar button.selected {
-    padding: 0 10px;
-  }
-
-  .sidebar button span {
-    padding: 10px 20px;
+  #difficulty-group {
+    flex-direction: column;
   }
 }
 
 @media (orientation: portrait) and (max-width: 600px) {
-  .sidebar button {
-    font-size: 10vw;
+  .sidebar {
+    button, label {
+      font-size: 10vw;
+    }
   }
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
-  .sidebar button {
-    font-size: 10vh;
+  .sidebar {
+    button, label {
+      font-size: 10vh;
+    }
   }
 }
 

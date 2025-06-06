@@ -718,7 +718,7 @@ export function init() {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("💍\uFE0E Marked Loop Puzzle 💍\uFE0E",
+  drawInstructionsHelper("Marked Loop Puzzle", "💍\uFE0E",
       //["Draw a loop with the given length.  Markers indicate",
       //    "the locations of all straight segments before/after a turn."],
       ["Draw a loop of the given length, where the markers",

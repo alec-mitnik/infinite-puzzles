@@ -244,6 +244,7 @@ class Router {
 
     let canvas = getPuzzleCanvas();
     let context = canvas.getContext("2d");
+    const compiledText = [];
 
     context.fillStyle = BACKGROUND_COLOR;
     context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -254,6 +255,7 @@ class Router {
     context.fillText("\u221E Infinite Puzzles \u221E", CANVAS_WIDTH / 2, 140);
     context.font = "bold 40px Arial"
     context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 220);
+    compiledText.push("Infinite Puzzles: By Alec Mitnik.");
 
     context.font = "104px Arial"
     context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 410);
@@ -261,10 +263,21 @@ class Router {
     context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 730);
 
     context.font = "30px Arial"
-    context.fillText("Use the face icons in the menu bar to set the difficulty.", CANVAS_WIDTH / 2, 490);
-    context.fillText("Use the icons on the opposite side to select a puzzle.", CANVAS_WIDTH / 2, 540);
-    context.fillText("Hold down the middle mouse button or toggle the check mark icon", CANVAS_WIDTH / 2, 790);
-    context.fillText("to peek at a puzzle's solution.  Use this to help learn the puzzle!", CANVAS_WIDTH / 2, 840);
+
+    const faceIconsText = "Use the face icons in the menu bar to set the difficulty.";
+    const oppositeIconsText = "Use the icons on the opposite side to select a puzzle.";
+    const middleMouseText = "Hold down the middle mouse button or toggle the";
+    const iconText = "check mark icon";
+    const showSolutionButtonText = "Show Solution Button";
+    const solutionText = "to peek at a puzzle's solution.  Use this to help learn the puzzle!";
+
+    context.fillText(faceIconsText, CANVAS_WIDTH / 2, 490);
+    context.fillText(oppositeIconsText, CANVAS_WIDTH / 2, 540);
+    context.fillText(`${middleMouseText} ${iconText}`, CANVAS_WIDTH / 2, 790);
+    context.fillText(solutionText, CANVAS_WIDTH / 2, 840);
+    compiledText.push(faceIconsText, oppositeIconsText, `${middleMouseText} ${showSolutionButtonText} ${solutionText}`);
+
+    canvas.ariaDescription = compiledText.join('\n');
 
     const canvasContainer = document.getElementById('canvasContainer');
     canvasContainer.classList.remove('loading');
@@ -371,13 +384,14 @@ class Router {
     // Update difficulty buttons
     for (let i = 1; i <= 4; i++) {
       const button = document.getElementById(`difficulty${i}`);
+
       if (button) {
         if (i === this.difficulty) {
           button.classList.add('selected');
-          button.disabled = true;
+          button.checked = true;
         } else {
           button.classList.remove('selected');
-          button.disabled = false;
+          button.checked = false;
         }
       }
     }

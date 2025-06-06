@@ -335,7 +335,7 @@ export function init() {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🚩\uFE0E Slider Path Puzzle 🚩\uFE0E",
+  drawInstructionsHelper("Slider Path Puzzle", "🚩\uFE0E",
       ["Break all the white blocks and land in the goal.",
           "Hint: alternate vertical and horizontal moves."],
       ["Click or tap the arrows to move the slider."],

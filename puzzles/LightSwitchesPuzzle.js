@@ -158,7 +158,7 @@ let solutionSwitches;
 let queuedSounds = [];
 
 export function drawInstructions() {
-  drawInstructionsHelper("🚨\uFE0E Light Switches Puzzle 🚨\uFE0E",
+  drawInstructionsHelper("Light Switches Puzzle", "🚨\uFE0E",
       ["Activate the correct switches to light all the grid tiles.",
           "Each switch toggles a specific set of tiles."],
       ["Click or tap a switch to toggle it."],

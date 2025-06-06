@@ -585,7 +585,7 @@ function circuitGetConnectedEnd(circuitEnd, gridToDraw, context = null) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🔌\uFE0E Circuit Grid Puzzle 🔌\uFE0E",
+  drawInstructionsHelper("Circuit Grid Puzzle", "🔌\uFE0E",
       ["Arrange the tiles to complete all the outgoing circuits."],
       ["Click or tap to select tiles and swap them.",
           "Right-click or tap with a 2nd finger to rotate tiles."],

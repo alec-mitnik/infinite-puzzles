@@ -915,7 +915,7 @@ function rotateTile(tile, playSound = true) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🏁\uFE0E Color Pieces Grid Puzzle 🏁\uFE0E",
+  drawInstructionsHelper("Color Pieces Grid Puzzle", "🏁\uFE0E",
       ["Arrange the puzzle pieces into the grid by color."],
       ["Drag the pieces to move them.  While dragging,",
           "right-click or tap with a 2nd finger to rotate the piece."],

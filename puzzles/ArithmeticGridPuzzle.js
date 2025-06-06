@@ -477,7 +477,7 @@ function isSolved(tile, gridToDraw) {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("📝\uFE0E Arithmetic Grid Puzzle 📝\uFE0E",
+  drawInstructionsHelper("Arithmetic Grid Puzzle", "📝\uFE0E",
       ["Arrange the tiles to get the expected totals.",
           "White tiles are fixed in place."],
       ["Click or tap to select tiles and swap them."],

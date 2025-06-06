@@ -710,7 +710,7 @@ function generateGraph() {
 }
 
 export function drawInstructions() {
-  drawInstructionsHelper("🕸︎\uFE0E Tangled Graph Puzzle 🕸︎\uFE0E",
+  drawInstructionsHelper("Tangled Graph Puzzle", "🕸︎\uFE0E",
       ["Untangle the graph so that no lines intersect.",
           "White nodes are fixed in place."],
       ["Drag the nodes to move them."],
