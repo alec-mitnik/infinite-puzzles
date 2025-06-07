@@ -379,15 +379,15 @@ class Router {
   updateDifficultyUI() {
     // Update difficulty buttons
     for (let i = 1; i <= 4; i++) {
-      const button = document.getElementById(`difficulty${i}`);
+      const label = document.getElementById(`difficulty${i}`);
 
-      if (button) {
+      if (label) {
         if (i === this.difficulty) {
-          button.classList.add('selected');
-          button.checked = true;
+          label.classList.add('selected');
+          label.querySelector('input').checked = true;
         } else {
-          button.classList.remove('selected');
-          button.checked = false;
+          label.classList.remove('selected');
+          label.querySelector('input').checked = false;
         }
       }
     }

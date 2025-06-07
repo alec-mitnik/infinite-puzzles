@@ -234,7 +234,7 @@
     </div>
   </nav>
 
-  <nav id="controls" class="sidebar hidden" aria-label="Puzzle Controls">
+  <div id="controls" class="sidebar hidden" role="group" aria-label="Puzzle Controls">
     <!-- Home -->
     <button aria-label="Home">
       <span role="img" aria-Label="Home">&#10094;</span>
@@ -259,9 +259,9 @@
     <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
       <span role="img" aria-Label="Next Tutorial">&#9197;&#xFE0E;</span>
     </button>
-  </nav>
+  </div>
 
-  <div id="canvasContainer">
+  <main id="canvasContainer">
     <canvas id="puzzleCanvas" tabindex="0" aria-label="Puzzle Canvas" oncontextmenu="return false;"></canvas>
 
     <button disabled id="startButton" aria-label="Start Puzzle">
@@ -274,17 +274,16 @@
       <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="">
       Support My Projects
     </button>
-  </div>
+  </main>
 
-  <nav id="settings" class="sidebar" aria-label="Puzzle Settings">
+  <div id="settings" class="sidebar" role="group" aria-label="Puzzle Settings">
     <!-- Volume -->
     <button aria-label="Mute Sounds" id="muteButton">
       <span id="soundIcon" role="img" aria-label="Mute Sounds">&#128266;</span>
       <span id="noSoundIcon"role="img" aria-label="Unmute Sounds">&#128264;</span>
     </button>
 
-    <fieldset id="difficulty-group">
-      <legend>Puzzle Difficulty</legend>
+    <div id="difficulty-group" role="radiogroup" aria-label="Puzzle Difficulty">
       <!-- Tongue Out -->
       <label id="difficulty1" class="faded">
         <input type="radio" name="difficulty" />
@@ -305,13 +304,13 @@
         <input type="radio" name="difficulty" />
         <span role="img" aria-label="Intense">&#129327;</span>
       </label>
-    </fieldset>
+    </div>
 
     <button aria-label="Enter Fullscreen Mode" id="fullScreenButton">
       <span id="fullScreenOnIcon" role="img" aria-label="Enter Fullscreen Mode">&#128241;</span>
       <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">&#128244;</span>
     </button>
-  </nav>
+  </div>
 
   <!-- Ko-fi tipping dialog -->
   <dialog id="kofi-dialog" aria-label="Support My Projects" style="width: 350px; max-width: 100%; height: 675px; max-height: 100%;">
