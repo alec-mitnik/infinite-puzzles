@@ -59,6 +59,11 @@ body {
   flex-direction: column-reverse;
 }
 
+#puzzleGames {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
 #canvasContainer {
   transition: opacity 1s;
   background-color: #000000; /* For browsers that do not support gradients */
@@ -292,7 +297,7 @@ button:disabled {
 }
 
 @media (orientation: landscape) {
-  body {
+  body, #puzzleGames {
     flex-direction: row;
   }
 
@@ -413,8 +418,6 @@ dialog {
   }
 
   > img {
-    width: 1.375rem;
-    height: 0.9375rem;
-    margin-top: -2px;
+    height: 1rem;
   }
 }

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="Play an endless supply of dynamically-generated puzzle games in this web app by Alec Mitnik.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -190,48 +191,50 @@
 
 <body class="loading">
   <!-- Put more intuitive puzzles at the top/left -->
-  <div class="puzzleLinks sidebar">
-    <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
-      <span role="img" aria-Label="Light Switches Puzzle">&#128680;&#xFE0E;</span>
-    </button>
-    <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
-      <span role="img" aria-Label="Slider Path Puzzle">&#128681;&#xFE0E;</span>
-    </button>
-    <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
-      <span role="img" aria-Label="Emitters Grid Puzzle">&#128251;&#xFE0E;</span>
-    </button>
-    <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
-      <span role="img" aria-Label="Grid Mirror Puzzle">&#x1F506;&#xFE0E;</span>
-    </button>
-    <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
-      <span role="img" aria-Label="Circuit Grid Puzzle">&#128268;&#xFE0E;</span>
-    </button>
-    <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
-      <span role="img" aria-Label="Marked Loop Puzzle">&#128141;&#xFE0E;</span>
-    </button>
-  </div>
-  <div class="puzzleLinks sidebar">
-    <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
-      <span role="img" aria-Label="Tetromino Grid Puzzle">&#128306;&#xFE0E;</span>
-    </button>
-    <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
-      <span role="img" aria-Label="Arithmetic Grid Puzzle">&#128221;&#xFE0E;</span>
-    </button>
-    <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
-      <span role="img" aria-Label="Tangled Graph Puzzle">&#128376;&#xFE0E;</span>
-    </button>
-    <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
-      <span role="img" aria-Label="Logic Grid Puzzle">&#128173;&#xFE0E;</span>
-    </button>
-    <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
-      <span role="img" aria-Label="Shifting Grid Puzzle">&#128642;&#xFE0E;</span>
-    </button>
-    <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
-      <span role="img" aria-Label="Color Pieces Grid Puzzle">&#127937;&#xFE0E;</span>
-    </button>
-  </div>
+  <nav id="puzzleGames" aria-label="Puzzle Games">
+    <div class="puzzleLinks sidebar">
+      <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
+        <span role="img" aria-Label="Light Switches Puzzle">&#128680;&#xFE0E;</span>
+      </button>
+      <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
+        <span role="img" aria-Label="Slider Path Puzzle">&#128681;&#xFE0E;</span>
+      </button>
+      <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
+        <span role="img" aria-Label="Emitters Grid Puzzle">&#128251;&#xFE0E;</span>
+      </button>
+      <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
+        <span role="img" aria-Label="Grid Mirror Puzzle">&#x1F506;&#xFE0E;</span>
+      </button>
+      <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
+        <span role="img" aria-Label="Circuit Grid Puzzle">&#128268;&#xFE0E;</span>
+      </button>
+      <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
+        <span role="img" aria-Label="Marked Loop Puzzle">&#128141;&#xFE0E;</span>
+      </button>
+    </div>
+    <div class="puzzleLinks sidebar">
+      <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
+        <span role="img" aria-Label="Tetromino Grid Puzzle">&#128306;&#xFE0E;</span>
+      </button>
+      <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
+        <span role="img" aria-Label="Arithmetic Grid Puzzle">&#128221;&#xFE0E;</span>
+      </button>
+      <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
+        <span role="img" aria-Label="Tangled Graph Puzzle">&#128376;&#xFE0E;</span>
+      </button>
+      <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
+        <span role="img" aria-Label="Logic Grid Puzzle">&#128173;&#xFE0E;</span>
+      </button>
+      <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
+        <span role="img" aria-Label="Shifting Grid Puzzle">&#128642;&#xFE0E;</span>
+      </button>
+      <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
+        <span role="img" aria-Label="Color Pieces Grid Puzzle">&#127937;&#xFE0E;</span>
+      </button>
+    </div>
+  </nav>
 
-  <div id="controls" class="sidebar hidden">
+  <nav id="controls" class="sidebar hidden" aria-label="Puzzle Controls">
     <!-- Home -->
     <button aria-label="Home">
       <span role="img" aria-Label="Home">&#10094;</span>
@@ -256,7 +259,7 @@
     <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
       <span role="img" aria-Label="Next Tutorial">&#9197;&#xFE0E;</span>
     </button>
-  </div>
+  </nav>
 
   <div id="canvasContainer">
     <canvas id="puzzleCanvas" tabindex="0" aria-label="Puzzle Canvas" oncontextmenu="return false;"></canvas>
@@ -269,11 +272,11 @@
     <button id="kofi-button" style="display: none;" onclick="document.getElementById('kofi-dialog').showModal()"
         ontouchend="document.getElementById('kofi-dialog').showModal(); event.preventDefault();">
       <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="">
-      Support my projects
+      Support My Projects
     </button>
   </div>
 
-  <div id="settings" class="sidebar">
+  <nav id="settings" class="sidebar" aria-label="Puzzle Settings">
     <!-- Volume -->
     <button aria-label="Mute Sounds" id="muteButton">
       <span id="soundIcon" role="img" aria-label="Mute Sounds">&#128266;</span>
@@ -308,7 +311,7 @@
       <span id="fullScreenOnIcon" role="img" aria-label="Enter Fullscreen Mode">&#128241;</span>
       <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">&#128244;</span>
     </button>
-  </div>
+  </nav>
 
   <!-- Ko-fi tipping dialog -->
   <dialog id="kofi-dialog" aria-label="Support My Projects" style="width: 350px; max-width: 100%; height: 675px; max-height: 100%;">

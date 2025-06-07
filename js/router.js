@@ -3,9 +3,6 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 import { getPuzzleCanvas, stopConfetti, updateForTutorialRecommendation } from './utils.js';
 
 /* TODO:
- * Change difficulty buttons to radio options with attributes like aria-posinset="1" aria-setsize="4"
-in a container with role="radiogroup" and aria-label, and then can query for selected value like:
-document.querySelector('<container> input[name="difficulty"]:checked')?.value
  * Look more into accessibility in general
  * Option to share and recreate a puzzle from a URL?
  */
@@ -181,7 +178,6 @@ class Router {
       let context = canvas.getContext("2d");
       context.reset();
 
-      document.getElementById('kofi-button').classList.add('hidden');
       document.getElementById('controls').classList.remove('solved');
 
       // Initialize the route
@@ -285,8 +281,7 @@ class Router {
 
     // Hide puzzle controls
     document.getElementById('controls').classList.add('hidden');
-    document.querySelectorAll('.puzzleLinks').forEach(linkSet => linkSet.classList.remove('hidden'));
-
+    document.getElementById('puzzleGames').classList.remove('hidden');
     document.getElementById('kofi-button').classList.remove('hidden');
   }
 
@@ -316,7 +311,8 @@ class Router {
 
       // Show puzzle controls
       document.getElementById('controls').classList.remove('hidden');
-      document.querySelectorAll('.puzzleLinks').forEach(linkSet => linkSet.classList.add('hidden'));
+      document.getElementById('kofi-button').classList.add('hidden');
+      document.getElementById('puzzleGames').classList.add('hidden');
 
       // Initialize puzzle
       if (typeof window.app.currentPuzzle.init === 'function') {
