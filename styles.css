@@ -152,10 +152,16 @@ canvas#puzzleCanvas {
   justify-content: space-around;
   align-items: stretch;
 
+  label {
+    position: relative;
+  }
+
   input[type="radio"] {
     appearance: none;
     margin: 0;
     padding: 0;
+    position: absolute;
+    inset: 0 0.5rem;
   }
 }
 
@@ -379,14 +385,16 @@ dialog {
   }
 }
 
-#kofi-button {
+#portfolio-link {
   position: absolute;
   bottom: 1.25rem;
   color: white;
   background: #333;
-  padding: 6px 10px;
+  /* padding: 6px 10px; */
+  padding: 6px;
   box-shadow: 0 0 4px 0 #f9b70f;
-  border-radius: 10px;
+  /* border-radius: 10px; */
+  border-radius: 99999px;
   font-weight: bold;
   font-size: 0.875rem;
   display: inline-flex;
@@ -401,6 +409,8 @@ dialog {
   }
 
   > img {
-    height: 1rem;
+    height: 4rem;
+    border-radius: 99999px;
+    pointer-events: none;
   }
 }

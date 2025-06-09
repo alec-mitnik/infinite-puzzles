@@ -26,9 +26,7 @@
   // Register service worker and online status
   if ('serviceWorker' in navigator) {
     if (navigator.onLine) {
-      document.getElementById('kofi-button').style.display = null;
-      const kofiIframe = document.getElementById('kofi-iframe');
-      kofiIframe.src = kofiIframe.dataset.src;
+      document.getElementById('portfolio-link').style.display = null;
     }
 
     console.log('App loaded as ' + (navigator.onLine ? 'online' : 'offline'));
@@ -268,12 +266,10 @@
       <span></span>
     </button>
 
-    <!-- Ko-fi tipping button -->
-    <button id="kofi-button" style="display: none;" onclick="document.getElementById('kofi-dialog').showModal()"
-        ontouchend="document.getElementById('kofi-dialog').showModal(); event.preventDefault();">
-      <img loading="lazy" src="https://storage.ko-fi.com/cdn/cup-border.png" alt="">
-      Support My Projects
-    </button>
+    <!-- Portfolio Link -->
+    <a id="portfolio-link" style="display: none;" href="https://alec-mitnik.github.io/" target="_blank" aria-label="Check out my other projects">
+      <img loading="lazy" src="./images/PXL_Avatar_1B.jpg" alt="">
+    </a>
   </main>
 
   <div id="settings" class="sidebar" role="group" aria-label="Puzzle Settings">
@@ -311,21 +307,5 @@
       <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">&#128244;</span>
     </button>
   </div>
-
-  <!-- Ko-fi tipping dialog -->
-  <dialog id="kofi-dialog" aria-label="Support My Projects" style="width: 350px; max-width: 100%; height: 675px; max-height: 100%;">
-    <div id="kofi-backdrop" class="modal-backdrop" onclick="document.getElementById('kofi-dialog').close();"></div>
-    <div class="modal">
-      <button autofocus class="close-button" aria-label="Close tipping dialog" onclick="document.getElementById('kofi-dialog').close();">
-        <span>❌&#65038;</span>
-      </button>
-      <!-- Set data-src value to src attribute to trigger load at chosen moment -->
-      <iframe
-        id="kofi-iframe"
-        data-src="https://ko-fi.com/alecmitnik/?hidefeed=true&widget=true&embed=true&preview=true"
-        style="border: none; border-radius: 8px; width: 100%; height: 100%;"
-      ></iframe>
-    </div>
-  </dialog>
 </body>
 </html>

@@ -123,7 +123,7 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
     window.app.puzzleState.interactive = false;
 
     const canvas = getPuzzleCanvas();
-    canvas.focus();
+    canvas.focus({ focusVisible: false }); // Prevent focus outline on iOS Safari
     const context = canvas.getContext("2d");
     const compiledInstructions = [];
 

@@ -69,9 +69,11 @@ class Router {
         window.app.currentPuzzle.onTouchStart(event);
       }
 
-      // Prevent double-tap selection/magnification on mobile.
-      // Any child elements will need to listen to touch events to still trigger on touch devices.
-      event.preventDefault();
+      if (event.target.tagName !== 'A') {
+        // Prevent double-tap selection/magnification on mobile.
+        // Any child elements will need to listen to touch events to still trigger on touch devices.
+        event.preventDefault();
+      }
     }, { passive: false });
     canvasContainer?.addEventListener('touchmove', (event) => {
       if (typeof window.app.currentPuzzle?.onTouchMove === 'function') {
@@ -254,9 +256,9 @@ class Router {
     compiledText.push("Infinite Puzzles: By Alec Mitnik.");
 
     context.font = "104px Arial"
-    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 410);
+    context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 380);
     context.font = "120px Arial"
-    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 730);
+    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 690);
 
     context.font = "30px Arial"
 
@@ -267,10 +269,10 @@ class Router {
     const showSolutionButtonText = "Show Solution Button";
     const solutionText = "to peek at a puzzle's solution.  Use this to help learn the puzzle!";
 
-    context.fillText(faceIconsText, CANVAS_WIDTH / 2, 490);
-    context.fillText(oppositeIconsText, CANVAS_WIDTH / 2, 540);
-    context.fillText(`${middleMouseText} ${iconText}`, CANVAS_WIDTH / 2, 790);
-    context.fillText(solutionText, CANVAS_WIDTH / 2, 840);
+    context.fillText(faceIconsText, CANVAS_WIDTH / 2, 460);
+    context.fillText(oppositeIconsText, CANVAS_WIDTH / 2, 510);
+    context.fillText(`${middleMouseText} ${iconText}`, CANVAS_WIDTH / 2, 750);
+    context.fillText(solutionText, CANVAS_WIDTH / 2, 800);
     compiledText.push(faceIconsText, oppositeIconsText, `${middleMouseText} ${showSolutionButtonText} ${solutionText}`);
 
     canvas.ariaDescription = compiledText.join('\n');
@@ -282,7 +284,7 @@ class Router {
     // Hide puzzle controls
     document.getElementById('controls').classList.add('hidden');
     document.getElementById('puzzleGames').classList.remove('hidden');
-    document.getElementById('kofi-button').classList.remove('hidden');
+    document.getElementById('portfolio-link').classList.remove('hidden');
   }
 
   // Load puzzle page content
@@ -311,7 +313,7 @@ class Router {
 
       // Show puzzle controls
       document.getElementById('controls').classList.remove('hidden');
-      document.getElementById('kofi-button').classList.add('hidden');
+      document.getElementById('portfolio-link').classList.add('hidden');
       document.getElementById('puzzleGames').classList.add('hidden');
 
       // Initialize puzzle
