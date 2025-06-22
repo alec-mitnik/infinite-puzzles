@@ -27,19 +27,24 @@ html {
   align-items: center;
   overflow: hidden;
   font-size: clamp(62.5%, 2vmin + 0.125rem, 100%);
-}
 
-html::before {
-  content: '\1F300\FE0E' / '';
-  color: #F9B70F00;
-  text-shadow: 0 0 0 #F9B70F;
-  position: absolute;
-  width: 200px;
-  line-height: 200px;
-  font-size: 200px;
-  -webkit-animation:spin 0.5s linear infinite;
-  -moz-animation:spin 0.5s linear infinite;
-  animation:spin 0.5s linear infinite;
+  &::before {
+    content: '\1F300\FE0E' / '';
+    color: #F9B70F00;
+    text-shadow: 0 0 0 #F9B70F;
+    position: absolute;
+    width: 200px;
+    line-height: 200px;
+    font-size: 200px;
+    animation:spin 0.5s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation: none;
+      display: none;
+    }
+  }
 }
 
 body.loading, #canvasContainer.loading {
@@ -113,6 +118,11 @@ canvas#puzzleCanvas {
       transform: scale(1);
       animation: scaleFlare 2s ease-in-out infinite;
       color: #F9B70F;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation-iteration-count: 1.5;
+        animation-fill-mode: forwards;
+      }
     }
   }
 }
@@ -125,6 +135,11 @@ canvas#puzzleCanvas {
     transform: scale(1);
     animation: scaleFlare 2s ease-in-out infinite;
     color: #F9B70F;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation-iteration-count: 1.5;
+      animation-fill-mode: forwards;
+    }
   }
 }
 
