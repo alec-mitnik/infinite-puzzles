@@ -1143,14 +1143,24 @@ export function onTouchStart(event) {
   }
 }
 
+// Can't use event.movementX and event.movementY, as they get affected by browser zoom
+let mouseCoords = {x: NaN, y: NaN};
+
 export function onMouseMove(event) {
+  const prevMouseCoords = mouseCoords;
+  mouseCoords = {x: event.clientX, y: event.clientY};
+
   if (window.app.puzzleState.interactive && dragging) {
-    // Can happen if mouse down triggered from touch end...
-    if (!isNaN(event.movementX) && !isNaN(event.movementY)) {
+    const mouseDelta = {
+      x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
+      y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,
+    };
+
+    if (!isNaN(mouseDelta.x) && !isNaN(mouseDelta.y) && (mouseDelta.x || mouseDelta.y)) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
 
-      dragging.canvasCoord[0] += event.movementX / window.devicePixelRatio * CANVAS_WIDTH / canvasRect.width;
-      dragging.canvasCoord[1] += event.movementY / window.devicePixelRatio * CANVAS_HEIGHT / canvasRect.height;
+      dragging.canvasCoord[0] += mouseDelta.x * CANVAS_WIDTH / canvasRect.width;
+      dragging.canvasCoord[1] += mouseDelta.y * CANVAS_HEIGHT / canvasRect.height;
 
       drawPuzzle();
     }
