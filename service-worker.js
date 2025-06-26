@@ -1,5 +1,5 @@
 let CACHE_VERSION = 196;
-CACHE_VERSION = Date.now();
+// CACHE_VERSION = Date.now();
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 // List of files to cache for offline use
