@@ -69,6 +69,18 @@ body {
   flex-direction: column-reverse;
 }
 
+/* Use viewport-fit=cover and safe-area-insets for the sidebars so that
+the gutters match the sidebar backgrounds rather than the body background */
+@media (orientation: landscape) {
+  #puzzleLinks .sidebar:first-child, #controls {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  #settings {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
 #canvasContainer {
   transition: opacity 1s;
   background-color: #000000; /* For browsers that do not support gradients */
