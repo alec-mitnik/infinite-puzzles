@@ -49,16 +49,16 @@ class Router {
     });
 
     // Handle difficulty controls
-    document.getElementById('difficulty1')?.addEventListener('click', () => {
+    document.querySelector('#difficulty1 input')?.addEventListener('change', () => {
       this.setDifficulty(1);
     });
-    document.getElementById('difficulty2')?.addEventListener('click', () => {
+    document.querySelector('#difficulty2 input')?.addEventListener('change', () => {
       this.setDifficulty(2);
     });
-    document.getElementById('difficulty3')?.addEventListener('click', () => {
+    document.querySelector('#difficulty3 input')?.addEventListener('change', () => {
       this.setDifficulty(3);
     });
-    document.getElementById('difficulty4')?.addEventListener('click', () => {
+    document.querySelector('#difficulty4 input')?.addEventListener('change', () => {
       this.setDifficulty(4);
     });
 
@@ -366,6 +366,10 @@ class Router {
       this.updateDifficultyUI();
     } else {
       this.difficulty = oldValue;
+      const oldInput = document.querySelector(`#difficulty${oldValue} input`);
+
+      oldInput.checked = true
+      oldInput.focus();
 
       // Reset difficulty in URL params
       if (updateHistory) {
