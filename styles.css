@@ -78,6 +78,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  container-type: size;
 
   &.home {
     background: #333366;
@@ -250,6 +251,7 @@ button:disabled {
 
 #tutorialButton.active > span {
   background-color: #F9B70F;
+  color: #333333;
 }
 
 #instructionsButton.active > span {
@@ -258,6 +260,7 @@ button:disabled {
 
 #solutionButton.active > span {
   background-color: #F9B70F;
+  color: #333333;
 }
 
 #settings {
@@ -421,6 +424,10 @@ dialog {
     &:hover {
       background: #555;
     }
+  }
+
+  @container (height < 400px) {
+    display: none;
   }
 
   > img {
