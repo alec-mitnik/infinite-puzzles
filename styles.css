@@ -61,12 +61,12 @@ body {
   position: relative;
   flex: 1 1 auto;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
 }
 
 #puzzleGames {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
 }
 
 /* Use viewport-fit=cover and safe-area-insets for the sidebars so that

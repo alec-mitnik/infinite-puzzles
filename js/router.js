@@ -5,6 +5,9 @@ import { getPuzzleCanvas, stopConfetti, updateForTutorialRecommendation } from '
 /* TODO:
  * Look more into accessibility in general
  * Option to share and recreate a puzzle from a URL?
+ * Keep an updated list of preset seeds to serve as daily challenges
+ * Share times/scores, leaderboard?  Requires emphasis on speed, though...
+ * Keep stats of puzzles completed?
  */
 
 class Router {
