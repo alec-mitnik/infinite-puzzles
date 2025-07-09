@@ -282,24 +282,33 @@ button:disabled {
       > span {
         padding: 0;
         border-radius: 15px;
-        box-shadow: inset 0 0 2px 3px #ffffff;
+        box-shadow: inset 0 0 2px 3px white;
+
+        @media (prefers-contrast: more) {
+          border: 2px solid white;
+        }
       }
     }
   }
 }
 
-#tutorialButton.active > span {
-  background-color: #F9B70F;
-  color: #333333;
+#tutorialButton.active, #solutionButton.active {
+  > span {
+    background-color: #F9B70F;
+    color: #333333;
+
+    @media (prefers-contrast: more) {
+      border: 2px solid white;
+    }
+  }
 }
 
 #instructionsButton.active > span {
   background-color: #0062A5;
-}
 
-#solutionButton.active > span {
-  background-color: #F9B70F;
-  color: #333333;
+  @media (prefers-contrast: more) {
+    border: 2px solid white;
+  }
 }
 
 #settings {
@@ -455,10 +464,9 @@ dialog {
   bottom: 1.25rem;
   color: white;
   background: #333;
-  /* padding: 6px 10px; */
   padding: 6px;
+  border: 1px solid #f9b70f80;
   box-shadow: 0 0 4px 0 #f9b70f;
-  /* border-radius: 10px; */
   border-radius: 99999px;
   font-weight: bold;
   font-size: 0.875rem;
@@ -469,7 +477,8 @@ dialog {
 
   @media (hover: hover) {
     &:hover {
-      background: #555;
+      background: black;
+      box-shadow: 0 0 6px 2px #f9b70f;
     }
   }
 
