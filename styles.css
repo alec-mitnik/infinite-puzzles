@@ -170,7 +170,7 @@ canvas#puzzleCanvas {
   input[type="radio"] {
     /* Easy CSS reset that even gets rid of the background color change
     in Safari left over by appearance: none */
-    all: initial;
+    all: unset;
     outline: revert;
 
     position: absolute;
