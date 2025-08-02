@@ -1,4 +1,4 @@
-let CACHE_VERSION = 206;
+let CACHE_VERSION = 207;
 // CACHE_VERSION = Date.now();
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
@@ -73,6 +73,11 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
+  // Only handle HTTP/HTTPS requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   // Handle requests with range headers (like audio files in Safari)
   if (event.request.headers.has('range')) {
     event.respondWith(handleRangeRequest(event.request));
