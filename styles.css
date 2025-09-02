@@ -229,7 +229,7 @@ button:disabled {
     flex: 1;
     outline-offset: -0.5rem;
 
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled):not(.selected):not(:checked) {
         background-color: #555;
       }
@@ -420,7 +420,7 @@ dialog {
   justify-content: center;
   align-items: center;
 
-  @media (hover: hover) {
+  @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: #ddd;
     }
@@ -448,7 +448,7 @@ dialog {
   align-items: center;
   gap: 6px;
 
-  @media (hover: hover) {
+  @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: black;
       box-shadow: 0 0 6px 2px #f9b70f;
