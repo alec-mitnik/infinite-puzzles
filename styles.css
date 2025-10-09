@@ -630,8 +630,9 @@ dialog {
     }
   }
 
-  /* On my iPhone, the container height in Safari is 393px */
-  @container (height < 390px) {
+  /* On my iPhone Safari browser, the viewport is 390px x 663px,
+  and the canvas container height in Safari is about 385px */
+  @container (height < 380px) {
     display: none;
   }
 
