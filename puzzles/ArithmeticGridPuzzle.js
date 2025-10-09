@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const SKIPPED_ROWS = 0;
 const SKIPPED_COLS = 0;
@@ -43,7 +47,7 @@ const tutorials = [
         fixed: false,
       }],
     ],
-    // signGrid: Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => Math.random() < MINUS_RATE ? -1 : 1)),
+    // signGrid: Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => window.app.sRand() < MINUS_RATE ? -1 : 1)),
     signGrid: Array.from({length: 1 }, () => Array.from({length: 3}, () => 1)),
     colTotals: [{
       num: 1,
@@ -345,7 +349,7 @@ function generateGrid() {
   grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => {}));
 
   // 1 is plus, -1 is minus, invalid coordinates will just be unused
-  signGrid = Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => Math.random() < MINUS_RATE ? -1 : 1));
+  signGrid = Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => window.app.sRand() < MINUS_RATE ? -1 : 1));
 
   rawGrid.forEach((col, colIndex) => {
     let colTotal = col.reduce((total, num, i) => {

@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord,
+  updateForTutorialRecommendation, updateForTutorialState
+} from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_LINE_THICKNESS = 12;
@@ -136,7 +140,7 @@ let queuedSounds = [];
 function generateGrid() {
   loopGrid = Array.from({length: LOOP_COLS},
       () => Array.from({length: LOOP_ROWS},
-          () => Math.random() < 0.5 ? true : false));
+          () => window.app.sRand() < 0.5 ? true : false));
 
   // Break up all 2x2 groups
   let all2x2Groups = getAll2x2Groups();
@@ -217,7 +221,7 @@ function generateGrid() {
   let allEligible3x2Groups = getAllEligible3x2Groups();
 
   while(allEligible2x3Groups.length || allEligible3x2Groups.length) {
-    if (Math.random() < allEligible2x3Groups.length
+    if (window.app.sRand() < allEligible2x3Groups.length
         / (allEligible2x3Groups.length + allEligible3x2Groups.length)) {
       let group = randomEl(allEligible2x3Groups);
       let i = group[0][0];
@@ -228,7 +232,7 @@ function generateGrid() {
       let rightEdge = (cell && i + 1 === LOOP_COLS - 1)
           || (i + 1 < LOOP_COLS - 1 && loopGrid[i + 2][j + 1] !== cell);
 
-      if (leftEdge && (!rightEdge || Math.random() < 0.5)) {
+      if (leftEdge && (!rightEdge || window.app.sRand() < 0.5)) {
         loopGrid[i][j + 1] = !cell;
       } else if (rightEdge) {
         loopGrid[i + 1][j + 1] = !cell;
@@ -247,7 +251,7 @@ function generateGrid() {
       let bottomEdge = (cell && j + 1 === LOOP_ROWS - 1)
           || (j + 1 < LOOP_ROWS - 1 && loopGrid[i + 1][j + 2] !== cell);
 
-      if (topEdge && (!bottomEdge || Math.random() < 0.5)) {
+      if (topEdge && (!bottomEdge || window.app.sRand() < 0.5)) {
         loopGrid[i + 1][j] = !cell;
       } else if (bottomEdge) {
         loopGrid[i + 1][j + 1] = !cell;

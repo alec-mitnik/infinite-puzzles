@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const TILE_SIZE = 3;
 const MAX_TILE_CIRCUITS = TILE_SIZE * 2; // For reference
@@ -828,7 +832,7 @@ export function init() {
         tile.x = coordinate[1];
         tile.y = coordinate[2];
 
-        let tileRotations = Math.floor(Math.random() * 4);
+        let tileRotations = Math.floor(window.app.sRand() * 4);
         for (let i = 0; i < tileRotations; i++) {
           rotateTile(tile, false);
         }

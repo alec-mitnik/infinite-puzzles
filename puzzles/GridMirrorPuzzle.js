@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 // Can't feasibly change sizes, as the solution steps need to fit in the offset
 const ROWS = 10;
@@ -349,7 +353,7 @@ function generateGrid() {
       })));
 
   for (let i = 0; i < MOVES; i++) {
-    if (i > 0 && Math.random() < MIRROR_RATIO) {
+    if (i > 0 && window.app.sRand() < MIRROR_RATIO) {
       let directions = getAvailableMirrors(true);
 
       if (directions.length === 0) {

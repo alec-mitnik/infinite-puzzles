@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
@@ -500,7 +504,7 @@ function generateGraph() {
 
   let i;
   for (i = 4; i < GRAPH_SIZE * 2 / 3; i++) {
-    if (Math.random() < 0.75) {
+    if (window.app.sRand() < 0.75) {
       // Split an edge and connect to the opposite node
       // for all cycles containing that edge
       let randomCycle = cycles[randomIndex(cycles)];
@@ -508,7 +512,7 @@ function generateGraph() {
       let randomCycleNodeIndex = randomIndex(randomCycle);
       let nodeId = randomCycle[randomCycleNodeIndex];
       let node = nodeMap[nodeId];
-      let randomCycleNeighborIndex = (randomCycleNodeIndex + (Math.random() < 0.5 ? 1 : 2)) % randomCycle.length;
+      let randomCycleNeighborIndex = (randomCycleNodeIndex + (window.app.sRand() < 0.5 ? 1 : 2)) % randomCycle.length;
       let neighborId = randomCycle[randomCycleNeighborIndex];
       let neighbor = nodeMap[neighborId];
 
@@ -620,7 +624,7 @@ function generateGraph() {
     }
   }
 
-  let stragglers = Math.floor(Math.random() * (GRAPH_SIZE - i)) + i;
+  let stragglers = Math.floor(window.app.sRand() * (GRAPH_SIZE - i)) + i;
 
   for (i; i < stragglers; i++) {
     // Add a straggling node to a cycle's midpoint.
@@ -1135,8 +1139,8 @@ export function onMouseOut() {
 }
 
 function randomizeNodePosition(node) {
-  node.x = Math.random() * (CANVAS_WIDTH - NODE_SIZE) + NODE_SIZE / 2;
-  node.y = Math.random() * (CANVAS_HEIGHT - NODE_SIZE) + NODE_SIZE / 2;
+  node.x = window.app.sRand() * (CANVAS_WIDTH - NODE_SIZE) + NODE_SIZE / 2;
+  node.y = window.app.sRand() * (CANVAS_HEIGHT - NODE_SIZE) + NODE_SIZE / 2;
 }
 
 function setXtoGridCoordinates(gridX, graphSize = GRAPH_SIZE) {

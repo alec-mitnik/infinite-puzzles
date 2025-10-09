@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
 const ROWS = 10;
@@ -215,11 +219,11 @@ function generateGrid() {
     containsSlider: false,
   })));
 
-  let x = Math.floor(Math.random() * (COLS - 2)) + 1;
-  let y = Math.floor(Math.random() * (ROWS - 2)) + 1;
+  let x = Math.floor(window.app.sRand() * (COLS - 2)) + 1;
+  let y = Math.floor(window.app.sRand() * (ROWS - 2)) + 1;
   grid[x][y].containsSlider = true;
 
-  let directionVertical = Math.random() < 0.5;
+  let directionVertical = window.app.sRand() < 0.5;
   let pathContinues = true;
   let keyNum = 1;
   let totalBlocks = 0;

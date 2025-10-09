@@ -39,7 +39,9 @@
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (!refreshing) {
               refreshing = true;
-              window.location.reload();
+
+              // Need to make sure to preserve the seed
+              window.location.href = window.app.router.buildUrl(true);
             }
           });
 
@@ -52,7 +54,6 @@
     });
   }
 
-  // Import our modules
   import {CANVAS_WIDTH, CANVAS_HEIGHT} from './js/config.js';
   import {solutionToggle, startButtonClick} from './js/utils.js';
   import './js/router.js';
@@ -94,6 +95,62 @@
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
 
+    // Handle share puzzle dialog
+    const sharePuzzleSeedWithNavigatorButton = document.getElementById('sharePuzzleSeedWithNavigatorButton');
+    const sharePuzzleLinkWithNavigatorButton = document.getElementById('sharePuzzleLinkWithNavigatorButton');
+
+    if (!navigator.share) {
+      sharePuzzleSeedWithNavigatorButton.display = 'none';
+      sharePuzzleLinkWithNavigatorButton.display = 'none';
+    } else {
+      sharePuzzleSeedWithNavigatorButton.addEventListener('click', () => {
+        navigator.share({
+          title: 'I want to share a puzzle with you using this seed!',
+          text: window.app.router.seed,
+        });
+      });
+
+      sharePuzzleLinkWithNavigatorButton.addEventListener('click', () => {
+        navigator.share({
+          title: 'I want to share this puzzle with you!',
+          url: document.getElementById('sharePuzzleLink').href,
+        });
+      });
+    }
+
+    const generatePuzzleFromSeedForm = document.getElementById('generatePuzzleFromSeedForm');
+    const newSeedInput = generatePuzzleFromSeedForm.newSeed;
+
+    generatePuzzleFromSeedForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const newSeed = newSeedInput.value;
+      window.app.router.seed = newSeed;
+
+      if (window.app.router.reloadPuzzle(newSeed)) {
+        generatePuzzleFromSeedForm.reset();
+        document.getElementById('puzzleSharingDialog').close();
+      }
+    });
+
+    newSeedInput.addEventListener('input', (event) => {
+      // Remove non-alphanumeric characters
+      let seedValue = event.currentTarget.value.replace(/[^a-z0-9]/gi, '');
+
+      // Normalize to lowercase, to not give the impression that
+      // base-36 conversion is case sensitive
+      seedValue = seedValue.toLowerCase();
+
+      // Limit seed length for practicality.  Anything over the largest 32-bit signed integer
+      // (which is 7 characters in base-36) will just be wrapped around by the algorithm.
+      if (seedValue.length > 10) {
+        seedValue = seedValue.slice(0, 10);
+      }
+
+      // Apply sanitized value
+      event.currentTarget.value = seedValue;
+    });
+
     // Initialize routing
     window.app.router.init();
 
@@ -108,23 +165,67 @@
 
     // Handle puzzle controls
     const controls = document.getElementById('controls').children;
+
+    // Home
     controls[0].addEventListener('click', () => {
       window.app.router.navigate('home');
     });
+    // Toggle Tutorial
     controls[1].addEventListener('click', () => {
       window.app.router.toggleTutorial();
     });
+    // Instructions
     controls[2].addEventListener('click', () => {
       window.app.currentPuzzle.drawInstructions();
     });
+    // Show Solution
     controls[3].addEventListener('click', () => {
       solutionToggle();
     });
+    // Generate New Puzzle
     controls[4].addEventListener('click', () => {
       window.app.router.reloadPuzzle();
     });
+    // Next Tutorial
     controls[5].addEventListener('click', () => {
       window.app.router.reloadPuzzle();
+    });
+    // Open Puzzle Sharing Dialog
+    controls[6].addEventListener('click', () => {
+      const sharePuzzleOptions = document.getElementById('sharePuzzleOptions');
+      const sharePuzzleTutorialMessage = document.getElementById('sharePuzzleTutorialMessage');
+
+      if (window.app.puzzleState.tutorialStage) {
+        sharePuzzleOptions.style.display = 'none';
+        sharePuzzleTutorialMessage.style.display = null;
+      } else {
+        sharePuzzleOptions.style.display = null;
+        sharePuzzleTutorialMessage.style.display = 'none';
+
+        document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
+
+        const sharePuzzleSeed = document.getElementById('sharePuzzleSeed');
+        sharePuzzleSeed.textContent = window.app.router.seed;
+
+        const url = window.app.router.buildUrl(true);
+
+        const sharePuzzleLink = document.getElementById('sharePuzzleLink');
+        sharePuzzleLink.href = url;
+        sharePuzzleLink.textContent = url;
+
+        const difficulty = window.app.router.difficulty;
+        const difficultyLabelElement = document.getElementById(`difficulty${difficulty}`);
+        const difficultyEmoji = difficultyLabelElement.querySelector('span').textContent;
+        const difficultyAriaLabel = difficultyLabelElement.querySelector('input').ariaLabel;
+
+        document.getElementById('seedInstructionsTitles').textContent =
+            document.title.replace(' - ', ' in ');
+        document.getElementById('seedInstructionsDifficultyEmoji').textContent = difficultyEmoji;
+        document.getElementById('seedInstructionsDifficultyLabel').textContent = difficultyAriaLabel;
+      }
+
+      const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
+      puzzleSharingDialog.showModal();
     });
 
     // Handle fullscreen toggling
@@ -314,7 +415,7 @@
     <button aria-label="Home">
       <span role="img" aria-Label="Home">&#10094;</span>
     </button>
-    <!-- Tutorial -->
+    <!-- Toggle Tutorial -->
     <button aria-label="Start Tutorial" class="larger" id="tutorialButton">
       <span role="img" aria-Label="Start Tutorial">&#9883;&#xFE0E;</span>
     </button>
@@ -322,7 +423,7 @@
     <button aria-label="Show Instructions" class="larger" id="instructionsButton">
       <span role="img" aria-Label="Show Instructions">?</span>
     </button>
-    <!-- Solution -->
+    <!-- Show Solution -->
     <button aria-label="Show Solution" class="larger" id="solutionButton">
       <span role="img" aria-Label="Show Solution">&#9745;&#xFE0E;</span>
     </button>
@@ -334,6 +435,79 @@
     <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
       <span role="img" aria-Label="Next Tutorial">&#9197;&#xFE0E;</span>
     </button>
+    <!-- Open Puzzle Sharing Dialog -->
+    <button aria-label="Open Puzzle Sharing Dialog" class="much-larger" id="sharePuzzleButton">
+      <span role="img" aria-Label="Open Puzzle Sharing Dialog">&#9010;</span>
+    </button>
   </div>
+
+  <dialog id="puzzleSharingDialog" aria-labelledBy="sharePuzzleTitle">
+    <div class="modal-backdrop"
+        onclick="if (event.target === this) { document.getElementById('puzzleSharingDialog').close() }">
+      <div class="modal-foreground">
+        <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('puzzleSharingDialog').close()">
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="modal-content" tabindex="-1">
+          <h1 id="sharePuzzleTitle">Puzzle Sharing</h1>
+
+          <p id="sharePuzzleTutorialMessage">
+            You can share generated puzzles once you exit the tutorial!
+          </p>
+
+          <div id="sharePuzzleOptions">
+            <h2>
+              Current Puzzle Sharable Link:
+            </h2>
+            <a id="sharePuzzleLink" href="#"></a><br />
+
+            <button id="sharePuzzleLinkWithNavigatorButton">Share Puzzle Link</button>
+
+            <hr />
+
+            <details id="sharePuzzleSeedDirectlyDetails">
+              <summary><h2>Share Puzzle Seed Directly</h2></summary>
+
+              <p>
+                Current Puzzle Seed: <code id="sharePuzzleSeed"></code>
+              </p>
+
+              <button id="sharePuzzleSeedWithNavigatorButton">Share Puzzle Seed</button>
+
+              <p>
+                When sharing this seed directly, the recipient needs to do the following:
+              </p>
+              <ol aria-label="Share Puzzle Seed Instructions">
+                <li>Open the <span id="seedInstructionsTitles"></span></li>
+                <li>Set the difficulty to: <span id="seedInstructionsDifficultyEmoji"
+                    aria-hidden="true"></span> (<span id="seedInstructionsDifficultyLabel"></span>)</li>
+                <li>Bring up this Puzzle Sharing dialog</li>
+                <li>Use the form below to generate a puzzle from the seed</li>
+              </ol>
+            </details>
+
+            <hr />
+
+            <form id="generatePuzzleFromSeedForm">
+              <label>
+                <h2>Generate Puzzle from Seed</h2>
+                <input type="text" name="newSeed" size="10"
+                    required  pattern="[a-zA-Z0-9]*" maxlength="10"
+                    spellcheck="false" autocomplete="off" />
+              </label>
+
+              <button type="submit">Generate</button>
+
+              <p class="smaller-text">
+                Use this for any puzzle seeds directly shared with you.  You can also have everyone agree on a new seed to generate from in order to all play the same puzzle that way.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>

@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const ROTATIONS = false;
 const TETROMINO_SIZE = 4;
@@ -839,13 +843,13 @@ export function init() {
   solution = deepCopy(tiles);
 
   // Place on bottom or right edge to not obscure the grid
-  let bottomEdge = Math.random() < 0.5;
+  let bottomEdge = window.app.sRand() < 0.5;
 
   do {
     // Randomize tile orientations and positions
     tiles.forEach(tile => {
       if (ROTATIONS) {
-        let tileRotations = Math.floor(Math.random() * 4);
+        let tileRotations = Math.floor(window.app.sRand() * 4);
         for (let i = 0; i < tileRotations; i++) {
           rotateTile(tile, false);
         }
@@ -867,12 +871,12 @@ export function init() {
       let maxX = CANVAS_WIDTH - CELL_SIZE * (0.5 + tileMaxCoordX - tile.cells[0].coordinates[0]);
       let minX = !bottomEdge ? maxX
           : CELL_SIZE * (0.5 + tile.cells[0].coordinates[0] - tileMinCoordX);
-      let moveX = Math.random() * (maxX - minX) + minX - tile.cells[0].x;
+      let moveX = window.app.sRand() * (maxX - minX) + minX - tile.cells[0].x;
 
       let maxY = CANVAS_WIDTH - CELL_SIZE * (0.5 + tileMaxCoordY - tile.cells[0].coordinates[1]);
       let minY = bottomEdge ? maxY
           : CELL_SIZE * (0.5 + tile.cells[0].coordinates[1] - tileMinCoordY);
-      let moveY = Math.random() * (maxY - minY) + minY - tile.cells[0].y;
+      let moveY = window.app.sRand() * (maxY - minY) + minY - tile.cells[0].y;
 
       tile.cells.forEach(cell => {
         cell.x += moveX;

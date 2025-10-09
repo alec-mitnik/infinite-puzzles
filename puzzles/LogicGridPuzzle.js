@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 3 / 5;
 const RULES_SIZE = 40;
@@ -918,7 +922,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
     }
 
     if (!derived) {
-      if (Math.random() < 0.5) {
+      if (window.app.sRand() < 0.5) {
         // Gather all the row neighbors
         let rowNeighbors = nodes.filter(otherNode => {
           return otherNode.id !== node.id && otherNode.row === node.row
@@ -1321,7 +1325,7 @@ async function generateXorRules(convertList, falseRules, rulesList, xorList, non
       let firstRule;
       let secondRule;
 
-      if (Math.random() < 0.5) {
+      if (window.app.sRand() < 0.5) {
         firstRule = rule;
         secondRule = falseRule;
       } else {
@@ -2100,9 +2104,9 @@ export function onMouseOut() {
 }
 
 /*function randomizeNodePosition(node) {
-  node.x = Math.random() * (CANVAS_WIDTH - NODE_SIZE * 4) + NODE_SIZE * 2;
-  node.y = Math.random() * (CANVAS_HEIGHT - GRID_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2 + GRID_HEIGHT;
-//    node.y = Math.random() * (CANVAS_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2;
+  node.x = window.app.sRand() * (CANVAS_WIDTH - NODE_SIZE * 4) + NODE_SIZE * 2;
+  node.y = window.app.sRand() * (CANVAS_HEIGHT - GRID_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2 + GRID_HEIGHT;
+//    node.y = window.app.sRand() * (CANVAS_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2;
 }*/
 
 function releaseNode(node, playSound = true) {

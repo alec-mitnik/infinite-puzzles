@@ -1,6 +1,9 @@
 import audioManager from './audio-manager.js';
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
-import { getPuzzleCanvas, stopConfetti, updateForTutorialRecommendation } from './utils.js';
+import {
+  generateSeed, getPuzzleCanvas, getSeededRandomFunction, stopConfetti,
+  updateForTutorialRecommendation
+} from './utils.js';
 
 /* TODO:
  * Option to share and recreate a puzzle from a URL?
@@ -22,6 +25,7 @@ class Router {
     this.currentParams = new URLSearchParams(window.location.search);
     this.difficulty = parseInt(this.currentParams.get('difficulty')) || 1;
     this.currentRoute = this.currentParams.get('puzzle') || 'home';
+    this.seed = this.currentParams.get('seed');
     this.cancelingNavigation = false;
 
     // Setup puzzle routes
@@ -189,8 +193,9 @@ class Router {
     }
   }
 
-  reloadPuzzle() {
+  reloadPuzzle(newSeed = '') {
     if (this.confirmAbandon()) {
+      this.seed = newSeed;
       this.loadRoute(this.currentRoute);
       return true;
     }
@@ -199,15 +204,22 @@ class Router {
   }
 
   toggleTutorial() {
-    if (this.confirmAbandon()) {
-      const startTutorial = !window.app.puzzleState.tutorialStage;
+    const startTutorial = !window.app.puzzleState.tutorialStage;
 
-      if (!startTutorial) {
-        window.app.puzzleState.tutorialStage = 0;
-      }
-
-      this.loadRoute(this.currentRoute, false, false, startTutorial);
+    if (startTutorial && !this.confirmAbandon()) {
+      return;
     }
+
+    if (!startTutorial && !this.getConfirmation(
+        "Exit Tutorial?\nYou can try again at any time and skip through any of its levels.")) {
+      return;
+    }
+
+    if (!startTutorial) {
+      window.app.puzzleState.tutorialStage = 0;
+    }
+
+    this.loadRoute(this.currentRoute, false, false, startTutorial);
   }
 
   getNavigationConfirmCondition() {
@@ -215,13 +227,17 @@ class Router {
         && window.app.puzzleState && window.app.puzzleState.started && !window.app.puzzleState.ended;
   }
 
+  getConfirmation(message) {
+    // Navigating back at any point breaks confirmation dialogs in mobile iOS
+    let startingTime = Date.now();
+    const abandonConfirmed = confirm(message);
+    return abandonConfirmed || Date.now() - startingTime < 10;
+  }
+
   confirmAbandon() {
     // Check if we need to confirm leaving current puzzle
     if (this.getNavigationConfirmCondition()) {
-      // Navigating back at any point breaks confirmation dialogs in mobile iOS
-      let startingTime = Date.now();
-      const abandonConfirmed = confirm("Abandon Puzzle?");
-      return abandonConfirmed || Date.now() - startingTime < 10;
+      return this.getConfirmation("Abandon Puzzle?");
     }
 
     return true;
@@ -230,6 +246,7 @@ class Router {
   navigate(route) {
     // Check if we need to confirm leaving current puzzle
     if (this.confirmAbandon()) {
+      this.seed = '';
       this.loadRoute(route);
     }
   }
@@ -260,7 +277,8 @@ class Router {
     context.font = "104px Arial"
     context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 380);
     context.font = "120px Arial"
-    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E", CANVAS_WIDTH / 2, 690);
+    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E",
+        CANVAS_WIDTH / 2, 690);
 
     context.font = "30px Arial"
 
@@ -275,7 +293,8 @@ class Router {
     context.fillText(oppositeIconsText, CANVAS_WIDTH / 2, 510);
     context.fillText(`${middleMouseText} ${iconText}`, CANVAS_WIDTH / 2, 750);
     context.fillText(solutionText, CANVAS_WIDTH / 2, 800);
-    compiledText.push(faceIconsText, oppositeIconsText, `${middleMouseText} ${showSolutionButtonText} ${solutionText}`);
+    compiledText.push(faceIconsText, oppositeIconsText,
+        `${middleMouseText} ${showSolutionButtonText} ${solutionText}`);
 
     canvas.ariaDescription = compiledText.join('\n');
 
@@ -291,6 +310,10 @@ class Router {
 
   // Load puzzle page content
   async loadPuzzle(puzzleName, startTutorial) {
+    if (!this.seed || isNaN(parseInt(this.seed, 36))) {
+      this.seed = generateSeed();
+    }
+
     try {
       // Reset puzzle state
       window.app.puzzleState = {
@@ -312,6 +335,9 @@ class Router {
 
       // Store reference to current puzzle
       window.app.currentPuzzle = puzzleModule;
+
+      // Set seeded random function
+      window.app.sRand = getSeededRandomFunction(this.seed);
 
       // Show puzzle controls
       document.getElementById('controls').classList.remove('hidden');
@@ -401,7 +427,7 @@ class Router {
     }
   }
 
-  buildQueryString() {
+  buildQueryString(includeSeed = false) {
     const params = new URLSearchParams();
     params.set('difficulty', this.difficulty);
 
@@ -409,12 +435,16 @@ class Router {
       params.set('puzzle', this.currentRoute);
     }
 
+    if (includeSeed) {
+      params.set('seed', this.seed);
+    }
+
     const paramString = params.toString();
     return paramString ? `?${paramString}` : '';
   }
 
-  buildUrl() {
-    return `${window.location.origin}/${this.buildQueryString()}`;
+  buildUrl(includeSeed = false) {
+    return `${window.location.origin}${window.location.pathname}${this.buildQueryString(includeSeed)}`;
   }
 }
 

@@ -1,14 +1,17 @@
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+canvas {
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
   -webkit-user-select: none;
   user-select: none;
   touch-action: none;
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  min-width: 0;
-  min-height: 0;
 }
 
 html, body {
@@ -62,6 +65,8 @@ body {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  font-family: Arial, sans-serif;
+  color: white;
 
   /* Note that negative margin offscreen doesn't work well with
   relatively positioned immediate children, and screen reader focus
@@ -186,6 +191,17 @@ canvas#puzzleCanvas {
   }
 }
 
+button {
+  all: unset;
+  outline: revert;
+  box-sizing: inherit;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
 button, .sidebar label {
   text-decoration: none;
   cursor: pointer;
@@ -247,6 +263,16 @@ button:disabled {
     &.larger > span {
       font-size: 120%;
       line-height: 1;
+    }
+
+    &.much-larger {
+      overflow: hidden;
+
+      > span {
+        /* Avoid expanding the sidebar size */
+        transform: scale(1.5);
+        line-height: 1;
+      }
     }
 
     &.selected {
@@ -375,60 +401,183 @@ button:disabled {
 
 dialog {
   margin: auto;
-  padding: 20px;
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   z-index: 50;
   border: none;
   background: transparent;
-  max-width: 100%;
-  max-height: 100%;
-}
+  color: inherit;
+  text-align: center;
+  font-size: 1.5rem;
 
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal {
-  position: relative;
+  /* The modal-backdrop doesn't span the screen on iOS if the dialog doesn't */
   width: 100%;
   height: 100%;
-}
 
-.close-button {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  border-radius: 999999px;
-  line-height: 1;
-  font-size: 14px;
-  position: absolute;
-  top: -8.5px;
-  right: -8.5px;
-  z-index: 10;
-  width: 32px;
-  height: 32px;
-  padding: 1px 0 0 1px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  &::backdrop {
+    background: transparent;
+    backdrop-filter: blur(1px);
+  }
 
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      background: #ddd;
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .modal-foreground {
+    position: relative;
+    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5);
+    background-color: #333333;
+    border-radius: 8px;
+    width: auto;
+    max-width: min(100%, 500px);
+    max-height: 100%;
+    /* max-height: max-content; - Doesn't work in Firefox */
+    min-width: max(200px, 50%);
+    /* min-height: max(200px, 50%); */
+    overflow: auto;
+    background-attachment: local;
+    border: 1px solid transparent;
+
+    .modal-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 1rem;
+      line-height: 1.5;
+
+      h1 {
+        margin: 0;
+        font-weight: bold;
+        font-size: 2.75rem;
+
+        /* Ensure space for close button */
+        margin-inline: 56px;
+      }
+
+      h2 {
+        font-weight: 500;
+        font-size: 1.75rem;
+      }
+
+      p, h2 {
+        margin-block: 16px 0;
+      }
+
+      a {
+        font-size: 1rem;
+        word-break: break-word;
+
+        /* inline display has large, unexplained gap between wrapped lines */
+        display: inline flow-root;
+
+        &, &:active, &:visited {
+          color: #F9B70F;
+        }
+      }
+
+      summary {
+        cursor: pointer;
+        padding: 16px;
+
+        > h2 {
+          display: inline flow-root;
+          margin: 0;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+          &:hover:not(:disabled) {
+            background-color: #555;
+          }
+        }
+      }
     }
   }
 
-  > span {
-    /* Make the emoji always appear black */
-    filter: brightness(0);
+  hr {
+    margin-block: 16px;
+    color: #555;
+    border-style: solid;
+
+    &:first-of-type {
+      margin-block: 24px 0;
+    }
+
+    &:last-of-type {
+      margin-block: 0 16px;
+    }
+  }
+
+  ol {
+    display: inline flow-root;
+    text-align: left;
+    font-size: 1.25rem;
+    padding-inline-start: 3ch;
+    margin-block: 16px;
+  }
+
+  .smaller-text {
+    font-size: 1.25rem;
+  }
+
+  input {
+    font-size: inherit;
+  }
+
+  button {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding-inline: 12px;
+    display: inline-flex;
+    margin-top: 8px;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        background-color: #555;
+      }
+    }
+  }
+
+  .close-button {
+    line-height: 1;
+    font-size: 14px;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    font-family: sans-serif;
+
+    > span {
+      /* A flex display give it a background inverted along with
+      the foreground in high-contrast mode */
+      display: inline flow-root;
+      width: auto;
+      height: auto;
+
+      &::before {
+        content: '❌' / '';
+        /* Make the emoji always appear white */
+        filter: brightness(0) invert(1);
+
+        /* @media (prefers-contrast: more) {
+          filter: brightness(0) invert(1);
+        } */
+      }
+    }
   }
 }
 

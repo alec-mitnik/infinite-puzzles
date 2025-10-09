@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
   "UP": 1,
@@ -463,9 +467,9 @@ function generateGrid() {
 
   const MAX_RECEIVERS_PER_SLICE = Math.floor((ROWS + COLS) / 5);
   const MAX_RECEIVERS = Math.floor((ROWS + COLS) * 3 / 4
-      + Math.random() * (ROWS + COLS) / 2);
+      + window.app.sRand() * (ROWS + COLS) / 2);
       //(ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE
-      //+ Math.floor(Math.random() * ((ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE));
+      //+ Math.floor(window.app.sRand() * ((ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE));
 
   // Add receivers past blocks that are receiving emission to make them relevant
   let preferredCells = [];

@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
 const LIGHT_BORDER = 0;
@@ -242,14 +246,14 @@ function generateSwitches() {
   let anyToggled = false;
 
   for (let i = 0; i < COLS + ROWS - 1; i++) {
-    const isToggled = Math.random() < 0.5;
+    const isToggled = window.app.sRand() < 0.5;
     anyToggled ||= isToggled;
 
     let connections;
     let connectionsGood = false;
 
     while (!connectionsGood) {
-      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => Math.random() < SWITCH_RATE));
+      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => window.app.sRand() < SWITCH_RATE));
       let connectionsTotal = connections.flat().filter(connection => connection).length;
       connectionsGood = connectionsTotal > 0 && connectionsTotal < ROWS * COLS;
 
@@ -317,7 +321,7 @@ function generateSwitches() {
     let connections;
 
     while (!connections || connections.flat().filter(connection => connection).length === 0) {
-      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => Math.random() < SWITCH_RATE));
+      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => window.app.sRand() < SWITCH_RATE));
     }
 
     lastSwitchConnections = connections;

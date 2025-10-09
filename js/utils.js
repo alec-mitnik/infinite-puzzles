@@ -320,8 +320,46 @@ export function removeCoord(array, coord) {
   }
 }
 
+// https://github.com/bryc/code/blob/master/jshash/PRNGs.md
+function splitMix32(seed) {
+  // Seeded random function
+  return function() {
+    seed |= 0;
+    seed = seed + 0x9e3779b9 | 0;
+    let t = seed ^ seed >>> 16;
+    t = Math.imul(t, 0x21f0aaad);
+    t = t ^ t >>> 15;
+    t = Math.imul(t, 0x735a2d97);
+    return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
+  }
+}
+function xMur3(str) {
+  let h = 1779033703 ^ str.length;
+
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = h << 13 | h >>> 19;
+  }
+
+  // Robust seed generator using hashing
+  return function() {
+    h = Math.imul(h ^ h >>> 16, 2246822507);
+    h = Math.imul(h ^ h >>> 13, 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  }
+}
+
+export function generateSeed(str = String(Date.now())) {
+  // Shorten by converting to base 36
+  return xMur3(str)().toString(36);
+}
+
+export function getSeededRandomFunction(seedBase36) {
+  return splitMix32(parseInt(seedBase36, 36));
+}
+
 export function randomIndex(array) {
-  return Math.floor(Math.random() * array.length);
+  return Math.floor((window.app.sRand ?? Math.random)() * array.length);
 }
 
 export function randomEl(array, remove = false) {

@@ -1,6 +1,10 @@
 import audioManager from "../js/audio-manager.js";
 import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
-import { deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation, updateForTutorialState } from "../js/utils.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
+  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
+} from "../js/utils.js";
 
 const HISTORY_LIMIT = 100;
 
@@ -578,7 +582,7 @@ export function init() {
     DIFFICULTY = window.app.router.difficulty;
 
     // Must not exceed 12 to ensure enough space to show solution steps
-    SHUFFLE_SHIFTS = Math.floor(Math.random() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
+    SHUFFLE_SHIFTS = Math.floor(window.app.sRand() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
     // 2x3/2x4/3x3/3x4
     ROWS = DIFFICULTY <= 2 ? 2 : 3;
     COLS = DIFFICULTY % 2 === 0 ? 4 : 3;
@@ -611,7 +615,7 @@ export function init() {
           randomDirection = directions[randomIndex(directions)];
           isShiftHorizontal = isHorizontal(randomDirection);
           randomIndexUpperLimit = isShiftHorizontal ? ROWS : COLS;
-          randomIndexValue = Math.floor(Math.random() * randomIndexUpperLimit);
+          randomIndexValue = Math.floor(window.app.sRand() * randomIndexUpperLimit);
           currentShift = latestShiftLengths[isShiftHorizontal][randomIndexValue] ?? {count: 0, direction: randomDirection};
         } while (solutionSteps.length && ((
             randomDirection === getDirectionComplement(currentShift.direction)
