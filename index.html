@@ -105,15 +105,16 @@
     } else {
       sharePuzzleSeedWithNavigatorButton.addEventListener('click', () => {
         navigator.share({
-          title: 'I want to share a puzzle with you using this seed!',
+          title: document.title,
           text: window.app.router.seed,
         });
       });
 
       sharePuzzleLinkWithNavigatorButton.addEventListener('click', () => {
         navigator.share({
-          title: 'I want to share this puzzle with you!',
-          url: document.getElementById('sharePuzzleLink').href,
+          title: document.title,
+          text: 'I want to share this puzzle with you!',
+          url: document.getElementById('sharePuzzleUrl').textContent,
         });
       });
     }
@@ -143,8 +144,8 @@
 
       // Limit seed length for practicality.  Anything over the largest 32-bit signed integer
       // (which is 7 characters in base-36) will just be wrapped around by the algorithm.
-      if (seedValue.length > 10) {
-        seedValue = seedValue.slice(0, 10);
+      if (seedValue.length > 14) {
+        seedValue = seedValue.slice(0, 14);
       }
 
       // Apply sanitized value
@@ -203,15 +204,15 @@
         sharePuzzleTutorialMessage.style.display = 'none';
 
         document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
+        document.getElementById('generatePuzzleFromSeedForm').reset();
 
         const sharePuzzleSeed = document.getElementById('sharePuzzleSeed');
         sharePuzzleSeed.textContent = window.app.router.seed;
 
         const url = window.app.router.buildUrl(true);
 
-        const sharePuzzleLink = document.getElementById('sharePuzzleLink');
-        sharePuzzleLink.href = url;
-        sharePuzzleLink.textContent = url;
+        const sharePuzzleUrl = document.getElementById('sharePuzzleUrl');
+        sharePuzzleUrl.textContent = url;
 
         const difficulty = window.app.router.difficulty;
         const difficultyLabelElement = document.getElementById(`difficulty${difficulty}`);
@@ -443,68 +444,67 @@
 
   <dialog id="puzzleSharingDialog" aria-labelledBy="sharePuzzleTitle">
     <div class="modal-backdrop"
-        onclick="if (event.target === this) { document.getElementById('puzzleSharingDialog').close() }">
-      <div class="modal-foreground">
-        <button autofocus class="close-button" aria-label="Close dialog"
-            onclick="document.getElementById('puzzleSharingDialog').close()">
-          <span aria-hidden="true"></span>
-        </button>
+        onclick="document.getElementById('puzzleSharingDialog').close()"></div>
+    <div class="modal-foreground">
+      <button autofocus class="close-button" aria-label="Close dialog"
+          onclick="document.getElementById('puzzleSharingDialog').close()">
+        <span aria-hidden="true"></span>
+      </button>
 
-        <div class="modal-content" tabindex="-1">
-          <h1 id="sharePuzzleTitle">Puzzle Sharing</h1>
+      <div class="modal-content" tabindex="-1">
+        <h1 id="sharePuzzleTitle">Puzzle Sharing</h1>
 
-          <p id="sharePuzzleTutorialMessage">
-            You can share generated puzzles once you exit the tutorial!
-          </p>
+        <p id="sharePuzzleTutorialMessage">
+          You can share generated puzzles once you exit the tutorial!
+        </p>
 
-          <div id="sharePuzzleOptions">
-            <h2>
-              Current Puzzle Sharable Link:
-            </h2>
-            <a id="sharePuzzleLink" href="#"></a><br />
+        <div id="sharePuzzleOptions">
+          <h2>
+            Current Puzzle Sharable URL:
+          </h2>
+          <code id="sharePuzzleUrl" class="link-text"></code><br />
 
-            <button id="sharePuzzleLinkWithNavigatorButton">Share Puzzle Link</button>
+          <button id="sharePuzzleLinkWithNavigatorButton">Share Puzzle Link</button>
 
-            <hr />
+          <hr />
 
-            <details id="sharePuzzleSeedDirectlyDetails">
-              <summary><h2>Share Puzzle Seed Directly</h2></summary>
+          <details id="sharePuzzleSeedDirectlyDetails">
+            <summary><h2>Share Puzzle Seed Directly</h2></summary>
 
-              <p>
-                Current Puzzle Seed: <code id="sharePuzzleSeed"></code>
-              </p>
+            <p>
+              Current Puzzle Seed: <code id="sharePuzzleSeed"></code>
+            </p>
 
-              <button id="sharePuzzleSeedWithNavigatorButton">Share Puzzle Seed</button>
+            <button id="sharePuzzleSeedWithNavigatorButton">Share Puzzle Seed</button>
 
-              <p>
-                When sharing this seed directly, the recipient needs to do the following:
-              </p>
-              <ol aria-label="Share Puzzle Seed Instructions">
-                <li>Open the <span id="seedInstructionsTitles"></span></li>
-                <li>Set the difficulty to: <span id="seedInstructionsDifficultyEmoji"
-                    aria-hidden="true"></span> (<span id="seedInstructionsDifficultyLabel"></span>)</li>
-                <li>Bring up this Puzzle Sharing dialog</li>
-                <li>Use the form below to generate a puzzle from the seed</li>
-              </ol>
-            </details>
+            <p>
+              When sharing this seed directly, the recipient needs to do the following:
+            </p>
+            <ol aria-label="Share Puzzle Seed Instructions">
+              <li>Open the <span id="seedInstructionsTitles"></span></li>
+              <li>Set the difficulty to: <span id="seedInstructionsDifficultyEmoji"
+                  aria-hidden="true"></span> (<span id="seedInstructionsDifficultyLabel"></span>)</li>
+              <li>Bring up this Puzzle Sharing dialog</li>
+              <li>Use the form below to generate a puzzle from the seed</li>
+            </ol>
+          </details>
 
-            <hr />
+          <hr />
 
-            <form id="generatePuzzleFromSeedForm">
-              <label>
-                <h2>Generate Puzzle from Seed</h2>
-                <input type="text" name="newSeed" size="10"
-                    required  pattern="[a-zA-Z0-9]*" maxlength="10"
-                    spellcheck="false" autocomplete="off" />
-              </label>
+          <form id="generatePuzzleFromSeedForm">
+            <label>
+              <h2>Generate Puzzle from Seed</h2>
+              <input type="text" name="newSeed" size="14" placeholder="Seed..."
+                  required  pattern="[a-zA-Z0-9]*" maxlength="14"
+                  spellcheck="false" autocomplete="off" />
+            </label>
 
-              <button type="submit">Generate</button>
+            <button type="submit">Generate</button>
 
-              <p class="smaller-text">
-                Use this for any puzzle seeds directly shared with you.  You can also have everyone agree on a new seed to generate from in order to all play the same puzzle that way.
-              </p>
-            </form>
-          </div>
+            <p class="smaller-text">
+              Use this for any puzzle seeds directly shared with you.  You can also have everyone agree on a new seed to generate from in order to all play the same puzzle that way.
+            </p>
+          </form>
         </div>
       </div>
     </div>
