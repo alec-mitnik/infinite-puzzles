@@ -434,6 +434,11 @@ dialog {
     inset: 0;
     background-color: rgba(0, 0, 0, 0.5);
     padding: 20px;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
   }
 
   .modal-foreground {
