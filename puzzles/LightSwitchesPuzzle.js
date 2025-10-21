@@ -1,5 +1,9 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
+import {
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
   onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
@@ -166,12 +170,12 @@ export function drawInstructions() {
       ["Activate the correct switches to light all the grid tiles.",
           "Each switch toggles a specific set of tiles."],
       ["Click or tap a switch to toggle it."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
-  let gridToDraw = window.app.puzzleState.showingSolution ? solutionGrid : grid;
-  let switchesToDraw = window.app.puzzleState.showingSolution ? solutionSwitches : lightSwitches;
+  let gridToDraw = router.puzzleState.showingSolution ? solutionGrid : grid;
+  let switchesToDraw = router.puzzleState.showingSolution ? solutionSwitches : lightSwitches;
 
   let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
@@ -194,8 +198,8 @@ export function drawPuzzle() {
   }
 
   if (puzzleSolved) {
-    if (window.app.puzzleState.interactive) {
-      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+    if (router.puzzleState.interactive) {
+      endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -246,14 +250,14 @@ function generateSwitches() {
   let anyToggled = false;
 
   for (let i = 0; i < COLS + ROWS - 1; i++) {
-    const isToggled = window.app.sRand() < 0.5;
+    const isToggled = router.sRand() < 0.5;
     anyToggled ||= isToggled;
 
     let connections;
     let connectionsGood = false;
 
     while (!connectionsGood) {
-      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => window.app.sRand() < SWITCH_RATE));
+      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => router.sRand() < SWITCH_RATE));
       let connectionsTotal = connections.flat().filter(connection => connection).length;
       connectionsGood = connectionsTotal > 0 && connectionsTotal < ROWS * COLS;
 
@@ -321,7 +325,7 @@ function generateSwitches() {
     let connections;
 
     while (!connections || connections.flat().filter(connection => connection).length === 0) {
-      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => window.app.sRand() < SWITCH_RATE));
+      connections = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => router.sRand() < SWITCH_RATE));
     }
 
     lastSwitchConnections = connections;
@@ -370,15 +374,15 @@ function toggle(lightSwitch) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -387,7 +391,7 @@ export function init() {
 
     lightSwitches = deepCopy(tutorial.lightSwitches);
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Quick: 2/3, Casual: 3/3, Challenging: 3/4, Intense: 4/4
     ROWS = DIFFICULTY <= 1 ? 2 : (DIFFICULTY <= 3 ? 3 : 4);
@@ -417,7 +421,7 @@ export function init() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -444,7 +448,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && event.changedTouches.length === 1) {
+  if (router.puzzleState.interactive && event.changedTouches.length === 1) {
     let touch = event.changedTouches[0];
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;

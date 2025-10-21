@@ -1,5 +1,8 @@
 import audioManager from "./audio-manager.js";
-import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "./config.js";
+import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONFIGS } from "./config.js";
+import dailyChallengeManager from "./daily-challenge-manager.js";
+import router from "./router.js";
+import statsManager from "./stats-manager.js";
 
 const CONFETTI_DURATION = 10000;
 const CONFETTI_OPTIONS = {
@@ -25,236 +28,6 @@ const CONFETTI_OPTIONS = {
 let confettiDurationTimeoutId = null;
 let confettiTimeoutId = null;
 
-export function finishedLoading() {
-  // Add delay so pending clicks don't end up succeeding
-  setTimeout(() => {
-    document.getElementById("startButton").disabled = false;
-    window.app.puzzleState.showingInstructions = true;
-    window.app.puzzleState.loaded = true;
-    document.getElementById("canvasContainer").classList.remove("loading");
-  })
-}
-
-export function startButtonClick() {
-  if (window.app.puzzleState.loaded) {
-    window.app.puzzleState.showingInstructions = false;
-    getPuzzleCanvas().ariaDescription = null;
-
-    window.app.currentPuzzle.drawPuzzle();
-
-    document.getElementById('canvasContainer').classList.add('started');
-    const instructionsButton = document.getElementById('instructionsButton');
-    instructionsButton.classList.remove('active');
-    instructionsButton.ariaLabel = 'Show Instructions';
-    instructionsButton.querySelector('span').ariaLabel = 'Show Instructions';
-
-    if (!window.app.puzzleState.ended) {
-      window.app.puzzleState.interactive = true;
-      window.app.puzzleState.started = true;
-    }
-  }
-}
-
-function showSolution() {
-  let solutionButton = document.getElementById("solutionButton");
-  solutionButton.classList.add("active");
-  const newLabel = "Hide Solution";
-  solutionButton.ariaLabel = newLabel;
-  solutionButton.querySelector("span").ariaLabel = newLabel;
-  window.app.puzzleState.showingSolution = true;
-  window.app.puzzleState.interactive = false;
-
-  window.app.currentPuzzle.drawPuzzle();
-}
-
-function hideSolution() {
-  let solutionButton = document.getElementById("solutionButton");
-  solutionButton.classList.remove("active");
-  const newLabel = "Show Solution";
-  solutionButton.ariaLabel = newLabel;
-  solutionButton.querySelector("span").ariaLabel = newLabel;
-  window.app.puzzleState.showingSolution = false;
-
-  window.app.currentPuzzle.drawPuzzle();
-
-  if (!window.app.puzzleState.ended) {
-    window.app.puzzleState.interactive = true;
-  }
-}
-
-export function solutionToggle() {
-  if (window.app.puzzleState.showingInstructions) {
-    startButtonClick();
-  }
-
-  if (!window.app.puzzleState.showingSolution) {
-    showSolution();
-  } else {
-    hideSolution();
-  }
-}
-
-export function onMiddleMouseDown() {
-  if (window.app.puzzleState.showingInstructions) {
-    startButtonClick();
-  }
-
-  showSolution();
-}
-
-export function onMiddleMouseUp() {
-  if (window.app.puzzleState.showingSolution) {
-    hideSolution();
-  }
-}
-
-export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLines, controlLines, tutorialStage = 0, tutorialsTotal = 0) {
-  if (!window.app.puzzleState.showingInstructions) {
-    let instructionsButton = document.getElementById("instructionsButton");
-    instructionsButton.classList.add("active");
-    instructionsButton.ariaLabel = "Hide Instructions";
-    instructionsButton.querySelector("span").ariaLabel = "Hide Instructions";
-
-    hideSolution();
-
-    window.app.puzzleState.showingInstructions = true;
-
-    document.getElementById('canvasContainer').classList.remove('started');
-    window.app.puzzleState.interactive = false;
-
-    const canvas = getPuzzleCanvas();
-    canvas.focus({ focusVisible: false }); // Prevent focus outline on iOS Safari
-    const context = canvas.getContext("2d");
-    const compiledInstructions = [];
-
-    context.fillStyle = BACKGROUND_COLOR;
-    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    context.font = "bold 60px Arial"
-    context.textAlign = "center";
-    context.fillStyle = "#ffffff";
-    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, 150);
-    compiledInstructions.push(`${puzzleTitle} Instructions:`);
-
-    context.font = "40px Arial";
-    let yPos = 265;
-
-    descriptionLines.forEach(line => {
-      yPos += 60;
-      context.fillText(line, CANVAS_WIDTH / 2, yPos);
-      compiledInstructions.push(line);
-    });
-
-    yPos += 100;
-
-    controlLines.forEach(line => {
-      yPos += 60;
-      context.fillText(line, CANVAS_WIDTH / 2, yPos);
-      compiledInstructions.push(line);
-    });
-
-    yPos += 160;
-
-    if (tutorialStage) {
-      context.fillText(`Tutorial  ${tutorialStage} / ${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
-      compiledInstructions.push(`Tutorial  ${tutorialStage} of ${tutorialsTotal}.`);
-    } else {
-      const selectText = "Select ";
-      const atomText = "⚛\uFE0E";
-      const tutorialText = " for an incremental tutorial.";
-
-      context.font = "96px Arial";
-      const atomTextWidth = context.measureText(atomText).width;
-
-      context.font = "40px Arial";
-      const selectTextWidth = context.measureText(selectText).width;
-      const tutorialTextWidth = context.measureText(tutorialText).width;
-
-      const totalWidth = selectTextWidth + atomTextWidth + tutorialTextWidth;
-
-      context.fillText(selectText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth / 2, yPos);
-      context.fillText(tutorialText, CANVAS_WIDTH / 2 + totalWidth / 2 - tutorialTextWidth / 2, yPos);
-
-      if (document.querySelector('#tutorialButton.recommended:not(.active)')) {
-        context.fillStyle = "#F9B70F";
-      }
-
-      context.font = "96px Arial";
-      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
-      compiledInstructions.push(`${selectText}the Start Tutorial button${tutorialText}`);
-    }
-
-    context.font = "bold 50px Arial"
-    context.fillStyle = "#F9B70F";
-    const promptText = "Click or tap to ";
-    const promptTextAction = window.app.puzzleState.started ? "resume" : "start";
-    // Screen reader pronounces it like "résumé" otherwise...
-    const promptTextActionPhonetic = window.app.puzzleState.started ? "re-zoom" : "start";
-    context.fillText(`${promptText}${promptTextAction}!`, CANVAS_WIDTH / 2, 880);
-    compiledInstructions.push(`${promptText}${promptTextActionPhonetic}!`);
-
-    canvas.ariaDescription = compiledInstructions.join('\n');
-
-    // This one it pronounces fine...
-    document.getElementById('startButton').ariaLabel = window.app.puzzleState.started ? 'Resume Puzzle' : 'Start Puzzle';
-  } else {
-    startButtonClick();
-  }
-}
-
-export function updateForTutorialState() {
-  const tutorialButton = document.getElementById('tutorialButton');
-  const tutorialButtonSpan = tutorialButton.querySelector('span');
-
-  if (window.app.puzzleState.tutorialStage) {
-    tutorialButton.classList.add('active');
-    tutorialButton.ariaLabel = 'Exit Tutorial';
-    tutorialButtonSpan.ariaLabel = 'Exit Tutorial';
-
-    document.getElementById('generateNewPuzzleButton').classList.add('hidden');
-    document.getElementById('nextTutorialButton').classList.remove('hidden');
-  } else {
-    tutorialButton.classList.remove('active');
-    tutorialButton.ariaLabel = 'Start Tutorial';
-    tutorialButtonSpan.ariaLabel = 'Start Tutorial';
-
-    document.getElementById('generateNewPuzzleButton').classList.remove('hidden');
-    document.getElementById('nextTutorialButton').classList.add('hidden');
-  }
-}
-
-export function updateForTutorialRecommendation() {
-  if (!window.app.puzzleState.tutorialStage && !getTutorialDone()) {
-    document.getElementById('tutorialButton').classList.add('recommended');
-  } else {
-    document.getElementById('tutorialButton').classList.remove('recommended');
-  }
-}
-
-export function endPuzzle(lastTutorialStage) {
-  window.app.puzzleState.ended = true;
-  window.app.puzzleState.interactive = false;
-  document.getElementById('controls').classList.add('solved');
-
-  if (lastTutorialStage) {
-    audioManager.stop(audioManager.SoundEffects.CHIME);
-    audioManager.play(audioManager.SoundEffects.GRADUATION);
-
-    // Start showing confetti
-    if (confettiDurationTimeoutId) {
-      clearTimeout(confettiDurationTimeoutId);
-      confettiDurationTimeoutId = null;
-    }
-
-    showConfetti();
-  }
-
-  if (!window.app.puzzleState.tutorialStage || lastTutorialStage) {
-    setTutorialDone();
-    updateForTutorialRecommendation();
-  }
-}
-
 function showConfetti() {
   if (audioManager.isSoundPlaying(audioManager.SoundEffects.GRADUATION)) {
     if (!confettiDurationTimeoutId) {
@@ -275,6 +48,8 @@ function showConfetti() {
     // Trigger the confetti effect
     window.confetti(CONFETTI_OPTIONS);
 
+    // Continuously trigger the confetti effect every second while
+    // within the duration and the corresponding sound is still playing
     confettiTimeoutId = setTimeout(() => {
       showConfetti();
     }, 1000);
@@ -295,12 +70,402 @@ export function stopConfetti() {
   window.confetti.reset();
 }
 
-export function getTutorialDone() {
-  return localStorage.getItem(`${window.app.puzzleState.puzzleName}_TutorialDone`) === 'true';
+// Proper markup for screen readers.  Use outerHTML to convert to a string.
+export function getPuzzleIconElement(puzzleKey, className = undefined) {
+  const span = document.createElement('span');
+  span.role = 'img';
+
+  if (className) {
+    span.className = className;
+  }
+
+  span.ariaLabel = PUZZLE_CONFIGS[puzzleKey].name;
+  span.textContent = PUZZLE_CONFIGS[puzzleKey].icon;
+
+  return span;
 }
 
-export function setTutorialDone() {
-  return localStorage.setItem(`${window.app.puzzleState.puzzleName}_TutorialDone`, 'true');
+export function finishedLoading() {
+  // Add delay so pending clicks don't end up succeeding
+  setTimeout(() => {
+    document.getElementById("startButton").disabled = false;
+    router.puzzleState.showingInstructions = true;
+    router.puzzleState.loaded = true;
+    document.getElementById("canvasContainer").classList.remove("loading");
+  });
+}
+
+export function startButtonClick() {
+  if (router.puzzleState.loaded) {
+    router.puzzleState.showingInstructions = false;
+    getPuzzleCanvas().ariaDescription = null;
+
+    router.currentPuzzle.drawPuzzle();
+
+    document.getElementById('canvasContainer').classList.add('started');
+    const instructionsButton = document.getElementById('instructionsButton');
+    instructionsButton.classList.remove('active');
+    instructionsButton.ariaLabel = 'Show Instructions';
+    instructionsButton.querySelector('span').ariaLabel = 'Show Instructions';
+
+    if (!router.puzzleState.ended) {
+      router.puzzleState.interactive = true;
+      router.puzzleState.started = true;
+
+      updateForTutorialRecommendation();
+    }
+  }
+}
+
+function showSolution() {
+  let solutionButton = document.getElementById("solutionButton");
+  solutionButton.classList.add("active");
+  const newLabel = "Hide Solution";
+  solutionButton.ariaLabel = newLabel;
+  solutionButton.querySelector("span").ariaLabel = newLabel;
+  router.puzzleState.showingSolution = true;
+  router.puzzleState.interactive = false;
+
+  if (!router.puzzleState.ended) {
+    router.puzzleState.solutionPeeked = true;
+  }
+
+  router.currentPuzzle.drawPuzzle();
+}
+
+function hideSolution() {
+  let solutionButton = document.getElementById("solutionButton");
+  solutionButton.classList.remove("active");
+  const newLabel = "Show Solution";
+  solutionButton.ariaLabel = newLabel;
+  solutionButton.querySelector("span").ariaLabel = newLabel;
+  router.puzzleState.showingSolution = false;
+
+  router.currentPuzzle.drawPuzzle();
+
+  if (!router.puzzleState.ended) {
+    router.puzzleState.interactive = true;
+  }
+}
+
+export function solutionToggle() {
+  if (!router.puzzleState.showingSolution) {
+    const doingRecordedDailyChallengePuzzle =
+        dailyChallengeManager.isDoingRecordedDailyChallengePuzzle();
+
+    if (!doingRecordedDailyChallengePuzzle || router.getConfirmation(
+        "Give up on the daily challenge and view the solution?\nNote that this will end your current streak.")) {
+      if (doingRecordedDailyChallengePuzzle) {
+        // Mark challenge run as unsuccessful and reset the current streak.
+        // JSON does not support NaN.
+        dailyChallengeManager.activeDailyChallenge.endTime = -1;
+        dailyChallengeManager.saveDailyChallengeData();
+        statsManager.stats.dailyChallenges.currentStreak = 0;
+        statsManager.saveStatsData();
+
+        dailyChallengeManager.updateDailyChallengeCompletedContent();
+      }
+
+      if (router.puzzleState.showingInstructions) {
+        startButtonClick();
+      }
+
+      showSolution();
+    }
+  } else {
+    hideSolution();
+  }
+}
+
+export function onMiddleMouseDown() {
+  if (dailyChallengeManager.isDoingRecordedDailyChallengePuzzle()) {
+    // Disable for recorded daily challenge puzzles that haven't been completed yet
+    return;
+  }
+
+  if (router.puzzleState.showingInstructions) {
+    startButtonClick();
+  }
+
+  showSolution();
+}
+
+export function onMiddleMouseUp() {
+  if (router.puzzleState.showingSolution) {
+    hideSolution();
+  }
+}
+
+export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLines,
+    controlLines, tutorialStage = 0, tutorialsTotal = 0) {
+  if (!router.puzzleState.showingInstructions) {
+    let instructionsButton = document.getElementById("instructionsButton");
+    instructionsButton.classList.add("active");
+    instructionsButton.ariaLabel = "Hide Instructions";
+    instructionsButton.querySelector("span").ariaLabel = "Hide Instructions";
+
+    hideSolution();
+
+    router.puzzleState.showingInstructions = true;
+
+    document.getElementById('canvasContainer').classList.remove('started');
+    router.puzzleState.interactive = false;
+
+    const canvas = getPuzzleCanvas();
+    canvas.focus({ focusVisible: false }); // Prevent focus outline on iOS Safari
+    const context = canvas.getContext("2d");
+    const compiledInstructions = [];
+
+    context.fillStyle = BACKGROUND_COLOR;
+    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    context.font = `bold 60px ${FONT_FAMILY}`;
+    context.textAlign = "center";
+    context.fillStyle = "#ffffff";
+    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, 150);
+    compiledInstructions.push(`${puzzleTitle} Instructions:`);
+
+    context.font = `40px ${FONT_FAMILY}`;
+    let yPos = 265;
+
+    descriptionLines.forEach(line => {
+      yPos += 60;
+      context.fillText(line, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(line);
+    });
+
+    yPos += 100;
+
+    controlLines.forEach(line => {
+      yPos += 60;
+      context.fillText(line, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(line);
+    });
+
+    yPos += 160;
+
+    if (tutorialStage) {
+      context.fillText(`Tutorial Puzzle  ${tutorialStage} / ${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
+      compiledInstructions.push(`Tutorial Puzzle  ${tutorialStage} of ${tutorialsTotal}.`);
+    } else if (dailyChallengeManager.isDoingDailyChallenge()) {
+      const dailyChallengeDateText = `Daily Challenge for ${dailyChallengeManager.formatDateId(dailyChallengeManager.activeDailyChallenge.id)}`;
+      const dailyChallengePuzzleVisualText = `Puzzle  ${dailyChallengeManager.activeDailyChallengePuzzleIndex + 1
+          } / ${dailyChallengeManager.activeDailyChallenge.puzzles.length}`;
+      const dailyChallengePuzzleReaderText = `Puzzle ${dailyChallengeManager.activeDailyChallengePuzzleIndex + 1
+          } of ${dailyChallengeManager.activeDailyChallenge.puzzles.length}.`;
+
+      context.font = `40px ${FONT_FAMILY}`;
+      context.fillText(dailyChallengeDateText, CANVAS_WIDTH / 2, yPos - 30);
+      context.fillText(dailyChallengePuzzleVisualText, CANVAS_WIDTH / 2, yPos + 30);
+
+      compiledInstructions.push(dailyChallengeDateText, dailyChallengePuzzleReaderText);
+    } else {
+      const selectText = "Select ";
+      const atomText = "⚛\uFE0E";
+      const tutorialText = " for an incremental tutorial.";
+
+      context.font = `96px ${FONT_FAMILY}`;
+      const atomTextWidth = context.measureText(atomText).width;
+
+      context.font = `40px ${FONT_FAMILY}`;
+      const selectTextWidth = context.measureText(selectText).width;
+      const tutorialTextWidth = context.measureText(tutorialText).width;
+
+      const totalWidth = selectTextWidth + atomTextWidth + tutorialTextWidth;
+
+      context.fillText(selectText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth / 2, yPos);
+      context.fillText(tutorialText, CANVAS_WIDTH / 2 + totalWidth / 2 - tutorialTextWidth / 2, yPos);
+
+      if (document.querySelector('#tutorialButton.recommended:not(.active)')) {
+        context.fillStyle = "#F9B70F";
+      }
+
+      context.font = `96px ${FONT_FAMILY}`;
+      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
+      compiledInstructions.push(`${selectText}the Start Tutorial button${tutorialText}`);
+    }
+
+    context.font = `bold 50px ${FONT_FAMILY}`;
+    context.fillStyle = "#F9B70F";
+    const promptText = "Click or tap to ";
+    const promptTextAction = router.puzzleState.started ? "resume" : "start";
+    // Screen reader pronounces it like "résumé" otherwise...
+    const promptTextActionPhonetic = router.puzzleState.started ? "re-zoom" : "start";
+    context.fillText(`${promptText}${promptTextAction}!`, CANVAS_WIDTH / 2, 880);
+    compiledInstructions.push(`${promptText}${promptTextActionPhonetic}!`);
+
+    canvas.ariaDescription = compiledInstructions.join('\n');
+
+    // This one it pronounces fine...
+    document.getElementById('startButton').ariaLabel = router.puzzleState.started ? 'Resume Puzzle' : 'Start Puzzle';
+  } else {
+    startButtonClick();
+  }
+}
+
+export function updateForTutorialState() {
+  const tutorialButton = document.getElementById('tutorialButton');
+  const tutorialButtonSpan = tutorialButton.querySelector('span');
+
+  if (router.puzzleState.tutorialStage) {
+    tutorialButton.classList.add('active');
+    tutorialButton.ariaLabel = 'Exit Tutorial';
+    tutorialButtonSpan.ariaLabel = 'Exit Tutorial';
+
+    document.getElementById('generateNewPuzzleButton').classList.add('hidden');
+    document.getElementById('nextTutorialPuzzleButton').classList.remove('hidden');
+  } else {
+    tutorialButton.classList.remove('active');
+    tutorialButton.ariaLabel = 'Start Tutorial';
+    tutorialButtonSpan.ariaLabel = 'Start Tutorial';
+
+    document.getElementById('generateNewPuzzleButton').classList.remove('hidden');
+    document.getElementById('nextTutorialPuzzleButton').classList.add('hidden');
+  }
+}
+
+/*
+ * Recommend the tutorial if all the following is true:
+ * - Not in the tutorial
+ * - Not doing the daily challenge
+ * - Puzzle not started, or has ended
+ * - Tutorial had never been completed
+ * - A standalone level had never been completed without peeking at the solution
+ *
+ * This means completed daily challenge levels aren't considered,
+ * and that completing the tutorial is counted even if the solution was peeked at
+ */
+export function updateForTutorialRecommendation() {
+  if (!router.puzzleState.tutorialStage && !dailyChallengeManager.isDoingDailyChallenge()
+      && (!router.puzzleState.started || router.puzzleState.ended)
+      && !getTutorialDone() && !hasLevelBeenCompleted()) {
+    document.getElementById('tutorialButton').classList.add('recommended');
+  } else {
+    document.getElementById('tutorialButton').classList.remove('recommended');
+  }
+}
+
+export function openDialogWithTransition(dialog, transitionMs = 190) {
+  const handler = e => e.preventDefault();
+
+  // Prevent stray clicks on the dialog while transitioning
+  dialog.classList.add('loading');
+  dialog.style.pointerEvents = 'none';
+
+  // Even with everything non-interactive, context menus will still trigger on the HTML element.
+  // Specify capture phase on the document event to ensure it's reached first.
+  document.addEventListener('contextmenu', handler, true);
+
+  setTimeout(() => {
+    // Need to transition by removing a class after showing the modal,
+    // so give it 0.01s with the class, to be added to the transition duration
+    dialog.classList.remove('loading');
+
+    setTimeout(() => {
+      // Once transition finishes, resume interactivity
+      document.removeEventListener('contextmenu', handler, true);
+      dialog.style.pointerEvents = null;
+    }, transitionMs);
+  }, 10);
+
+  dialog.showModal();
+}
+
+export function endPuzzle(lastTutorialStage) {
+  router.puzzleState.ended = true;
+  router.puzzleState.interactive = false;
+  document.getElementById('controls').classList.add('solved');
+
+  if (dailyChallengeManager.isDoingDailyChallenge()) {
+    // Handle daily challenge data if not already played
+    if (dailyChallengeManager.activeDailyChallenge.endTime == null
+        && dailyChallengeManager.getDailyChallengeDateId()
+        === dailyChallengeManager.activeDailyChallenge.id) {
+      dailyChallengeManager.activeDailyChallenge
+          .puzzles[dailyChallengeManager.activeDailyChallengePuzzleIndex].completed = true;
+
+      if (dailyChallengeManager.activeDailyChallenge.puzzles.every(puzzle => puzzle.completed)) {
+        // Daily challenge completed
+        dailyChallengeManager.activeDailyChallenge.endTime = Date.now();
+        const duration = dailyChallengeManager.activeDailyChallenge.endTime
+            - dailyChallengeManager.activeDailyChallenge.startTime;
+
+        // Update daily challenge data
+        statsManager.stats.dailyChallenges.totalCompleted++;
+        statsManager.stats.dailyChallenges.currentStreak++;
+        statsManager.stats.dailyChallenges.longestStreak = Math.max(
+          statsManager.stats.dailyChallenges.longestStreak,
+          statsManager.stats.dailyChallenges.currentStreak,
+        );
+
+        const fastestCompletion = statsManager.stats.dailyChallenges.fastestCompletion;
+        if (!fastestCompletion?.duration || duration < fastestCompletion.duration) {
+          statsManager.stats.dailyChallenges.fastestCompletion = {
+            id: dailyChallengeManager.activeDailyChallenge.id,
+            duration,
+          };
+        }
+
+        statsManager.saveStatsData();
+        dailyChallengeManager.startNextChallengeCountdown();
+        dailyChallengeManager.setDailyChallengePuzzlesForDialog(
+            dailyChallengeManager.activeDailyChallenge.id);
+
+        const formattedTime = dailyChallengeManager.formatTimerForHtml(0, duration);
+        document.getElementById('dailyChallengeJustCompletedMessage').innerHTML =
+            `You beat the daily challenge in ${formattedTime}!`;
+        const dailyChallengeDialog = document.getElementById('dailyChallengeDialog');
+        dailyChallengeDialog.classList.add('just-completed');
+
+        // If you're in the process of right-clicking to rotate a piece when the puzzle
+        // is suddenly solved and the popup is shown, it will open the context menu
+        // on the popup on mouse up, so disable interaction for a bit with a fancier transition
+        openDialogWithTransition(dailyChallengeDialog, 990);
+      }
+
+      dailyChallengeManager.saveDailyChallengeData();
+    }
+  } else if (!router.puzzleState.tutorialStage) {
+    // Don't update stats if the solution was peeked
+    if (!router.puzzleState.solutionPeeked) {
+      // Update general puzzle stats
+      const puzzleKey = router.getCurrentPuzzleKey();
+      statsManager.stats.puzzles[puzzleKey].completions[router.difficulty]++;
+      statsManager.saveStatsData();
+    }
+
+    // Must go after updating the stats above
+    updateForTutorialRecommendation();
+  } else if (lastTutorialStage) {
+    setTutorialDone();
+    updateForTutorialRecommendation();
+
+    audioManager.stop(audioManager.SoundEffects.CHIME);
+    audioManager.play(audioManager.SoundEffects.GRADUATION);
+
+    // Start showing confetti
+    if (confettiDurationTimeoutId) {
+      clearTimeout(confettiDurationTimeoutId);
+      confettiDurationTimeoutId = null;
+    }
+
+    showConfetti();
+  }
+}
+
+export function hasLevelBeenCompleted(puzzleKey = router.puzzleState.puzzleKey) {
+  const puzzleStats = statsManager.stats.puzzles[puzzleKey];
+  return Object.values(puzzleStats?.completions || {}).some(val => val > 0);
+}
+
+export function getTutorialDone(puzzleKey = router.puzzleState.puzzleKey) {
+  const puzzleStats = statsManager.stats.puzzles[puzzleKey];
+  return puzzleStats.tutorialDone;
+}
+
+export function setTutorialDone(puzzleKey = router.puzzleState.puzzleKey) {
+  statsManager.stats.puzzles[puzzleKey].tutorialDone = true;
+  statsManager.saveStatsData();
 }
 
 export function containsCoord(array, coord) {
@@ -354,17 +519,29 @@ export function generateSeed(str = String(Date.now())) {
   return xMur3(str)().toString(36);
 }
 
+export function generateSeeds(str = String(Date.now()), count = 1) {
+  const generator = xMur3(str);
+  const seeds = [];
+
+  for (let i = 0; i < count; i++) {
+    // Shorten by converting to base 36
+    seeds.push(generator().toString(36));
+  }
+
+  return seeds;
+}
+
 export function getSeededRandomFunction(seedBase36) {
   return splitMix32(parseInt(seedBase36, 36));
 }
 
-export function randomIndex(array) {
-  return Math.floor((window.app.sRand ?? Math.random)() * array.length);
+export function randomIndex(array, sRandOverride = undefined) {
+  return Math.floor((sRandOverride ?? router.sRand ?? Math.random)() * array.length);
 }
 
-export function randomEl(array, remove = false) {
+export function randomEl(array, remove = false, sRandOverride = undefined) {
   if (remove) {
-    return array.splice(randomIndex(array), 1)[0];
+    return array.splice(randomIndex(array, sRandOverride), 1)[0];
   } else {
     return array[randomIndex(array)];
   }
@@ -396,4 +573,70 @@ export function deepCopy(inObject) {
 
 export function getPuzzleCanvas() {
   return document.getElementById('puzzleCanvas');
+}
+
+export function isLocalStorageAvailable() {
+  let storage;
+
+  try {
+    storage = window["localStorage"];
+    const x = "__storage_test__";
+    storage.setItem(x, x);
+    storage.removeItem(x);
+    return true;
+  } catch (e) {
+    return (
+      e instanceof DOMException &&
+      e.name === "QuotaExceededError" &&
+      // acknowledge QuotaExceededError only if there's something already stored
+      storage &&
+      storage.length !== 0
+    );
+  }
+}
+
+export function saveData(key, data) {
+  try {
+    localStorage.setItem(key, data);
+
+    if (document.readyState === 'complete') {
+      document.querySelector('.local-storage').classList.add('hidden');
+    }
+  } catch (e) {
+    // console.warn(`Unable to save '${key}' to local storage:`, e);
+    console.warn("Unable to save to local storage:", e);
+
+    if (document.readyState === 'complete') {
+      document.querySelector('.local-storage').classList.remove('hidden');
+    }
+  }
+}
+
+export function loadData(key, fallback) {
+  try {
+    const value = localStorage.getItem(key) ?? fallback;
+
+    if (document.readyState === 'complete') {
+      document.querySelector('.local-storage').classList.add('hidden');
+    }
+
+    return value;
+  } catch (e) {
+    // console.warn(`Unable to load '${key}' from local storage:`, e);
+    console.warn("Unable to load from local storage:", e);
+
+    if (document.readyState === 'complete') {
+      document.querySelector('.local-storage').classList.remove('hidden');
+    }
+
+    return fallback;
+  }
+}
+
+export function clearData() {
+  try {
+    localStorage.clear();
+  } catch (e) {
+    console.warn("Unable to clear local storage:", e);
+  }
 }

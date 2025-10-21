@@ -1,9 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomEl, updateForTutorialRecommendation,
-  updateForTutorialState
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  randomEl, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
@@ -467,9 +471,9 @@ function generateGrid() {
 
   const MAX_RECEIVERS_PER_SLICE = Math.floor((ROWS + COLS) / 5);
   const MAX_RECEIVERS = Math.floor((ROWS + COLS) * 3 / 4
-      + window.app.sRand() * (ROWS + COLS) / 2);
+      + router.sRand() * (ROWS + COLS) / 2);
       //(ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE
-      //+ Math.floor(window.app.sRand() * ((ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE));
+      //+ Math.floor(router.sRand() * ((ROWS + COLS) / 4 * MAX_RECEIVERS_PER_SLICE));
 
   // Add receivers past blocks that are receiving emission to make them relevant
   let preferredCells = [];
@@ -608,7 +612,7 @@ function generateGrid() {
 }
 
 function getNodeAtCoord(coord) {
-  let nodesToUse = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodesToUse = router.puzzleState.showingSolution ? solution : nodes;
   let matches = nodesToUse.filter(node => {
     return dragging !== node
         && node.coord[0] === coord[0] && node.coord[1] === coord[1];
@@ -673,7 +677,7 @@ export function drawInstructions() {
       ["Place a 4-way emitter and a block in each row/column,",
           "activating each white receiver but no black ones."],
       ["Drag emitters and blocks to move them."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -683,9 +687,9 @@ export function drawPuzzle() {
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (!window.app.puzzleState.showingSolution && !window.app.puzzleState.ended) {
+  if (!router.puzzleState.showingSolution && !router.puzzleState.ended) {
     // Reset
-    context.font = "bold " + (CELL_SIZE / 4) + "px Arial"
+    context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = "#ffffff";
     context.strokeStyle = "#ffffff";
@@ -726,7 +730,7 @@ export function drawPuzzle() {
   }
 
   context.lineCap = "butt";
-  let nodesToDraw = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
 
   let allEmittersInGrid = nodesToDraw.every(node => {
     return node.type !== NODE_TYPE.EMITTER || isNodeInGrid(node);
@@ -838,13 +842,13 @@ export function drawPuzzle() {
       drawBlock(node, context, false, true);
     });
 
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       // Cover up the reset button
       context.fillStyle = BACKGROUND_COLOR;
       context.fillRect(CANVAS_WIDTH - CELL_SIZE, CANVAS_HEIGHT - CELL_SIZE,
           CELL_SIZE, CELL_SIZE);
 
-      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+      endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -858,7 +862,7 @@ function drawEmissions(context, solved = false) {
   context.strokeStyle = solved ? SUCCESS_COLOR : "#ffffff40";
   context.lineWidth = LINE_THICKNESS * 2;
 
-  let nodesToDraw = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
 
   nodesToDraw.forEach(node => {
     let coord = node.coord;
@@ -962,8 +966,8 @@ function isNodeInGrid(node) {
 }
 
 function getSharedRows(nodeType) {
-  let nodeList = window.app.puzzleState.showingSolution ? solution : nodes;
-  let rows = nodeList.reduce((result, node, index) => {
+  let nodeList = router.puzzleState.showingSolution ? solution : nodes;
+  let rows = nodeList.reduce((result, node) => {
     return (node.type === nodeType && isNodeInGrid(node)) ?
         [...result, node.coord[1]] : result;
   }, []);
@@ -974,8 +978,8 @@ function getSharedRows(nodeType) {
 }
 
 function getSharedCols(nodeType) {
-  let nodeList = window.app.puzzleState.showingSolution ? solution : nodes;
-  let cols = nodeList.reduce((result, node, index) => {
+  let nodeList = router.puzzleState.showingSolution ? solution : nodes;
+  let cols = nodeList.reduce((result, node) => {
     return (node.type === nodeType && isNodeInGrid(node)) ?
         [...result, node.coord[0]] : result;
   }, []);
@@ -986,7 +990,7 @@ function getSharedCols(nodeType) {
 }
 
 function isOverlapping(node) {
-  let nodeList = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodeList = router.puzzleState.showingSolution ? solution : nodes;
 
   if (node.type !== NODE_TYPE.RECEIVER) {
     for (let i = 0; i < nodeList.length; i++) {
@@ -1011,8 +1015,8 @@ function isOverlapping(node) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
@@ -1020,8 +1024,8 @@ export function init() {
   previousTouch = null;
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -1036,7 +1040,7 @@ export function init() {
 
     finishInit();
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Quick: 6/6, Casual: 8/8, Challenging: 10/10, Intense: 12/12
     ROWS = 4 + DIFFICULTY * 2;
@@ -1083,7 +1087,7 @@ function resetPuzzle() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       dragging = null;
 
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
@@ -1119,7 +1123,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
+  if (router.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
     dragging = null;
     previousTouch = null;
 
@@ -1154,7 +1158,7 @@ export function onMouseMove(event) {
   const prevMouseCoords = mouseCoords;
   mouseCoords = {x: event.clientX, y: event.clientY};
 
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,
@@ -1172,7 +1176,7 @@ export function onMouseMove(event) {
 }
 
 export function onTouchMove(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let movedTouch;
     let changedTouches = [...event.changedTouches];
 
@@ -1201,7 +1205,7 @@ export function onTouchMove(event) {
 export function onMouseUp(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive && dragging) {
+    if (router.puzzleState.interactive && dragging) {
       releaseNode(dragging);
       dragging = null;
 
@@ -1217,7 +1221,7 @@ export function onMouseUp(event) {
 }
 
 export function onTouchEnd(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let changedTouches = [...event.changedTouches];
 
     for (let i = 0; i < changedTouches.length; i++) {
@@ -1235,7 +1239,7 @@ export function onTouchEnd(event) {
 }
 
 export function onMouseOut() {
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     releaseNode(dragging);
     dragging = null;
 

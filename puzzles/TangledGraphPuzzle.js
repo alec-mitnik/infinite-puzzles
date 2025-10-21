@@ -1,9 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
@@ -504,7 +508,7 @@ function generateGraph() {
 
   let i;
   for (i = 4; i < GRAPH_SIZE * 2 / 3; i++) {
-    if (window.app.sRand() < 0.75) {
+    if (router.sRand() < 0.75) {
       // Split an edge and connect to the opposite node
       // for all cycles containing that edge
       let randomCycle = cycles[randomIndex(cycles)];
@@ -512,7 +516,7 @@ function generateGraph() {
       let randomCycleNodeIndex = randomIndex(randomCycle);
       let nodeId = randomCycle[randomCycleNodeIndex];
       let node = nodeMap[nodeId];
-      let randomCycleNeighborIndex = (randomCycleNodeIndex + (window.app.sRand() < 0.5 ? 1 : 2)) % randomCycle.length;
+      let randomCycleNeighborIndex = (randomCycleNodeIndex + (router.sRand() < 0.5 ? 1 : 2)) % randomCycle.length;
       let neighborId = randomCycle[randomCycleNeighborIndex];
       let neighbor = nodeMap[neighborId];
 
@@ -624,7 +628,7 @@ function generateGraph() {
     }
   }
 
-  let stragglers = Math.floor(window.app.sRand() * (GRAPH_SIZE - i)) + i;
+  let stragglers = Math.floor(router.sRand() * (GRAPH_SIZE - i)) + i;
 
   for (i; i < stragglers; i++) {
     // Add a straggling node to a cycle's midpoint.
@@ -718,7 +722,7 @@ export function drawInstructions() {
       ["Untangle the graph so that no lines intersect.",
           "White nodes are fixed in place."],
       ["Drag the nodes to move them."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 function drawStage() {
@@ -737,7 +741,7 @@ export function drawPuzzle() {
 
   let solved = !dragging;
 
-  let nodesToDraw = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
 
   nodesToDraw.forEach(node => {
     node.neighbors.forEach(neighbor => {
@@ -761,7 +765,7 @@ export function drawPuzzle() {
     context.fill();
     context.stroke();
 
-    context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+    context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = "#808080";
     context.fillText(node.id + 1, node.x, node.y + NODE_SIZE / 12);
@@ -789,14 +793,14 @@ export function drawPuzzle() {
       context.fill();
       context.stroke();
 
-      context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+      context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
       context.textAlign = "center";
       context.fillStyle = SUCCESS_COLOR;
       context.fillText(node.id + 1, node.x, node.y + NODE_SIZE / 12);
     });
 
-    if (window.app.puzzleState.interactive) {
-      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+    if (router.puzzleState.interactive) {
+      endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -896,8 +900,8 @@ function orientation(p, q, r) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
@@ -906,8 +910,8 @@ export function init() {
   nodes = [];
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     nodes = deepCopy(tutorial.nodes);
     solution = deepCopy(nodes);
@@ -942,7 +946,7 @@ export function init() {
       node2.y = node1Y;
     }
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Quick: 11/0, Casual: 12/1, Challenging: 13/2, Intense: 14/3
     GRAPH_SIZE = 10 + DIFFICULTY;
@@ -981,7 +985,7 @@ export function init() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1015,7 +1019,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
+  if (router.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
     let touch = event.changedTouches[0];
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
@@ -1047,7 +1051,7 @@ export function onMouseMove(event) {
   const prevMouseCoords = mouseCoords;
   mouseCoords = {x: event.clientX, y: event.clientY};
 
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,
@@ -1065,7 +1069,7 @@ export function onMouseMove(event) {
 }
 
 export function onTouchMove(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let movedTouch;
     let changedTouches = [...event.changedTouches];
 
@@ -1094,7 +1098,7 @@ export function onTouchMove(event) {
 export function onMouseUp(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive && dragging) {
+    if (router.puzzleState.interactive && dragging) {
       releaseNode(dragging);
       dragging = null;
 
@@ -1110,7 +1114,7 @@ export function onMouseUp(event) {
 }
 
 export function onTouchEnd(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let changedTouches = [...event.changedTouches];
 
     for (let i = 0; i < changedTouches.length; i++) {
@@ -1128,7 +1132,7 @@ export function onTouchEnd(event) {
 }
 
 export function onMouseOut() {
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     releaseNode(dragging);
     dragging = null;
 
@@ -1139,8 +1143,8 @@ export function onMouseOut() {
 }
 
 function randomizeNodePosition(node) {
-  node.x = window.app.sRand() * (CANVAS_WIDTH - NODE_SIZE) + NODE_SIZE / 2;
-  node.y = window.app.sRand() * (CANVAS_HEIGHT - NODE_SIZE) + NODE_SIZE / 2;
+  node.x = router.sRand() * (CANVAS_WIDTH - NODE_SIZE) + NODE_SIZE / 2;
+  node.y = router.sRand() * (CANVAS_HEIGHT - NODE_SIZE) + NODE_SIZE / 2;
 }
 
 function setXtoGridCoordinates(gridX, graphSize = GRAPH_SIZE) {

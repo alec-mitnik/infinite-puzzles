@@ -1,5 +1,9 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
+import {
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
   onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
@@ -688,7 +692,7 @@ function generateGrid() {
   return Array.from({length: COLS}, () => Array.from({length: ROWS}, () => {
     return {
       value: COLORS[randomIndex(COLORS)],
-      show: window.app.sRand() < TILE_VISIBILITY_RATE
+      show: router.sRand() < TILE_VISIBILITY_RATE
     };
   }));
 }
@@ -923,7 +927,7 @@ export function drawInstructions() {
       ["Arrange the puzzle pieces into the grid by color."],
       ["Drag the pieces to move them.  While dragging,",
           "right-click or tap with a 2nd finger to rotate the piece."],
-          window.app.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length);
 }
 
 function puzzleSolved(playSound = true) {
@@ -931,8 +935,8 @@ function puzzleSolved(playSound = true) {
     return valid && !tileIsOverlapping(tile, tiles) && tileHasValidPlacement(tile);
   }, true);
 
-  if (window.app.puzzleState.interactive && solved && playSound) {
-    endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+  if (router.puzzleState.interactive && solved && playSound) {
+    endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
     audioManager.play(CHIME_SOUND);
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
@@ -949,11 +953,11 @@ export function drawPuzzle() {
 
   let solved = puzzleSolved();
 
-  context.fillStyle = solved || window.app.puzzleState.showingSolution ?
+  context.fillStyle = solved || router.puzzleState.showingSolution ?
       SUCCESS_COLOR : BACKGROUND_COLOR;
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  let tilesToDraw = window.app.puzzleState.showingSolution ? solution : tiles;
+  let tilesToDraw = router.puzzleState.showingSolution ? solution : tiles;
 
   if (TILE_VISIBILITY_RATE < 1) {
     context.strokeStyle = "#808080";
@@ -1032,8 +1036,8 @@ function getGridCoordinatesForCell(cell) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
@@ -1042,8 +1046,8 @@ export function init() {
   queuedSounds = [];
   let rotateForTutorial;
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
     rotateForTutorial = tutorial.rotate;
 
     ROWS = tutorial.rows;
@@ -1054,7 +1058,7 @@ export function init() {
     grid = deepCopy(tutorial.grid);
     tiles = deepCopy(tutorial.tiles);
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Quick: 5/5/3, Casual: 5/5/0, Challenging: 10/10/20, Intense: 10/10/10
     ROWS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
@@ -1103,13 +1107,13 @@ export function init() {
       }
     }
 
-    let rotations = Math.floor(window.app.sRand() * 4);
+    let rotations = Math.floor(router.sRand() * 4);
     for (let i = 0; i < rotations; i++) {
       rotateMatrix(grid);
       rotateTileset(tiles);
     }
 
-    if (window.app.sRand() < 0.5) {
+    if (router.sRand() < 0.5) {
       flipMatrix(grid);
       flipTileset(tiles);
     }
@@ -1130,14 +1134,14 @@ export function init() {
   solution = deepCopy(tiles);
 
   // Place on bottom or right edge to not obscure the grid
-  let bottomEdge = window.app.sRand() < 0.5;
+  let bottomEdge = router.sRand() < 0.5;
 
   do {
     tiles.forEach((tile, index) => {
       if (!tile.fixed) {
-        let tileRotations = Math.floor(window.app.sRand() * 4);
+        let tileRotations = Math.floor(router.sRand() * 4);
 
-        if (window.app.puzzleState.tutorialStage) {
+        if (router.puzzleState.tutorialStage) {
           tileRotations = index === 0 && rotateForTutorial ? 1 : 0;
         }
 
@@ -1161,12 +1165,12 @@ export function init() {
         let maxX = CANVAS_WIDTH - CELL_SIZE * (0.5 + tileMaxCoordX - tile.cells[0].coordinates[0]);
         let minX = !bottomEdge ? maxX
           : CELL_SIZE * (0.5 + tile.cells[0].coordinates[0] - tileMinCoordX);
-        let moveX = window.app.sRand() * (maxX - minX) + minX - tile.cells[0].x;
+        let moveX = router.sRand() * (maxX - minX) + minX - tile.cells[0].x;
 
         let maxY = CANVAS_WIDTH - CELL_SIZE * (0.5 + tileMaxCoordY - tile.cells[0].coordinates[1]);
         let minY = bottomEdge ? maxY
           : CELL_SIZE * (0.5 + tile.cells[0].coordinates[1] - tileMinCoordY);
-        let moveY = window.app.sRand() * (maxY - minY) + minY - tile.cells[0].y;
+        let moveY = router.sRand() * (maxY - minY) + minY - tile.cells[0].y;
 
         tile.cells.forEach(cell => {
           cell.x += moveX;
@@ -1188,7 +1192,7 @@ export function init() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = (event.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
       let mouseY = (event.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
@@ -1214,7 +1218,7 @@ export function onMouseDown(event) {
 
   // Right click
   } else if (event.button === 2) {
-    if (window.app.puzzleState.interactive && dragging) {
+    if (router.puzzleState.interactive && dragging) {
       rotateTile(dragging);
 
       drawPuzzle();
@@ -1234,7 +1238,7 @@ export function onMouseDown(event) {
 export function onTouchStart(event) {
   // Single touch
   if (!dragging && event.changedTouches.length === 1) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       event.preventDefault();
 
       let touch = event.changedTouches[0];
@@ -1264,7 +1268,7 @@ export function onTouchStart(event) {
 
   // Double tap
   } else if (dragging && event.touches.length === 2) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       event.preventDefault();
 
       rotateTile(dragging);
@@ -1281,7 +1285,7 @@ export function onMouseMove(event) {
   const prevMouseCoords = mouseCoords;
   mouseCoords = {x: event.clientX, y: event.clientY};
 
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,
@@ -1301,7 +1305,7 @@ export function onMouseMove(event) {
 }
 
 export function onTouchMove(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let movedTouch;
     let changedTouches = [...event.changedTouches];
 
@@ -1343,7 +1347,7 @@ export function onTouchMove(event) {
 export function onMouseUp(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive && dragging) {
+    if (router.puzzleState.interactive && dragging) {
       snapToGrid(dragging);
       dragging = null;
 
@@ -1359,7 +1363,7 @@ export function onMouseUp(event) {
 }
 
 export function onTouchEnd(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     event.preventDefault();
 
     let changedTouches = [...event.changedTouches];
@@ -1379,7 +1383,7 @@ export function onTouchEnd(event) {
 }
 
 export function onMouseOut() {
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     snapToGrid(dragging);
     dragging = null;
 

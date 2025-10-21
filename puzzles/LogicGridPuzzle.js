@@ -1,9 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 3 / 5;
@@ -922,7 +926,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
     }
 
     if (!derived) {
-      if (window.app.sRand() < 0.5) {
+      if (router.sRand() < 0.5) {
         // Gather all the row neighbors
         let rowNeighbors = nodes.filter(otherNode => {
           return otherNode.id !== node.id && otherNode.row === node.row
@@ -959,8 +963,8 @@ async function obscureNodes(nodesToObscure, tries = 0) {
               if (colPos.indexOf(node.col) < 0) {
                 let rowIndex = SYMBOL_SETS.indexOf(colNeighbor.row);
                 rowNeighbor.rules[rowIndex] = colNeighbor.id;
-                // Make sure to remove now redundant not rules
-                // TODO - there are more than just these!!!
+                // Make sure to remove now redundant not rules.
+                // There are more than just these, but I don't have a good way to find them.
                 rowNeighbor.rules['not'+rowIndex] = [];
                 colDerived = true;
                 break;
@@ -1005,8 +1009,8 @@ async function obscureNodes(nodesToObscure, tries = 0) {
 
           if (filteredColPos.length === 1) {
             node.rules[oRowIndex] = colNeighbor.id;
-            // Make sure to remove now redundant not rules
-            // TODO - there are more than just these!!!
+            // Make sure to remove now redundant not rules.
+            // There are more than just these, but I don't have a good way to find them.
             node.rules['not'+oRowIndex] = [];
             //console.log("D");
             derived = true;
@@ -1043,10 +1047,10 @@ async function obscureNodes(nodesToObscure, tries = 0) {
 
               colNeighbor.rules['not'+SYMBOL_SETS.indexOf(notNode.row)].push(notNode.id);
 
-              // TODO - this sometimes might not be needed after the not rule above...
+              // This sometimes might not be needed after the not rule above...
               node.rules[oRowIndex] = colNeighbor.id;
-              // Make sure to remove now redundant not rules
-              // TODO - there are more than just these!!!
+              // Make sure to remove now redundant not rules.
+              // There are more than just these, but I don't have a good way to find them.
               node.rules['not'+oRowIndex] = [];
               //console.log("C");
               //console.log(colNeighbor, "NOT", notNode.id);
@@ -1325,7 +1329,7 @@ async function generateXorRules(convertList, falseRules, rulesList, xorList, non
       let firstRule;
       let secondRule;
 
-      if (window.app.sRand() < 0.5) {
+      if (router.sRand() < 0.5) {
         firstRule = rule;
         secondRule = falseRule;
       } else {
@@ -1540,7 +1544,7 @@ export function drawInstructions() {
       ["Place each token in the grid row for its symbol set",
           "and the column which follows the stated logic rules."],
       ["Drag tokens to move them."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -1553,7 +1557,7 @@ export function drawPuzzle() {
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, GRID_WIDTH, GRID_HEIGHT);
 
-  context.font = "bold " + (NODE_SIZE * 1.5) + "px Arial"
+  context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
   context.fillStyle = "#808080";
 
@@ -1578,7 +1582,7 @@ export function drawPuzzle() {
   let rowCorrectness = {};
   let rowIncorrectness = {};
 
-  let nodesToDraw = window.app.puzzleState.showingSolution ? solution : nodes;
+  let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
 
   for (let i = nodesToDraw.length - 1; i >= 0; i--) {
     let node = nodesToDraw[i];
@@ -1588,7 +1592,7 @@ export function drawPuzzle() {
       let aligned = false;
 
       if (inGrid) {
-        aligned = isNodeAlignedWithRow(node, nodesToDraw);
+        aligned = isNodeAlignedWithRow(node);
         let rowPlacement = Math.floor(node.y / CELL_SIZE);
         let correctness = rowIncorrectness[rowPlacement];
         rowIncorrectness[rowPlacement] = correctness !== false && aligned;
@@ -1609,7 +1613,7 @@ export function drawPuzzle() {
   }
 
   // Draw rules
-  context.font = "bold " + (RULES_SIZE * 1.1) + "px Arial"
+  context.font = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
   let yPos = CELL_SIZE / 2 + NODE_SIZE * 2 / 3;
   let index = 0;
@@ -1691,8 +1695,8 @@ export function drawPuzzle() {
       context.fillStyle = "#ffffff";
 
       let valueNode = getNodeWithValue(rule.value, nodesToDraw);
-      let nodeAligned = isNodeAlignedWithRow(node, nodesToDraw);
-      let valueAligned = isNodeAlignedWithRow(valueNode, nodesToDraw);
+      let nodeAligned = isNodeAlignedWithRow(node);
+      let valueAligned = isNodeAlignedWithRow(valueNode);
       let aligned = isNodeAlignedWithValue(node, rule.value, rule.offset, nodesToDraw);
       let validAligned = rule.negation ? aligned === false : aligned;
       let nodeAtPos = getNodeAlignedAtRow(valueNode, SYMBOL_SETS.indexOf(node.row), -rule.offset, nodesToDraw);
@@ -1738,7 +1742,7 @@ export function drawPuzzle() {
     let nodeColor = solved ? SUCCESS_COLOR
         : (rowIncorrectness[SYMBOL_SETS.indexOf(node.row)] === false ? ALERT_COLOR : "#808080");
 
-    context.font = "bold " + (NODE_SIZE * 1.5) + "px Arial"
+    context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
@@ -1756,14 +1760,14 @@ export function drawPuzzle() {
     context.fill();
     context.stroke();
 
-    context.font = "bold " + (NODE_SIZE * 1.5) + "px Arial"
+    context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
   });
 
-  if (solved && window.app.puzzleState.interactive) {
-    endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+  if (solved && router.puzzleState.interactive) {
+    endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
     audioManager.play(CHIME_SOUND);
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
@@ -1804,7 +1808,7 @@ function isNodeAlignedWithValue(node, value, offset, nodeList) {
   return Math.floor(node.x / CELL_SIZE) === valueCol;
 }
 
-function isNodeAlignedWithRow(node, nodeList) {
+function isNodeAlignedWithRow(node) {
   if (dragging === node || !isNodeInGrid(node)) {
     return false;
   }
@@ -1865,10 +1869,13 @@ export function init() {
   isGenerating = true;
   generationStepCount = 0
 
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
+
+  // Want to update this before any loading delays
+  updateForTutorialState();
 
   dragging = null;
   previousTouch = null;
@@ -1876,8 +1883,8 @@ export function init() {
   nodes = [];
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -1894,7 +1901,7 @@ export function init() {
 
     finishInit();
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Above 5/5 takes too much computation!
     // Quick: 4/4, Casual: 5/4, Challenging: 4/5, Intense: 5/5
@@ -1927,22 +1934,11 @@ function finishInit() {
   const moveableNodes = nodes.filter(node => !node.fixed);
   const moveableNodesPerSet = COLS - 1;
 
-//    while (puzzleSolved) {
   moveableNodes.forEach((node, i) => {
     const setIndex = Math.floor(i / moveableNodesPerSet);
     node.x = (moveableNodesPerSet > 2 ? i - setIndex : i) * (CELL_SIZE / 2) + CELL_SIZE / 2;
     node.y = CANVAS_HEIGHT - CELL_SIZE / 2 - ((i % moveableNodesPerSet) * CELL_SIZE / 2);
   });
-
-    /*for (let i = 0; i < moveableNodes.length && puzzleSolved; i++) {
-      let node = moveableNodes[i];
-      // Don't bother checking rules, since all the nodes being in
-      // separate grid cells is unlikely enough
-      puzzleSolved = puzzleSolved && isNodeInGrid(node) && !isOverlapping(node, moveableNodes);
-    }*/
-//    }
-
-  updateForTutorialState();
 
   drawInstructions();
 
@@ -1954,7 +1950,7 @@ function finishInit() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1984,7 +1980,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
+  if (router.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
     let touch = event.changedTouches[0];
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
@@ -2012,7 +2008,7 @@ export function onMouseMove(event) {
   const prevMouseCoords = mouseCoords;
   mouseCoords = {x: event.clientX, y: event.clientY};
 
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,
@@ -2030,7 +2026,7 @@ export function onMouseMove(event) {
 }
 
 export function onTouchMove(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let movedTouch;
     let changedTouches = [...event.changedTouches];
 
@@ -2059,7 +2055,7 @@ export function onTouchMove(event) {
 export function onMouseUp(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive && dragging) {
+    if (router.puzzleState.interactive && dragging) {
       releaseNode(dragging);
       dragging = null;
 
@@ -2075,7 +2071,7 @@ export function onMouseUp(event) {
 }
 
 export function onTouchEnd(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let changedTouches = [...event.changedTouches];
 
     for (let i = 0; i < changedTouches.length; i++) {
@@ -2093,7 +2089,7 @@ export function onTouchEnd(event) {
 }
 
 export function onMouseOut() {
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     releaseNode(dragging);
     dragging = null;
 
@@ -2102,12 +2098,6 @@ export function onMouseOut() {
 
   dragging = null;
 }
-
-/*function randomizeNodePosition(node) {
-  node.x = window.app.sRand() * (CANVAS_WIDTH - NODE_SIZE * 4) + NODE_SIZE * 2;
-  node.y = window.app.sRand() * (CANVAS_HEIGHT - GRID_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2 + GRID_HEIGHT;
-//    node.y = window.app.sRand() * (CANVAS_HEIGHT - NODE_SIZE * 4) + NODE_SIZE * 2;
-}*/
 
 function releaseNode(node, playSound = true) {
   let xPos = Math.max(NODE_SIZE, Math.min(CANVAS_WIDTH - NODE_SIZE, node.x));

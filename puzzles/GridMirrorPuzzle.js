@@ -1,8 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -353,7 +358,7 @@ function generateGrid() {
       })));
 
   for (let i = 0; i < MOVES; i++) {
-    if (i > 0 && window.app.sRand() < MIRROR_RATIO) {
+    if (i > 0 && router.sRand() < MIRROR_RATIO) {
       let directions = getAvailableMirrors(true);
 
       if (directions.length === 0) {
@@ -763,22 +768,22 @@ function mirrorGrid(direction, forGeneratingSolution = false) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     allowedTaps = tutorial.allowedTaps;
     allowedMirrors = tutorial.allowedMirrors;
     grid = deepCopy(tutorial.grid);
     solutionSteps = tutorial.solutionSteps;
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
     MOVES = 4 + 2 * DIFFICULTY;
     MIN_MIRRORS = MOVES / 2;
 
@@ -804,7 +809,7 @@ export function drawInstructions() {
       ["Use the allotted taps and mirrors to match the pattern."],
       ["Click or tap a grid tile to fill it.",
           "Click or tap the arrows to mirror in that direction."],
-          window.app.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -815,7 +820,7 @@ export function drawPuzzle() {
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   context.lineWidth = LINE_THICKNESS;
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
   let solved = true;
 
   for (let i = 0; i < COLS; i++) {
@@ -846,13 +851,13 @@ export function drawPuzzle() {
         context.stroke();
       }
 
-      if (window.app.puzzleState.showingSolution && cell.solutionOrderIndex) {
+      if (router.puzzleState.showingSolution && cell.solutionOrderIndex) {
         context.fillStyle = SUCCESS_COLOR;
         context.beginPath();
         context.arc(centerCoord[0], centerCoord[1], NODE_SIZE / 4, 0, 2 * Math.PI, false);
         context.fill();
 
-        context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+        context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
         context.textAlign = "center";
         context.fillStyle = "#000000";
         context.fillText(cell.solutionOrderIndex, centerCoord[0], centerCoord[1] + NODE_SIZE / 12);
@@ -860,8 +865,8 @@ export function drawPuzzle() {
     }
   }
 
-  if (!window.app.puzzleState.showingSolution) {
-    context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+  if (!router.puzzleState.showingSolution) {
+    context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.fillStyle = "#ffffff";
     context.textAlign = "center";
 
@@ -873,8 +878,8 @@ export function drawPuzzle() {
 
 
     if (solved) {
-      if (window.app.puzzleState.interactive) {
-        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+      if (router.puzzleState.interactive) {
+        endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {
@@ -885,7 +890,7 @@ export function drawPuzzle() {
           drawArrows(context);
         }
 
-        context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+        context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
         context.fillStyle = "#ffffff";
 
         // Restart
@@ -920,7 +925,7 @@ export function drawPuzzle() {
 
     queuedSounds = [];
   } else {
-    context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+    context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
 
     let startCoord = (12 - solutionSteps.length) / 2 - 1;
@@ -1118,7 +1123,7 @@ function convertToGridCoord(x, y) {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1134,7 +1139,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+  if (event.changedTouches.length === 1 && router.puzzleState.interactive) {
     event.preventDefault();
 
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();

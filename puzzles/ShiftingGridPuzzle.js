@@ -1,8 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -397,7 +402,7 @@ function getStartingTileForGrid(gridToUse, startingTileId = startingTile?.id) {
     }
   }
 
-  console.error("Starting tile not found:", template, gridToUse);
+  console.error("Starting tile not found:", startingTileId, gridToUse);
 }
 
 function getNeighborCoord(coord, direction) {
@@ -546,16 +551,16 @@ function isHorizontal(direction) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
   queuedSounds = [];
   gridHistory = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -579,10 +584,10 @@ export function init() {
       );
     }
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Must not exceed 12 to ensure enough space to show solution steps
-    SHUFFLE_SHIFTS = Math.floor(window.app.sRand() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
+    SHUFFLE_SHIFTS = Math.floor(router.sRand() * (DIFFICULTY + 3)) + DIFFICULTY + 2;
     // 2x3/2x4/3x3/3x4
     ROWS = DIFFICULTY <= 2 ? 2 : 3;
     COLS = DIFFICULTY % 2 === 0 ? 4 : 3;
@@ -615,7 +620,7 @@ export function init() {
           randomDirection = directions[randomIndex(directions)];
           isShiftHorizontal = isHorizontal(randomDirection);
           randomIndexUpperLimit = isShiftHorizontal ? ROWS : COLS;
-          randomIndexValue = Math.floor(window.app.sRand() * randomIndexUpperLimit);
+          randomIndexValue = Math.floor(router.sRand() * randomIndexUpperLimit);
           currentShift = latestShiftLengths[isShiftHorizontal][randomIndexValue] ?? {count: 0, direction: randomDirection};
         } while (solutionSteps.length && ((
             randomDirection === getDirectionComplement(currentShift.direction)
@@ -667,7 +672,7 @@ export function drawInstructions() {
       ["Shift tiles to connect all the tracks to the station.",
           "Tracks and shifted tiles both loop back around."],
       ["Click or tap the arrows to shift the row or column."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 function getConnectedTiles(tile, connectedTiles, gridToDraw) {
@@ -691,8 +696,8 @@ export function drawPuzzle() {
   context.lineWidth = LINE_THICKNESS;
   context.lineCap = "square";
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
-  let stationToDraw = window.app.puzzleState.showingSolution ? solutionStartingTile : startingTile;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
+  let stationToDraw = router.puzzleState.showingSolution ? solutionStartingTile : startingTile;
   let solved = true;
   let connectedTiles = [stationToDraw];
 
@@ -764,10 +769,10 @@ export function drawPuzzle() {
     }
   }
 
-  if (!window.app.puzzleState.showingSolution) {
+  if (!router.puzzleState.showingSolution) {
     if (solved) {
-      if (window.app.puzzleState.interactive) {
-        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+      if (router.puzzleState.interactive) {
+        endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {
@@ -775,7 +780,7 @@ export function drawPuzzle() {
 
       drawArrows(context);
 
-      context.font = "bold " + (ARROW_SIZE / 4) + "px Arial"
+      context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
       context.fillStyle = "#ffffff";
       context.lineWidth = 6;
       context.lineCap = "butt";
@@ -867,7 +872,7 @@ export function drawPuzzle() {
     const letters = "ABCDEF";
 
     context.textAlign = "center";
-    context.font = "bold " + (ARROW_SIZE * 3 / 4) + "px Arial"
+    context.font = "bold " + (ARROW_SIZE * 3 / 4) + `px ${FONT_FAMILY}`;
     context.fillStyle = "#ffffff";
 
     for (let i = 0; i < COLS; i++) {
@@ -916,7 +921,7 @@ export function drawPuzzle() {
       context.arc(coord[0], coord[1], ARROW_THICKNESS * 13 / 8, 0, 2 * Math.PI, false);
       context.fill();
 
-      context.font = "bold " + (ARROW_SIZE * 5 / 12) + "px Arial"
+      context.font = "bold " + (ARROW_SIZE * 5 / 12) + `px ${FONT_FAMILY}`;
       context.fillStyle = "#000000";
       context.fillText(horizontal ? step[0] + 1 : letters.charAt(step[0]),
           coord[0], coord[1] + ARROW_SIZE * 5 / 36);
@@ -1013,7 +1018,7 @@ function convertToGridCoord(x, y) {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1029,7 +1034,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+  if (event.changedTouches.length === 1 && router.puzzleState.interactive) {
     event.preventDefault();
 
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();

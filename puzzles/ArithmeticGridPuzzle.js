@@ -1,8 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -47,7 +52,7 @@ const tutorials = [
         fixed: false,
       }],
     ],
-    // signGrid: Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => window.app.sRand() < MINUS_RATE ? -1 : 1)),
+    // signGrid: Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => router.sRand() < MINUS_RATE ? -1 : 1)),
     signGrid: Array.from({length: 1 }, () => Array.from({length: 3}, () => 1)),
     colTotals: [{
       num: 1,
@@ -349,7 +354,7 @@ function generateGrid() {
   grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => {}));
 
   // 1 is plus, -1 is minus, invalid coordinates will just be unused
-  signGrid = Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => window.app.sRand() < MINUS_RATE ? -1 : 1));
+  signGrid = Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => router.sRand() < MINUS_RATE ? -1 : 1));
 
   rawGrid.forEach((col, colIndex) => {
     let colTotal = col.reduce((total, num, i) => {
@@ -485,7 +490,7 @@ export function drawInstructions() {
       ["Arrange the tiles to get the expected totals.",
           "White tiles are fixed in place."],
       ["Click or tap to select tiles and swap them."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -496,10 +501,10 @@ export function drawPuzzle() {
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   context.fillStyle = "#ffffff";
-  context.font = "bold " + (CELL_SIZE * (1 - TILE_PROPORTION) * 3 / 4) + "px Arial"
+  context.font = "bold " + (CELL_SIZE * (1 - TILE_PROPORTION) * 3 / 4) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
 
   for (let i = 0; i < COLS * 2; i++) {
     for (let j = 0; j < ROWS * 2; j++) {
@@ -542,15 +547,15 @@ export function drawPuzzle() {
       context.stroke();
 
       context.fillStyle = tileColor;
-      context.font = "bold " + (CELL_SIZE * TILE_PROPORTION / 2) + "px Arial"
+      context.font = "bold " + (CELL_SIZE * TILE_PROPORTION / 2) + `px ${FONT_FAMILY}`;
       context.textAlign = "center";
       context.fillText(tile.num, tile.x + tileSize / 2, tile.y + tileSize / 2 + CELL_SIZE * TILE_PROPORTION / 6);
     }
   });
 
   if (puzzleSolved) {
-    if (window.app.puzzleState.interactive) {
-      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+    if (router.puzzleState.interactive) {
+      endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     }
   } else {
@@ -570,7 +575,7 @@ export function drawPuzzle() {
     context.stroke();
 
     context.fillStyle = tileColor;
-    context.font = "bold " + (CELL_SIZE * TILE_PROPORTION / 2) + "px Arial"
+    context.font = "bold " + (CELL_SIZE * TILE_PROPORTION / 2) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillText(tile.num, tile.x + tileSize / 2, tile.y + tileSize / 2 + CELL_SIZE * TILE_PROPORTION / 6);
   });
@@ -580,12 +585,12 @@ export function drawPuzzle() {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
-  DIFFICULTY = window.app.router.difficulty;
+  DIFFICULTY = router.difficulty;
 
   // Quick: 3/3/2/+, Casual: 3/3/0/+, Challenging: 3/3/2/+-, Intense: 3/3/0/+-
   ROWS = 3; // + (DIFFICULTY > 2 ? 1 : 0);
@@ -601,8 +606,8 @@ export function init() {
   unusedCols = [];
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -668,7 +673,7 @@ export function init() {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -739,7 +744,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+  if (event.changedTouches.length === 1 && router.puzzleState.interactive) {
     event.preventDefault();
 
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();

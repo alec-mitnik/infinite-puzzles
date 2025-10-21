@@ -1,8 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, peek, randomIndex, updateForTutorialRecommendation,
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
+import {
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  peek, randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -219,11 +224,11 @@ function generateGrid() {
     containsSlider: false,
   })));
 
-  let x = Math.floor(window.app.sRand() * (COLS - 2)) + 1;
-  let y = Math.floor(window.app.sRand() * (ROWS - 2)) + 1;
+  let x = Math.floor(router.sRand() * (COLS - 2)) + 1;
+  let y = Math.floor(router.sRand() * (ROWS - 2)) + 1;
   grid[x][y].containsSlider = true;
 
-  let directionVertical = window.app.sRand() < 0.5;
+  let directionVertical = router.sRand() < 0.5;
   let pathContinues = true;
   let keyNum = 1;
   let totalBlocks = 0;
@@ -307,8 +312,8 @@ function generateGrid() {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
@@ -316,12 +321,12 @@ export function init() {
   queuedSounds = [];
   gridHistory = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     grid = deepCopy(tutorial.grid);
   } else {
-    DIFFICULTY = window.app.router.difficulty;
+    DIFFICULTY = router.difficulty;
 
     // Quick: 10, Casual: 12, Challenging: 14, Intense: 16
     MAX_BLOCKS = 8 + 2 * DIFFICULTY;
@@ -343,7 +348,7 @@ export function drawInstructions() {
       ["Break all the white blocks and land in the goal.",
           "Hint: alternate vertical and horizontal moves."],
       ["Click or tap the arrows to move the slider."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -353,7 +358,7 @@ export function drawPuzzle() {
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
 
   context.lineWidth = LINE_THICKNESS;
 
@@ -393,13 +398,13 @@ export function drawPuzzle() {
       }
 
       if (cell.keyNumber) {
-        if (window.app.puzzleState.showingSolution) {
+        if (router.puzzleState.showingSolution) {
           context.fillStyle = SUCCESS_COLOR;
           context.beginPath();
           context.arc(centerCoord[0], centerCoord[1], NODE_SIZE / 4, 0, 2 * Math.PI, false);
           context.fill();
 
-          context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+          context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
           context.textAlign = "center";
           context.fillStyle = "#000000";
           context.fillText(cell.keyNumber, centerCoord[0], centerCoord[1] + NODE_SIZE / 12);
@@ -439,10 +444,10 @@ export function drawPuzzle() {
     }
   }
 
-  if (!window.app.puzzleState.showingSolution) {
+  if (!router.puzzleState.showingSolution) {
     if (blocksLeft > 0) {
       let centerCoord = getDrawCoord(...goalCoord, true);
-      context.font = "bold " + (NODE_SIZE / 2) + "px Arial"
+      context.font = "bold " + (NODE_SIZE / 2) + `px ${FONT_FAMILY}`;
       context.textAlign = "center";
       context.fillStyle = "#ffffff";
       context.fillText(blocksLeft, centerCoord[0], centerCoord[1] + NODE_SIZE / 6);
@@ -464,8 +469,8 @@ export function drawPuzzle() {
         }
       }
 
-      if (window.app.puzzleState.interactive) {
-        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+      if (router.puzzleState.interactive) {
+        endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     } else {
@@ -475,7 +480,7 @@ export function drawPuzzle() {
 
       if (gridHistory.length > 0) {
         // Restart
-        context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+        context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
         context.textAlign = "right";
         context.fillStyle = "#ffffff";
         context.fillText("Restart", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
@@ -491,7 +496,7 @@ export function drawPuzzle() {
         context.stroke();
 
         // Undo
-        context.font = "bold " + (NODE_SIZE / 4) + "px Arial"
+        context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
         context.textAlign = "left";
         context.fillStyle = "#ffffff";
         context.fillText("Undo", OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
@@ -774,7 +779,7 @@ function moveDown(x, y) {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -790,7 +795,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (event.changedTouches.length === 1 && window.app.puzzleState.interactive) {
+  if (event.changedTouches.length === 1 && router.puzzleState.interactive) {
     event.preventDefault();
 
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();

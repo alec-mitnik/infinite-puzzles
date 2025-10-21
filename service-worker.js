@@ -1,6 +1,17 @@
-let CACHE_VERSION = 216;
-// CACHE_VERSION = Date.now();
+let CACHE_VERSION = 217;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
+
+/*
+ * TODO:
+ *
+ * Account for ties in stats data?
+ *
+ *
+ * Ideas:
+ *
+ * Might be nice to store each puzzle move, so that it could be
+ * played back to you or even shared (as a gif?)
+ */
 
 // List of files to cache for offline use
 const FILES_TO_CACHE = [
@@ -34,6 +45,7 @@ const FILES_TO_CACHE = [
   '/sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
   '/sounds/space_beep_3.mp3',
   '/sounds/Graduation.mp3',
+  '/sounds/game-start-6104.mp3',
   // Image files
   '/images/PXL_Avatar_1B.jpg',
 ];

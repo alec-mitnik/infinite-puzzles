@@ -1,5 +1,9 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
+import {
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
   onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
@@ -593,7 +597,7 @@ export function drawInstructions() {
       ["Arrange the tiles to complete all the outgoing circuits."],
       ["Click or tap to select tiles and swap them.",
           "Right-click or tap with a 2nd finger to rotate tiles."],
-          window.app.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length);
 }
 
 export function drawPuzzle() {
@@ -605,7 +609,7 @@ export function drawPuzzle() {
 
   context.lineWidth = LINE_THICKNESS;
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
   gridToDraw.flat().forEach(tile => {
     context.fillStyle = tile.fixed ? BACKGROUND_COLOR : (tile === selection ? ALERT_COLOR : "#000000");
     context.strokeStyle = "#808080";
@@ -668,9 +672,9 @@ export function drawPuzzle() {
     context.lineWidth = OFFSET_SIZE / 2;
     context.strokeRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (!window.app.puzzleState.showingSolution) {
-      if (window.app.puzzleState.interactive) {
-        endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+    if (!router.puzzleState.showingSolution) {
+      if (router.puzzleState.interactive) {
+        endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
         audioManager.play(CHIME_SOUND);
       }
     }
@@ -756,20 +760,20 @@ function getCoordinatePath(gridCoords, coord) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
-  DIFFICULTY = window.app.router.difficulty;
+  DIFFICULTY = router.difficulty;
   FIXED_TILES = 5 - DIFFICULTY; // Quick: 4, Casual: 3, Challenging: 2, Intense: 1
 
   selection = null;
   circuitEnds = [];
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -832,7 +836,7 @@ export function init() {
         tile.x = coordinate[1];
         tile.y = coordinate[2];
 
-        let tileRotations = Math.floor(window.app.sRand() * 4);
+        let tileRotations = Math.floor(router.sRand() * 4);
         for (let i = 0; i < tileRotations; i++) {
           rotateTile(tile, false);
         }
@@ -883,7 +887,7 @@ function rotateTile(tile, playSound = true) {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -933,7 +937,7 @@ export function onMouseDown(event) {
 
   // Right click
   } else if (event.button === 2) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -968,7 +972,7 @@ export function onMouseUp(event) {
 
 export function onTouchStart(event) {
   if (event.touches.length === 2) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       // Prevent triggered mouse events
       event.preventDefault();
 
@@ -1012,7 +1016,7 @@ export function onTouchStart(event) {
       }
     }
   } else if (event.changedTouches.length === 1) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       let canvas = getPuzzleCanvas();
 
       if (event.target !== canvas) {

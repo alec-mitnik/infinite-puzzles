@@ -6,6 +6,15 @@
   min-height: 0;
 }
 
+:root {
+  --blue: #0062A5;
+  --gold: #F9B70F;
+  --gray: #333;
+  --med-light-gray: #444;
+  --light-gray: #555;
+  --indigo: #333366;
+}
+
 canvas {
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
@@ -24,22 +33,23 @@ html, body {
 }
 
 html {
-  background: #0062A5;
+  background: var(--blue);
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
   font-size: clamp(62.5%, 2vmin + 0.125rem, 100%);
 
+  /* Loading spinner */
   &::before {
     content: '\1F300\FE0E' / '';
-    color: #F9B70F00;
-    text-shadow: 0 0 0 #F9B70F;
+    color: transparent;
+    text-shadow: 0 0 0 var(--gold);
     position: absolute;
     width: 200px;
     line-height: 200px;
     font-size: 200px;
-    animation:spin 0.5s linear infinite;
+    animation: spin 0.5s linear infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -50,9 +60,10 @@ html {
   }
 }
 
-body.loading, #canvasContainer.loading {
-  transition: opacity 0s;
+body.loading, body.loading dialog, #canvasContainer.loading {
+  transition: none;
   opacity: 0;
+  pointer-events: none;
 }
 
 @-moz-keyframes spin { 100% { -moz-transform: rotate(-360deg); } }
@@ -65,7 +76,7 @@ body {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, sans-serif;
   color: white;
 
   /* Note that negative margin offscreen doesn't work well with
@@ -73,24 +84,28 @@ body {
   of cutoff elements causes scrolling even with overflow hidden. */
 }
 
-#puzzleGames {
+.warning {
+  color: var(--gold);
+}
+
+.sidebar-group {
   display: flex;
   flex-direction: column;
 }
 
 #canvasContainer {
   transition: opacity 1s;
-  background-color: #000000; /* For browsers that do not support gradients */
-  background-image: repeating-linear-gradient(45deg, #333366, #333366 6px, #000000 6px, #000000 12px);
+  background-color: black; /* For browsers that do not support gradients */
+  background-image: repeating-linear-gradient(45deg,
+      var(--indigo), var(--indigo) 6px, black 6px, black 12px);
   flex: 1 1 auto;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  container-type: size;
 
   &.home {
-    background: #333366;
+    background: var(--indigo);
   }
 }
 
@@ -119,19 +134,33 @@ canvas#puzzleCanvas {
   display: none;
 }
 
-#controls.solved {
-  #generateNewPuzzleButton, #nextTutorialButton {
-    /* Prevent the scaling from affecting the focus outline */
-    overflow: hidden;
+#controls {
+  &:not(.daily-challenge) {
+    #nextDailyChallengePuzzleButton, #dailyChallengeControlsTimerWrapper {
+      display: none;
+    }
+  }
 
-    > span {
-      transform: scale(1);
-      animation: scaleFlare 2s ease-in-out infinite;
-      color: #F9B70F;
+  &.daily-challenge {
+    #tutorialButton, #generateNewPuzzleButton, #sharePuzzleButton {
+      display: none;
+    }
+  }
 
-      @media (prefers-reduced-motion: reduce) {
-        animation-iteration-count: 1.5;
-        animation-fill-mode: forwards;
+  &.solved {
+    #generateNewPuzzleButton, #nextTutorialPuzzleButton, #nextDailyChallengePuzzleButton {
+      /* Prevent the scaling from affecting the focus outline */
+      overflow: hidden;
+
+      > span {
+        transform: scale(1);
+        animation: scaleFlare 2s ease-in-out infinite;
+        color: var(--gold);
+
+        @media (prefers-reduced-motion: reduce) {
+          animation-iteration-count: 1.5;
+          animation-fill-mode: forwards;
+        }
       }
     }
   }
@@ -144,7 +173,7 @@ canvas#puzzleCanvas {
   > span {
     transform: scale(1);
     animation: scaleFlare 2s ease-in-out infinite;
-    color: #F9B70F;
+    color: var(--gold);
 
     @media (prefers-reduced-motion: reduce) {
       animation-iteration-count: 1.5;
@@ -195,16 +224,18 @@ button {
   all: unset;
   outline: revert;
   box-sizing: inherit;
+}
+
+button, .sidebar label, a:has(img) {
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
   -webkit-user-select: none;
   user-select: none;
   touch-action: none;
+  text-decoration: none;
 }
 
 button, .sidebar label {
-  text-decoration: none;
-  cursor: pointer;
   padding: 0;
   margin: 0;
   background: transparent;
@@ -212,6 +243,11 @@ button, .sidebar label {
   display: flex;
   justify-content: center;
   align-items: stretch;
+
+  &:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
+      ):not(#difficulty-group.daily-challenge &) {
+    cursor: pointer;
+  }
 
   > span {
     outline: none;
@@ -232,23 +268,125 @@ button:disabled {
   cursor: default;
 }
 
+#homeSubmenu {
+  button, label {
+    > span {
+      padding: 10px 0;
+
+      @media (orientation: landscape) {
+        padding: 0 10px;
+      }
+    }
+  }
+}
+
 .sidebar {
-  background: #333333;
+  background: var(--gray);
   flex: 0 1 auto;
   display: flex;
   justify-content: space-around;
   align-items: stretch;
 
+  #portfolio-link-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    flex: 1;
+  }
+
+  #dailyChallengeControlsTimerWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2;
+
+    #dailyChallengeTimer {
+      padding: 10px;
+    }
+  }
+
+  #dailyChallengeButton {
+    flex: 3;
+
+    > span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: row;
+      gap: 5%;
+
+      @media (orientation: landscape) {
+        flex-direction: column;
+        gap: 20%;
+        margin-top: -15%;
+      }
+
+      #dailyChallengeIcon {
+        /* Emoji has extra space around it compared to small countdown text  */
+        margin: -5px;
+      }
+    }
+  }
+
+  .dailyChallengeCountdownWrapper {
+    flex-shrink: 1;
+    position: relative;
+    font-size: min(1.5rem, 24px);
+    white-space-collapse: preserve-breaks;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    word-break: break-word;
+
+    .small-text {
+      /* Apply line height according to its font size, not the parent's */
+      display: inline flow-root;
+      font-size: min(1rem, 16px);
+    }
+
+    .timer {
+      font-family: monospace, system-ui, sans-serif;
+    }
+
+    @media (orientation: portrait) {
+      height: 100%;
+    }
+
+    @media (orientation: landscape) {
+      width: 100%;
+    }
+
+    > span {
+      max-width: 100%;
+
+      @media (orientation: landscape) {
+        position: absolute;
+        width: 100%;
+      }
+    }
+  }
+
+  button, label, a {
+    font-size: 60px;
+  }
+
   button, label {
     color: #ffffff;
-    font-size: 60px;
     flex: 1;
     outline-offset: -0.5rem;
 
     @media (hover: hover) and (pointer: fine) {
-      &:hover:not(:disabled):not(.selected):not(:checked) {
-        background-color: #555;
+      &:hover:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
+          ):not(#difficulty-group.daily-challenge &) {
+        background-color: var(--light-gray);
       }
+    }
+
+    &:active:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
+        ):not(#difficulty-group.daily-challenge &) {
+      background-color: var(--med-light-gray);
     }
 
     > span {
@@ -293,8 +431,8 @@ button:disabled {
 
 #tutorialButton.active, #solutionButton.active {
   > span {
-    background-color: #F9B70F;
-    color: #333333;
+    background-color: var(--gold);
+    color: var(--gray);
 
     @media (prefers-contrast: more) {
       border: 2px solid white;
@@ -303,7 +441,7 @@ button:disabled {
 }
 
 #instructionsButton.active > span {
-  background-color: #0062A5;
+  background-color: var(--blue);
 
   @media (prefers-contrast: more) {
     border: 2px solid white;
@@ -319,6 +457,10 @@ button:disabled {
     &.selected > span {
       opacity: 1;
     }
+  }
+
+  span.faded {
+    opacity: 0.5;
   }
 }
 
@@ -356,11 +498,11 @@ button:disabled {
   .puzzleLinks:first-child, #controls {
     padding-left: env(safe-area-inset-left);
   }
-  #settings {
+  #settings:last-child {
     padding-right: env(safe-area-inset-right);
   }
 
-  body, #puzzleGames {
+  body, .sidebar-group {
     flex-direction: row;
   }
 
@@ -376,6 +518,10 @@ button:disabled {
         padding: 0 20px;
       }
     }
+
+    #portfolio-link-wrapper {
+      padding: 0 10px;
+    }
   }
 
   #difficulty-group {
@@ -385,7 +531,7 @@ button:disabled {
 
 @media (orientation: portrait) and (max-width: 600px) {
   .sidebar {
-    button, label {
+    button, label, a {
       font-size: 10vw;
     }
   }
@@ -393,7 +539,7 @@ button:disabled {
 
 @media (orientation: landscape) and (max-height: 600px) {
   .sidebar {
-    button, label {
+    button, label, a {
       font-size: 10vh;
     }
   }
@@ -411,6 +557,9 @@ dialog {
   text-align: center;
   font-size: 1.5rem;
 
+  /* Allow animated scale transitions to grow into the margins and not trigger scroll bars */
+  overflow: visible;
+
   /* The modal-backdrop doesn't span the screen on iOS if the dialog doesn't */
   width: 100%;
   height: 100%;
@@ -418,6 +567,16 @@ dialog {
   &::backdrop {
     background: transparent;
     backdrop-filter: blur(1px);
+  }
+
+  &.loading {
+    pointer-events: none;
+
+    .modal-foreground {
+      transition: none;
+      transform: scale(0.5);
+      opacity: 0;
+    }
   }
 
   .dialog-inner-wrapper {
@@ -442,27 +601,37 @@ dialog {
   }
 
   .modal-foreground {
+    transition: transform 0.19s, opacity 0.19s;
     position: relative;
     box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5);
-    background-color: #333333;
     border-radius: 16px;
     width: auto;
-    max-width: min(100%, 500px);
+    max-width: min(100%, 800px);
     max-height: 100%;
     /* max-height: max-content; - Doesn't work in Firefox */
-    min-width: max(200px, 50%);
+    min-width: max(200px, min(50%, 800px));
     /* min-height: max(200px, 50%); */
     overflow: auto;
-    background-attachment: local;
-    border: 1px solid transparent;
 
     .modal-content {
+      background-color: var(--gray);
+      border: 1px solid var(--gray);;
       width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 0.25rem;
-      padding: 1rem;
+      padding: 16px;
       line-height: 1.5;
+
+      .scroll-container {
+        width: calc(100% + 16px);
+        flex: 1;
+        overflow: auto;
+        margin-right: -16px;
+        padding-right: 16px;
+      }
 
       h1 {
         margin: 0;
@@ -478,25 +647,29 @@ dialog {
         font-size: 1.75rem;
       }
 
-      p, h2 {
+      h3, dt {
+        font-weight: bold;
+        font-size: 1.25rem;
+      }
+
+      dl, dd {
+        margin: 0;
+      }
+
+      p, h2, h3, dt {
         margin-block: 16px 0;
       }
 
       a {
-        font-size: 1rem;
-        word-break: break-word;
-
-        /* inline display has large, unexplained gap between wrapped lines */
-        display: inline flow-root;
-
         &, &:active, &:visited {
-          color: #F9B70F;
+          color: var(--gold);
         }
       }
 
       summary {
         cursor: pointer;
         padding: 16px;
+        outline-offset: -2px;
 
         > h2 {
           display: inline flow-root;
@@ -505,33 +678,59 @@ dialog {
 
         @media (hover: hover) and (pointer: fine) {
           &:hover:not(:disabled) {
-            background-color: #555;
+            background-color: var(--light-gray);
           }
+        }
+
+        &:active:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
+            ):not(#difficulty-group.daily-challenge &) {
+          background-color: var(--med-light-gray);
         }
       }
     }
   }
 
   hr {
-    margin-block: 16px;
-    color: #555;
+    margin-block: 8px;
+    color: var(--light-gray);
     border-style: solid;
+    width: 100%;
+  }
 
-    &:first-of-type {
-      margin-block: 24px 0;
-    }
+  &#puzzleSharingDialog, &#dailyChallengeDialog, &#statsDialog {
+    hr {
+      &:first-of-type {
+        margin-block: 24px 0;
+      }
 
-    &:last-of-type {
-      margin-block: 0 16px;
+      &:last-of-type {
+        margin-block: 0 16px;
+      }
     }
   }
 
-  ol {
+  section {
+    width: 100%;
+  }
+
+  ol, ul {
+    /* Use this to center the lists as a whole, but have to be careful,
+    as other inline elements could wind up on the same line */
     display: inline flow-root;
     text-align: left;
     font-size: 1.25rem;
     padding-inline-start: 3ch;
     margin-block: 16px;
+
+    li:not(:first-of-type) {
+      margin-top: 8px;
+    }
+  }
+
+  li {
+    > ul, > ol {
+      margin-block: 8px 0;
+    }
   }
 
   .smaller-text {
@@ -549,25 +748,36 @@ dialog {
   input {
     /* Prevent iOS from zooming in due to font being below 16px */
     font-size: max(1.5rem, 16px);
-    padding: 0 6px;
+    font-family: inherit;
+    padding: 2px 8px;
     line-height: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255 255 255 / 0.5);
     border-radius: 4px;
+
+    &[type=checkbox] {
+      transform: scale(1.5);
+      margin-right: 4px;
+    }
   }
 
   button {
-    background: transparent;
+    background: transparent linear-gradient(to top, rgba(255 255 255 / 0.25), rgba(255 255 255 / 0) 50%);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 8px;
-    padding-inline: 12px;
+    padding: 2px 12px;
     display: inline-flex;
     margin-top: 8px;
     font-size: max(1.5rem, 16px);
 
     @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled) {
-        background-color: #555;
+        background-color: var(--light-gray);
       }
+    }
+
+    &:active:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
+        ):not(#difficulty-group.daily-challenge &) {
+      background-color: var(--med-light-gray);
     }
   }
 
@@ -607,17 +817,194 @@ dialog {
   }
 }
 
+#dailyChallengeDialog {
+  #dailyChallengeDialogPuzzles {
+    font-size: 3rem;
+  }
+
+  #dailyChallengeDialogControls {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: baseline;
+
+    #startDailyChallengeButton {
+      margin-bottom: 8px;
+    }
+  }
+
+  #replayDailyChallengeNote {
+    margin-top: 8px;
+  }
+
+  &.completed {
+    #showDailyChallengeTimerLabel, #dailyChallengeRecommendation {
+      display: none;
+    }
+
+    &.just-completed {
+      #dailyChallengeCompletedMessage, #dailyChallengeExplanation,
+      #dailyChallengeAdditionalDetails, #dailyChallengeDialogControls,
+      #replayDailyChallengeNote, hr {
+        display: none;
+      }
+
+      #dailyChallengeCompletedContent {
+        padding-bottom: 8px;
+      }
+
+      .modal-foreground {
+        /* Bounce transition */
+        transition: transform 0.99s cubic-bezier(0.41, 2.74, 0.37, 0.49), opacity 0.49s;
+        min-width: auto;
+      }
+    }
+
+    &:not(.just-completed) {
+      #dailyChallengeJustCompletedMessage {
+        display: none;
+      }
+    }
+  }
+
+  &:not(.completed) {
+    #replayDailyChallengeNote, #dailyChallengeCompletedContent {
+      display: none;
+    }
+  }
+}
+
+#statsDialog {
+  .modal-foreground {
+    /* Keep a stable width for when the details section is expanded */
+    width: 100%;
+  }
+
+  .statsGrid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 32px;
+    padding-inline: 8px;
+
+    .full-row {
+      /* span the full grid row */
+      grid-column: 1 / -1;
+    }
+
+    #statTutorialsCompletedValue {
+      font-size: inherit;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+
+      &, li {
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        list-style: none;
+      }
+    }
+  }
+
+  #dailyChallengeArchiveList {
+    font-size: inherit;
+    padding: 0;
+    /* Display up to 3 columns, reducing each time an element would go below the min width */
+    display: grid;
+    /* Non-fixed values like max-content aren't supported with auto-fill, unfortunately */
+    grid-template-columns: repeat(auto-fill, minmax(max(12.5rem, 25%), 1fr));
+    gap: 16px;
+    /* Leave space for box-shadows */
+    padding-inline: 4px;
+
+    li {
+      flex: 1 0 auto;
+      min-width: 25%;
+      list-style: none;
+      margin: 0;
+    }
+
+    .past-daily-challenge {
+      padding: 6px 8px 8px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+
+      &.completed {
+        box-shadow: 0 0 4px 0 var(--gold);
+
+        .time {
+          color: inherit;
+        }
+      }
+
+      &.missed {
+        border-style: dotted;
+
+        .time {
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+
+      h3, p {
+        margin-top: 0;
+      }
+
+      .time {
+        flex-grow: 1;
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      button {
+        margin-top: 16px;
+        align-self: stretch;
+      }
+    }
+  }
+
+  #callToAction {
+    /* counteracting margin-collapse */
+    padding-top: 1px;
+  }
+
+  #resetDataButton {
+    margin-bottom: 16px;
+  }
+}
+
+.puzzle-icon {
+  font-size: 1.25em;
+
+  &.ranked {
+    &:nth-of-type(1) {
+      font-size: 2em;
+    }
+
+    &:nth-of-type(n+3) {
+      font-size: 1em;
+    }
+  }
+
+  &.faded {
+    opacity: 0.2;
+  }
+}
+
 #portfolio-link {
-  position: absolute;
-  bottom: 1.25rem;
-  color: white;
-  background: #333;
-  padding: 6px;
-  border: 1px solid #f9b70f80;
-  box-shadow: 0 0 4px 0 #f9b70f;
+  color: var(--gold);
+  background: var(--gray);
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+  box-shadow: 0 0 4px 0 var(--gold);
   border-radius: 99999px;
   font-weight: bold;
-  font-size: 0.875rem;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -626,18 +1013,19 @@ dialog {
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: black;
-      box-shadow: 0 0 6px 2px #f9b70f;
+      box-shadow: 0 0 6px 2px var(--gold);
     }
+  }
+
+  &:active {
+    box-shadow: 0 0 10px 4px var(--gold);
   }
 
   /* On my iPhone Safari browser, the viewport is 390px x 663px,
   and the canvas container height in Safari is about 385px */
-  @container (height < 380px) {
-    display: none;
-  }
 
   > img {
-    height: 4rem;
+    height: 1em;
     border-radius: 99999px;
     pointer-events: none;
   }

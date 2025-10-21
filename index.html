@@ -20,339 +20,277 @@
 <!-- https://github.com/catdad/canvas-confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
-<script type="module">
-  // Register service worker and online status
-  if ('serviceWorker' in navigator) {
-    if (navigator.onLine) {
-      document.getElementById('portfolio-link').style.display = null;
-    }
-
-    console.log('App loaded as ' + (navigator.onLine ? 'online' : 'offline'));
-
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(registration => {
-          console.log('ServiceWorker registered with scope:', registration.scope);
-
-          // Setup update handling
-          let refreshing = false;
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-              refreshing = true;
-
-              // Need to make sure to preserve the seed
-              window.location.href = window.app.router.buildUrl(true);
-            }
-          });
-
-          // Check for updates on page load
-          registration.update();
-        })
-        .catch(error => {
-          console.error('ServiceWorker registration failed:', error);
-        });
-    });
-  }
-
-  import {CANVAS_WIDTH, CANVAS_HEIGHT} from './js/config.js';
-  import {solutionToggle, startButtonClick} from './js/utils.js';
-  import './js/router.js';
-  import audioManager from './js/audio-manager.js';
-
-  function updateLayoutForOrientation(isPortrait) {
-    const primaryMenus = document.querySelectorAll('.menu-primary');
-    const secondaryMenus = document.querySelectorAll('.menu-secondary');
-
-    // Ensure tab order matches visual order
-    if (isPortrait) {
-      for (const primaryMenu of primaryMenus) {
-        document.body.insertBefore(primaryMenu, document.body.firstElementChild);
-      }
-
-      for (const secondaryMenu of secondaryMenus) {
-        document.body.appendChild(secondaryMenu);
-      }
-    } else {
-      for (const primaryMenu of primaryMenus) {
-        document.body.appendChild(primaryMenu);
-      }
-
-      for (const secondaryMenu of secondaryMenus) {
-        document.body.insertBefore(secondaryMenu, document.body.firstElementChild);
-      }
-    }
-  }
-
-  // The orientationchange event fires before the viewport updates, so use a matchMedia listener
-  window.matchMedia("(orientation: portrait)").addEventListener('change',
-      () => updateLayoutForOrientation(event.matches));
-
-  // Setup app initialization
-  document.addEventListener('DOMContentLoaded', () => {
-    updateLayoutForOrientation(window.matchMedia("(orientation: portrait)").matches);
-
-    const canvas = document.getElementById("puzzleCanvas");
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
-
-    // Handle share puzzle dialog
-    const sharePuzzleSeedWithNavigatorButton = document.getElementById('sharePuzzleSeedWithNavigatorButton');
-    const sharePuzzleLinkWithNavigatorButton = document.getElementById('sharePuzzleLinkWithNavigatorButton');
-
-    if (!navigator.share) {
-      sharePuzzleSeedWithNavigatorButton.display = 'none';
-      sharePuzzleLinkWithNavigatorButton.display = 'none';
-    } else {
-      sharePuzzleSeedWithNavigatorButton.addEventListener('click', () => {
-        navigator.share({
-          title: document.title,
-          text: window.app.router.seed,
-        });
-      });
-
-      sharePuzzleLinkWithNavigatorButton.addEventListener('click', () => {
-        navigator.share({
-          title: document.title,
-          text: 'I want to share this puzzle with you!',
-          url: document.getElementById('sharePuzzleUrl').textContent,
-        });
-      });
-    }
-
-    const generatePuzzleFromSeedForm = document.getElementById('generatePuzzleFromSeedForm');
-    const newSeedInput = generatePuzzleFromSeedForm.newSeed;
-
-    generatePuzzleFromSeedForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      const newSeed = newSeedInput.value;
-      window.app.router.seed = newSeed;
-
-      if (window.app.router.reloadPuzzle(newSeed)) {
-        generatePuzzleFromSeedForm.reset();
-        document.getElementById('puzzleSharingDialog').close();
-      }
-    });
-
-    newSeedInput.addEventListener('input', (event) => {
-      // Remove non-alphanumeric characters
-      let seedValue = event.currentTarget.value.replace(/[^a-z0-9]/gi, '');
-
-      // Normalize to lowercase, to not give the impression that
-      // base-36 conversion is case sensitive
-      seedValue = seedValue.toLowerCase();
-
-      // Limit seed length for practicality.  Anything over the largest 32-bit signed integer
-      // (which is 7 characters in base-36) will just be wrapped around by the algorithm.
-      if (seedValue.length > 14) {
-        seedValue = seedValue.slice(0, 14);
-      }
-
-      // Apply sanitized value
-      event.currentTarget.value = seedValue;
-    });
-
-    // Initialize routing
-    window.app.router.init();
-
-    // Handle puzzle start button
-    document.getElementById('startButton')?.addEventListener('click', () => {
-      startButtonClick();
-    });
-    document.getElementById('startButton')?.addEventListener('touchend', (event) => {
-      startButtonClick();
-      event.preventDefault();
-    });
-
-    // Handle puzzle controls
-    const controls = document.getElementById('controls').children;
-
-    // Home
-    controls[0].addEventListener('click', () => {
-      window.app.router.navigate('home');
-    });
-    // Toggle Tutorial
-    controls[1].addEventListener('click', () => {
-      window.app.router.toggleTutorial();
-    });
-    // Instructions
-    controls[2].addEventListener('click', () => {
-      window.app.currentPuzzle.drawInstructions();
-    });
-    // Show Solution
-    controls[3].addEventListener('click', () => {
-      solutionToggle();
-    });
-    // Generate New Puzzle
-    controls[4].addEventListener('click', () => {
-      window.app.router.reloadPuzzle();
-    });
-    // Next Tutorial
-    controls[5].addEventListener('click', () => {
-      window.app.router.reloadPuzzle();
-    });
-    // Open Puzzle Sharing Dialog
-    controls[6].addEventListener('click', () => {
-      const sharePuzzleOptions = document.getElementById('sharePuzzleOptions');
-      const sharePuzzleTutorialMessage = document.getElementById('sharePuzzleTutorialMessage');
-
-      if (window.app.puzzleState.tutorialStage) {
-        sharePuzzleOptions.style.display = 'none';
-        sharePuzzleTutorialMessage.style.display = null;
-      } else {
-        sharePuzzleOptions.style.display = null;
-        sharePuzzleTutorialMessage.style.display = 'none';
-
-        document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
-        document.getElementById('generatePuzzleFromSeedForm').reset();
-
-        const sharePuzzleSeed = document.getElementById('sharePuzzleSeed');
-        sharePuzzleSeed.textContent = window.app.router.seed;
-
-        const url = window.app.router.buildUrl(true);
-
-        const sharePuzzleUrl = document.getElementById('sharePuzzleUrl');
-        sharePuzzleUrl.textContent = url;
-
-        const difficulty = window.app.router.difficulty;
-        const difficultyLabelElement = document.getElementById(`difficulty${difficulty}`);
-        const difficultyEmoji = difficultyLabelElement.querySelector('span').textContent;
-        const difficultyAriaLabel = difficultyLabelElement.querySelector('input').ariaLabel;
-
-        document.getElementById('seedInstructionsTitles').textContent =
-            document.title.replace(' - ', ' in ');
-        document.getElementById('seedInstructionsDifficultyEmoji').textContent = difficultyEmoji;
-        document.getElementById('seedInstructionsDifficultyLabel').textContent = difficultyAriaLabel;
-      }
-
-      const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
-      puzzleSharingDialog.showModal();
-    });
-
-    // Handle fullscreen toggling
-    let fullScreenEnabled = document.fullscreenEnabled
-        || document.webkitFullscreenEnabled
-        || document.mozFullscreenEnabled
-        || document.msFullscreenEnabled;
-
-    let fullScreenButton = document.getElementById("fullScreenButton");
-
-    if (!fullScreenEnabled) {
-      fullScreenButton.classList.add("hidden");
-    } else {
-      fullScreenButton.addEventListener('click', (event) => {
-        toggleFullScreen(event.currentTarget);
-      });
-    }
-
-    // Handle mute toggling
-    document.getElementById('muteButton')?.addEventListener('click', () => {
-      audioManager.toggleMuted();
-    });
-
-    // Restore muted state from localStorage
-    if (localStorage.getItem('muted') === 'true') {
-      audioManager.setMuted(true);
+<!-- Uncomment for testing local storage failure -->
+<!-- <script>
+  delete window.localStorage;
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    get() {
+      throw new DOMException('Blocked for testing', 'SecurityError');
     }
   });
+</script> -->
 
-  // Fullscreen API helpers
-  function isFullScreen() {
-    return document.fullscreenElement ||
-           document.webkitFullscreenElement ||
-           document.mozFullScreenElement ||
-           document.msFullscreenElement;
-  }
-
-  function toggleFullScreen(button) {
-    if (isFullScreen()) {
-      exitFullScreen();
-      button.ariaLabel = "Enter Fullscreen Mode";
-    } else {
-      requestFullScreen(document.documentElement);
-      button.ariaLabel = "Exit Fullscreen Mode";
-    }
-  }
-
-  function requestFullScreen(element) {
-    if (element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if (element.webkitRequestFullscreen) {
-      element.webkitRequestFullscreen();
-    } else if (element.mozRequestFullScreen) {
-      element.mozRequestFullScreen();
-    } else if (element.msRequestFullscreen) {
-      element.msRequestFullscreen();
-    }
-  }
-
-  function exitFullScreen() {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  }
-
-  // Update fullscreen button state when fullscreen state changes
-  document.addEventListener('fullscreenchange', updateFullscreenButtonState);
-  document.addEventListener('webkitfullscreenchange', updateFullscreenButtonState);
-  document.addEventListener('mozfullscreenchange', updateFullscreenButtonState);
-  document.addEventListener('MSFullscreenChange', updateFullscreenButtonState);
-
-  function updateFullscreenButtonState() {
-    const fullScreenButton = document.getElementById('fullScreenButton');
-    if (fullScreenButton) {
-      if (isFullScreen()) {
-        fullScreenButton.classList.add('fullScreen');
-      } else {
-        fullScreenButton.classList.remove('fullScreen');
-      }
-    }
-  }
-</script>
+<!-- The IDE has way better support for JavaScript in js files than in html files -->
+<script type="module" src="./js/main.js"></script>
 </head>
 
 <body class="loading">
-  <div id="settings" class="menu-primary sidebar" role="group" aria-label="Puzzle Settings">
-    <!-- Volume -->
-    <button aria-label="Mute Sounds" id="muteButton">
-      <span id="soundIcon" role="img" aria-label="Mute Sounds">&#128266;</span>
-      <span id="noSoundIcon"role="img" aria-label="Unmute Sounds">&#128264;</span>
-    </button>
+  <section id="settings" class="menu-primary sidebar-group" role="group" aria-label="Puzzle Settings">
+    <div class="sidebar submenu-primary">
+      <!-- Volume -->
+      <button aria-label="Mute Sounds" id="muteButton">
+        <span id="soundIcon" role="img" aria-label="Mute Sounds">🔊</span>
+        <span id="noSoundIcon"role="img" aria-label="Unmute Sounds">🔈</span>
+      </button>
 
-    <div id="difficulty-group" role="radiogroup" aria-label="Puzzle Difficulty">
-      <!-- Tongue Out -->
-      <label id="difficulty1" class="faded">
-        <input type="radio" name="difficulty" aria-label="Quick" />
-        <span aria-hidden="true">&#128523;</span>
-      </label>
-      <!-- Thinking -->
-      <label id="difficulty2" class="faded">
-        <input type="radio" name="difficulty" aria-label="Casual" />
-        <span aria-hidden="true">&#129300;</span>
-      </label>
-      <!-- Bracing -->
-      <label id="difficulty3" class="faded">
-        <input type="radio" name="difficulty" aria-label="Challenging" />
-        <span aria-hidden="true">&#128548;</span>
-      </label>
-      <!-- Mind Blown -->
-      <label id="difficulty4" class="faded">
-        <input type="radio" name="difficulty" aria-label="Intense" />
-        <span aria-hidden="true">&#129327;</span>
-      </label>
+      <div id="difficulty-group" role="radiogroup" aria-label="Puzzle Difficulty">
+        <!-- At Ease -->
+        <label id="difficulty1" class="faded">
+          <input type="radio" name="difficulty" aria-label="Quick" />
+          <span aria-hidden="true">😋</span>
+        </label>
+        <!-- Thinking -->
+        <label id="difficulty2" class="faded">
+          <input type="radio" name="difficulty" aria-label="Casual" />
+          <span aria-hidden="true">🤔</span>
+        </label>
+        <!-- Bracing -->
+        <label id="difficulty3" class="faded">
+          <input type="radio" name="difficulty" aria-label="Challenging" />
+          <span aria-hidden="true">😤</span>
+        </label>
+        <!-- Mind Blown -->
+        <label id="difficulty4" class="faded">
+          <input type="radio" name="difficulty" aria-label="Intense" />
+          <span aria-hidden="true">🤯</span>
+        </label>
+      </div>
+
+      <!-- Fullscreen -->
+      <button aria-label="Enter Fullscreen Mode" id="fullScreenButton">
+        <span id="fullScreenOnIcon" role="img" aria-label="Enter Fullscreen Mode">📱</span>
+        <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">📴</span>
+      </button>
     </div>
 
-    <button aria-label="Enter Fullscreen Mode" id="fullScreenButton">
-      <span id="fullScreenOnIcon" role="img" aria-label="Enter Fullscreen Mode">&#128241;</span>
-      <span id="fullScreenOffIcon" role="img" aria-label="Exit Fullscreen Mode">&#128244;</span>
-    </button>
-  </div>
+    <div id="homeSubmenu" class="sidebar submenu-secondary">
+      <!-- Portfolio Link -->
+      <div id="portfolio-link-wrapper">
+        <a id="portfolio-link" style="display: none;" href="https://alec-mitnik.github.io/" target="_blank" rel="author" aria-label="Check out my other projects">
+          <img loading="lazy" src="./images/PXL_Avatar_1B.jpg" alt="Check out my other projects" />
+        </a>
+      </div>
+
+      <!-- Daily Challenge -->
+      <button id="dailyChallengeButton" aria-label="Daily Challenge"
+          aria-describedby="dailyChallengeCountdown">
+        <span role="img" aria-label="Daily Challenge">
+          <span id="dailyChallengeIcon" aria-hidden="true" class="faded">🏆</span>
+          <span class="dailyChallengeCountdownWrapper">
+            <span id="dailyChallengeCountdown"></span>
+          </span>
+        </span>
+      </button>
+
+      <!-- Puzzle Stats -->
+      <button aria-label="Puzzle Stats" id="statsButton">
+        <span role="img" aria-label="Puzzle Stats">📊</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Daily Challenge Dialog -->
+  <dialog id="dailyChallengeDialog" aria-labelledBy="dailyChallengeDialogTitle">
+    <div class="dialog-inner-wrapper">
+      <div class="modal-backdrop" aria-hidden="true"
+          onclick="document.getElementById('dailyChallengeDialog').close()"></div>
+      <div class="modal-foreground">
+        <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('dailyChallengeDialog').close()">
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="modal-content" tabindex="-1">
+          <h1 id="dailyChallengeDialogTitle">Daily Challenge</h1>
+
+          <div class="scroll-container">
+            <p id="dailyChallengeExplanation" class="smaller-text">
+              A short sequence of puzzles, increasing in difficulty, identical for everyone.  Your total time will be recorded, so you can track and compare with others.  Come back each day for a new challenge!
+            </p>
+
+            <h2 id="dailyChallengeDialogDate"></h2>
+            <div id="dailyChallengeDialogPuzzles"></div>
+
+            <p id="dailyChallengeRecommendation" class="smaller-text">
+              It's strongly recommended to become familiar with each puzzle first.
+            </p>
+            <div id="dailyChallengeCompletedContent">
+              <p id="dailyChallengeCompletedMessage"></p>
+              <p id="dailyChallengeJustCompletedMessage"></p>
+              <button id="dailyChallengeShareResultButton">Share Your Result</button>
+            </div>
+            <p class="local-storage warning hidden">
+              Warning: local storage unavailable.  Data will not persist!
+            </p>
+
+            <hr />
+
+            <details id="dailyChallengeAdditionalDetails">
+              <summary aria-describedby="dailyChallengeAdditionalDetailsList">
+                <h2 id="dailyChallengeAdditionalDetailsHeader">Additional Details</h2>
+              </summary>
+
+              <ul id="dailyChallengeAdditionalDetailsList"
+                  aria-labelledby="dailyChallengeAdditionalDetailsHeader">
+                <li>
+                  The recorded time will begin when you first start the challenge and end when you have completed all of its puzzles.
+                  <ul>
+                    <li>You can exit and resume the daily challenge as you like, and it will remember completed puzzles, but not any partial puzzle progress.</li>
+                    <li>You have until the new day starts.  If you don't finish the challenge by then, your streak will end.</li>
+                  </ul>
+                </li>
+                <li>Difficulty for daily challenge puzzles is predetermined, so the difficulty selection for them is disabled.</li>
+                <li>Data is saved to your browser's local storage and can be tracked in the Puzzle Stats menu.</li>
+                <li>
+                  While playing a daily challenge puzzle, until it's completed:
+                  <ul>
+                    <li>Using the middle mouse button to peek at the solution is disabled.</li>
+                    <li>If you want to give up the challenge attempt and just see the solution, you can select the button to peek at it and confirm, but note that this will end your current streak.</li>
+                  </ul>
+                </li>
+              </ul>
+            </details>
+
+            <hr />
+
+            <div id="dailyChallengeDialogControls">
+              <label id="showDailyChallengeTimerLabel" class="smaller-text">
+                <input id="showDailyChallengeTimerCheckbox" type="checkbox" />
+                Show Timer
+              </label>
+
+              <button id="startDailyChallengeButton"></button>
+            </div>
+
+            <p id="replayDailyChallengeNote" class="smaller-text">
+              Replays are not timed - only your first attempt is recorded.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Stats Dialog -->
+  <dialog id="statsDialog" aria-labelledBy="statsDialogTitle">
+    <div class="dialog-inner-wrapper">
+      <div class="modal-backdrop" aria-hidden="true"
+          onclick="document.getElementById('statsDialog').close()"></div>
+      <div class="modal-foreground">
+        <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('statsDialog').close()">
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="modal-content" tabindex="-1">
+          <h1 id="statsDialogTitle">Puzzle Stats</h1>
+
+          <div class="scroll-container">
+            <p class="local-storage warning hidden">
+              Warning: local storage unavailable.  Data will not persist!
+            </p>
+
+            <section aria-labelledBy="statsGeneralTitle">
+              <h2 id="statsGeneralTitle">General Stats</h2>
+
+              <dl class="statsGrid" aria-labelledBy="statsGeneralTitle">
+                <div class="full-row">
+                  <dt id="tutorialsCompletedTerm">Tutorials Completed</dt>
+                  <dd>
+                    <ul id="statTutorialsCompletedValue" aria-labelledBy="tutorialsCompletedTerm">
+
+                    </ul>
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Most Played</dt>
+                  <dd id="statFavoritePuzzlesValue"></dd>
+                </div>
+
+                <div>
+                  <dt>Greatest Mastery</dt>
+                  <dd id="statGreatestMasteryValue"></dd>
+                </div>
+              </dl>
+            </section>
+
+            <section aria-labelledBy="statsDailyChallengeTitle">
+              <h2 id="statsDailyChallengeTitle">Daily Challenge Stats</h2>
+
+              <dl class="statsGrid" aria-labelledBy="statsDailyChallengeTitle">
+                <div>
+                  <dt>Current Streak</dt>
+                  <dd id="statDailyChallengeStreakValue"></dd>
+                </div>
+
+                <div>
+                  <dt>Longest Streak</dt>
+                  <dd id="statLongestDailyChallengeStreakValue"></dd>
+                </div>
+
+                <div>
+                  <dt>Total Completed</dt>
+                  <dd id="statTotalDailyChallengesCompletedValue"></dd>
+                </div>
+
+                <div>
+                  <dt>Fastest Completion</dt>
+                  <dd id="statFastestDailyChallengeCompletionValue"></dd>
+                </div>
+              </dl>
+            </section>
+
+            <hr />
+
+            <details id="dailyChallengeArchiveDetails">
+              <summary>
+                <h2 id="dailyChallengeArchiveHeader">Past Daily Challenges</h2>
+              </summary>
+
+              <p class="smaller-text">
+                Note that replays are not timed or recorded.
+              </p>
+
+              <ul id="dailyChallengeArchiveList"
+                  aria-labelledby="dailyChallengeArchiveHeader">
+              </ul>
+
+              <div id="callToAction" style="display: none;">
+                <h2>Enjoying the App?</h2>
+                <p class="smaller-text">
+                  This is a passion project that I put a lot of work into and provide entirely for free without ads.  If you like Infinite Puzzles, please consider showing your support by visiting my <a
+                  href="https://alec-mitnik.github.io/" target="_blank" rel="author">
+                    portfolio site</a>, where you can:
+                </p>
+
+                <ul>
+                  <li><span aria-hidden="true">👀</span> Check out my other projects</li>
+                  <li><span aria-hidden="true">✉️</span> Email me your thoughts or feedback</li>
+                  <li><span aria-hidden="true">🫶</span> Make a (much appreciated) donation</li>
+                </ul>
+              </div>
+            </details>
+
+            <hr />
+
+            <button id="resetDataButton">Reset Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <main id="canvasContainer">
     <canvas id="puzzleCanvas" tabindex="0" aria-label="Puzzle Canvas" oncontextmenu="return false;"></canvas>
@@ -360,60 +298,59 @@
     <button disabled id="startButton" aria-label="Start Puzzle">
       <span></span>
     </button>
-
-    <!-- Portfolio Link -->
-    <a id="portfolio-link" style="display: none;" href="https://alec-mitnik.github.io/" target="_blank" rel="author" aria-label="Check out my other projects">
-      <img loading="lazy" src="./images/PXL_Avatar_1B.jpg" alt="" />
-    </a>
   </main>
 
+  <!-- Icons are given &#xFE0E; modifier to show as text version for PC
+  (but still as emoji version for mobile) -->
+
   <!-- Put more intuitive puzzles at the top/left -->
-  <nav id="puzzleGames" class="menu-secondary" aria-label="Puzzle Games">
-    <div class="puzzleLinks sidebar">
-      <button aria-label="Tetromino Grid Puzzle" onclick="window.app.router.navigate('TetrominoGridPuzzle')">
-        <span role="img" aria-Label="Tetromino Grid Puzzle">&#128306;&#xFE0E;</span>
+  <nav id="puzzleGames" class="menu-secondary sidebar-group" aria-label="Puzzle Games">
+    <div class="puzzleLinks sidebar submenu-primary">
+      <button aria-label="Tetromino Grid Puzzle">
+        <span role="img" aria-Label="Tetromino Grid Puzzle">🔲︎</span>
       </button>
-      <button aria-label="Arithmetic Grid Puzzle" onclick="window.app.router.navigate('ArithmeticGridPuzzle')">
-        <span role="img" aria-Label="Arithmetic Grid Puzzle">&#128221;&#xFE0E;</span>
+      <button aria-label="Arithmetic Grid Puzzle">
+        <span role="img" aria-Label="Arithmetic Grid Puzzle">📝︎</span>
       </button>
-      <button aria-label="Tangled Graph Puzzle" onclick="window.app.router.navigate('TangledGraphPuzzle')">
-        <span role="img" aria-Label="Tangled Graph Puzzle">&#128376;&#xFE0E;</span>
+      <button aria-label="Tangled Graph Puzzle">
+        <span role="img" aria-Label="Tangled Graph Puzzle">🕸︎</span>
       </button>
-      <button aria-label="Logic Grid Puzzle" onclick="window.app.router.navigate('LogicGridPuzzle')">
-        <span role="img" aria-Label="Logic Grid Puzzle">&#128173;&#xFE0E;</span>
+      <button aria-label="Logic Grid Puzzle">
+        <span role="img" aria-Label="Logic Grid Puzzle">💭︎</span>
       </button>
-      <button aria-label="Shifting Grid Puzzle" onclick="window.app.router.navigate('ShiftingGridPuzzle')">
-        <span role="img" aria-Label="Shifting Grid Puzzle">&#128642;&#xFE0E;</span>
+      <button aria-label="Shifting Grid Puzzle">
+        <span role="img" aria-Label="Shifting Grid Puzzle">🚂︎</span>
       </button>
-      <button aria-label="Color Pieces Grid Puzzle" onclick="window.app.router.navigate('ColorPiecesGridPuzzle')">
-        <span role="img" aria-Label="Color Pieces Grid Puzzle">&#127937;&#xFE0E;</span>
+      <button aria-label="Color Pieces Grid Puzzle">
+        <span role="img" aria-Label="Color Pieces Grid Puzzle">🏁︎</span>
       </button>
     </div>
-    <div class="puzzleLinks sidebar">
-      <button aria-label="Light Switches Puzzle" onclick="window.app.router.navigate('LightSwitchesPuzzle')">
-        <span role="img" aria-Label="Light Switches Puzzle">&#128680;&#xFE0E;</span>
+
+    <div class="puzzleLinks sidebar submenu-secondary">
+      <button aria-label="Light Switches Puzzle">
+        <span role="img" aria-Label="Light Switches Puzzle">🚨︎</span>
       </button>
-      <button aria-label="Slider Path Puzzle" onclick="window.app.router.navigate('SliderPathPuzzle')">
-        <span role="img" aria-Label="Slider Path Puzzle">&#128681;&#xFE0E;</span>
+      <button aria-label="Slider Path Puzzle">
+        <span role="img" aria-Label="Slider Path Puzzle">🚩︎</span>
       </button>
-      <button aria-label="Emitters Grid Puzzle" onclick="window.app.router.navigate('EmittersGridPuzzle')">
-        <span role="img" aria-Label="Emitters Grid Puzzle">&#128251;&#xFE0E;</span>
+      <button aria-label="Emitters Grid Puzzle">
+        <span role="img" aria-Label="Emitters Grid Puzzle">📻︎</span>
       </button>
-      <button aria-label="Grid Mirror Puzzle" onclick="window.app.router.navigate('GridMirrorPuzzle')">
-        <span role="img" aria-Label="Grid Mirror Puzzle">&#x1F506;&#xFE0E;</span>
+      <button aria-label="Grid Mirror Puzzle">
+        <span role="img" aria-Label="Grid Mirror Puzzle">🔆︎</span>
       </button>
-      <button aria-label="Circuit Grid Puzzle" onclick="window.app.router.navigate('CircuitGridPuzzle')">
-        <span role="img" aria-Label="Circuit Grid Puzzle">&#128268;&#xFE0E;</span>
+      <button aria-label="Circuit Grid Puzzle">
+        <span role="img" aria-Label="Circuit Grid Puzzle">🔌︎</span>
       </button>
-      <button aria-label="Marked Loop Puzzle" onclick="window.app.router.navigate('MarkedLoopPuzzle')">
-        <span role="img" aria-Label="Marked Loop Puzzle">&#128141;&#xFE0E;</span>
+      <button aria-label="Marked Loop Puzzle">
+        <span role="img" aria-Label="Marked Loop Puzzle">💍︎</span>
       </button>
     </div>
   </nav>
 
   <div id="controls" class="menu-secondary sidebar hidden" role="group" aria-label="Puzzle Controls">
     <!-- Home -->
-    <button aria-label="Home">
+    <button aria-label="Home" id="homeButton">
       <span role="img" aria-Label="Home">&#10094;</span>
     </button>
     <!-- Toggle Tutorial -->
@@ -424,6 +361,12 @@
     <button aria-label="Show Instructions" class="larger" id="instructionsButton">
       <span role="img" aria-Label="Show Instructions">?</span>
     </button>
+    <!-- Daily Challenge Timer -->
+    <div id="dailyChallengeControlsTimerWrapper">
+      <span class="dailyChallengeCountdownWrapper">
+        <span id="dailyChallengeTimer"></span>
+      </span>
+    </div>
     <!-- Show Solution -->
     <button aria-label="Show Solution" class="larger" id="solutionButton">
       <span role="img" aria-Label="Show Solution">&#9745;&#xFE0E;</span>
@@ -432,9 +375,13 @@
     <button aria-label="Generate New Puzzle" class="larger" id="generateNewPuzzleButton">
       <span role="img" aria-Label="Generate New Puzzle">&#8634;</span>
     </button>
-    <!-- Next Tutorial -->
-    <button aria-label="Next Tutorial" class="hidden" id="nextTutorialButton">
-      <span role="img" aria-Label="Next Tutorial">&#9197;&#xFE0E;</span>
+    <!-- Next Tutorial Puzzle -->
+    <button aria-label="Next Tutorial Puzzle" class="hidden" id="nextTutorialPuzzleButton">
+      <span role="img" aria-Label="Next Tutorial Puzzle">&#9197;&#xFE0E;</span>
+    </button>
+    <!-- Next Daily Challenge Puzzle -->
+    <button aria-label="Next Daily Challenge Puzzle" id="nextDailyChallengePuzzleButton">
+      <span role="img" aria-Label="Next Daily Challenge Puzzle">&#9197;&#xFE0E;</span>
     </button>
     <!-- Open Puzzle Sharing Dialog -->
     <button aria-label="Open Puzzle Sharing Dialog" class="much-larger" id="sharePuzzleButton">
@@ -442,9 +389,10 @@
     </button>
   </div>
 
+  <!-- Puzzle Sharing Dialog -->
   <dialog id="puzzleSharingDialog" aria-labelledBy="sharePuzzleTitle">
     <div class="dialog-inner-wrapper">
-      <div class="modal-backdrop"
+      <div class="modal-backdrop" aria-hidden="true"
           onclick="document.getElementById('puzzleSharingDialog').close()"></div>
       <div class="modal-foreground">
         <button autofocus class="close-button" aria-label="Close dialog"
@@ -459,7 +407,7 @@
             You can share generated puzzles once you exit the tutorial!
           </p>
 
-          <div id="sharePuzzleOptions">
+          <div id="sharePuzzleOptions" class="scroll-container">
             <p class="smaller-text">
               Puzzles are generated from seed text, which means you can share this specific generated puzzle with others using the options below!
             </p>
@@ -497,13 +445,13 @@
             <hr />
 
             <form id="generatePuzzleFromSeedForm">
-              <label>
+              <label for="generateFromSeedInput">
                 <h2>Generate Puzzle from Seed</h2>
-                <input type="text" name="newSeed" size="14" placeholder="Seed..."
-                    required  pattern="[a-zA-Z0-9]*" maxlength="14"
-                    spellcheck="false" autocomplete="off" />
               </label>
 
+              <input id="generateFromSeedInput" type="text" name="newSeed" size="14" placeholder="Seed..."
+                  required  pattern="[a-zA-Z0-9]*" maxlength="14"
+                  spellcheck="false" autocomplete="off" />
               <button type="submit">Generate</button>
 
               <p class="smaller-text">

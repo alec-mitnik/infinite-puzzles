@@ -1,20 +1,33 @@
+import { loadData, saveData } from "./utils.js";
+
+const MUTED_KEY = 'muted';
+const FADE_DURATION = 0.3;
+
 class AudioManager {
+  SoundEffects = {
+    CLINK: 'clink',
+    BOING: 'boing',
+    CHIME: 'chime',
+    CLICK: 'click',
+    WARP: 'warp',
+    WHIR: 'whir',
+    GRADUATION: 'graduation',
+    GAME_START: 'game-start',
+  };
+
+  loadedSounds;
+  playingSounds;
+  context;
+  muted;
+  initialized;
+  soundFiles;
+
   constructor() {
     this.loadedSounds = {};
     this.playingSounds = [];
     this.context = null;
     this.muted = false;
     this.initialized = false;
-
-    this.SoundEffects = {
-      CLINK: 'clink',
-      BOING: 'boing',
-      CHIME: 'chime',
-      CLICK: 'click',
-      WARP: 'warp',
-      WHIR: 'whir',
-      GRADUATION: 'graduation',
-    };
 
     // List of sound files to preload.
     // Keep in sync with service worker cache!
@@ -26,6 +39,7 @@ class AudioManager {
       [this.SoundEffects.WARP]: 'sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
       [this.SoundEffects.WHIR]: 'sounds/space_beep_3.mp3',
       [this.SoundEffects.GRADUATION]: 'sounds/Graduation.mp3',
+      [this.SoundEffects.GAME_START]: 'sounds/game-start-6104.mp3',
     };
 
     // Set up initialization handlers for different browsers
@@ -63,7 +77,7 @@ class AudioManager {
   }
 
   loadMutedState() {
-    this.setMuted(localStorage.getItem('muted') === 'true');
+    this.setMuted(loadData(MUTED_KEY, 'false') === 'true');
   }
 
   // Initialize the audio context and load sounds
@@ -134,22 +148,28 @@ class AudioManager {
       const source = this.context.createBufferSource();
       source.buffer = sound.buffer;
 
-      // Create gain node for volume control
-      const gainNode = this.context.createGain();
-      gainNode.gain.value = volume;
+      // Used for irreversibly stopping the sound (with a smooth fadeout)
+      const fadeoutGain = this.context.createGain();
+      fadeoutGain.gain.value = 1; // Always starts at full
 
-      // Connect nodes: source -> gain -> destination
-      source.connect(gainNode);
-      gainNode.connect(this.context.destination);
+      // Used for setting the volume and reversibly muting (with a smooth fadeout/in)
+      const volumeGain = this.context.createGain();
+      volumeGain.gain.value = volume;
+
+      // Chain the gain nodes
+      source.connect(fadeoutGain);
+      fadeoutGain.connect(volumeGain);
+      volumeGain.connect(this.context.destination);
 
       this.playingSounds.push({
         name,
         source,
-        gainNode,
+        fadeoutGain,
+        volumeGain,
         originalVolume: volume,
       });
 
-      // Handle end of playback
+      // Handle end of playback, also triggered when manually stopped
       source.onended = () => {
         const soundIndex = this.playingSounds.findIndex(s => s.source === source);
 
@@ -169,18 +189,48 @@ class AudioManager {
     return this.playingSounds.some(sound => sound.name === name);
   }
 
-  stopAllSounds() {
-    this.playingSounds.forEach(sound => sound.source.stop());
-    this.playingSounds = [];
+  fadeOutAllSounds() {
+    for (const sound of this.playingSounds) {
+      // Make an exception for the GAME_START sound
+      if (sound.name !== this.SoundEffects.GAME_START) {
+        this.fadeOutGainNode(sound.fadeoutGain);
+      }
+    }
   }
 
   stop(name) {
-    const soundIndex = this.playingSounds.findIndex(s => s.name === name);
+    const sounds = this.playingSounds.filter(s => s.name === name);
 
-    if (soundIndex >= 0) {
-      const sound = this.playingSounds[soundIndex];
+    for (const sound of sounds) {
       sound.source.stop();
-      this.playingSounds.splice(soundIndex, 1);
+    }
+  }
+
+  fadeOutGainNode(gainNode) {
+    const currentTime = this.context.currentTime;
+
+    // Prevents noise that can occur at the start of the fadeout
+    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+    gainNode.gain.linearRampToValueAtTime(0, currentTime + FADE_DURATION);
+
+    // Don't stop the sound, since this is used for muting too,
+    // and the confetti effect depends on the sound playing
+  }
+
+  fadeInGainNode(gainNode, targetVolume) {
+    const currentTime = this.context.currentTime;
+
+    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+    gainNode.gain.linearRampToValueAtTime(targetVolume, currentTime + FADE_DURATION);
+  }
+
+  // Less jarring than immediately stopping, and thus preferable
+  // (unless cancelling a sound before it actually starts playing)
+  fadeOut(name) {
+    const sounds = this.playingSounds.filter(s => s.name === name);
+
+    for (const sound of sounds) {
+      this.fadeOutGainNode(sound.fadeoutGain);
     }
   }
 
@@ -190,30 +240,37 @@ class AudioManager {
 
   setMuted(muted) {
     this.muted = muted;
-
     let muteButton = document.getElementById("muteButton");
 
     if (this.muted) {
       // Mute all playing sounds
       this.playingSounds.forEach(sound => {
-        sound.gainNode.gain.value = 0;
+        this.fadeOutGainNode(sound.volumeGain);
       });
 
       muteButton.classList.add("muted");
       muteButton.ariaLabel = "Unmute Sounds";
-      localStorage.setItem('muted', 'true');
+      saveData(MUTED_KEY, true);
     } else {
       // Unmute all playing sounds
       this.playingSounds.forEach(sound => {
-        sound.gainNode.gain.value = sound.originalVolume;
+        this.fadeInGainNode(sound.volumeGain, sound.originalVolume);
       });
 
       muteButton.classList.remove("muted");
       muteButton.ariaLabel = "Mute Sounds";
-      localStorage.removeItem('muted');
+      saveData(MUTED_KEY, false);
 
-      // Play a test sound to ensure audio is working
-      this.play('chime', 0.25);
+      // Play a test sound to ensure audio is working,
+      // stopping already playing instances to ensure one clean sound
+      this.stop('chime');
+
+      // In case unmuting is the first interaction since load
+      if (this.initialized) {
+        this.play('chime', 0.25);
+      } else {
+        setTimeout(() => this.play('chime', 0.25), 100);
+      }
     }
   }
 

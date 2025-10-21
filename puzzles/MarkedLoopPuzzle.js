@@ -1,9 +1,13 @@
 import audioManager from "../js/audio-manager.js";
-import { ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, SUCCESS_COLOR } from "../js/config.js";
+import {
+  ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
+  FONT_FAMILY, SUCCESS_COLOR
+} from "../js/config.js";
+import router from "../js/router.js";
 import {
   containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl, removeCoord,
-  updateForTutorialRecommendation, updateForTutorialState
+  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl,
+  removeCoord, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
@@ -140,7 +144,7 @@ let queuedSounds = [];
 function generateGrid() {
   loopGrid = Array.from({length: LOOP_COLS},
       () => Array.from({length: LOOP_ROWS},
-          () => window.app.sRand() < 0.5 ? true : false));
+          () => router.sRand() < 0.5 ? true : false));
 
   // Break up all 2x2 groups
   let all2x2Groups = getAll2x2Groups();
@@ -221,7 +225,7 @@ function generateGrid() {
   let allEligible3x2Groups = getAllEligible3x2Groups();
 
   while(allEligible2x3Groups.length || allEligible3x2Groups.length) {
-    if (window.app.sRand() < allEligible2x3Groups.length
+    if (router.sRand() < allEligible2x3Groups.length
         / (allEligible2x3Groups.length + allEligible3x2Groups.length)) {
       let group = randomEl(allEligible2x3Groups);
       let i = group[0][0];
@@ -232,7 +236,7 @@ function generateGrid() {
       let rightEdge = (cell && i + 1 === LOOP_COLS - 1)
           || (i + 1 < LOOP_COLS - 1 && loopGrid[i + 2][j + 1] !== cell);
 
-      if (leftEdge && (!rightEdge || window.app.sRand() < 0.5)) {
+      if (leftEdge && (!rightEdge || router.sRand() < 0.5)) {
         loopGrid[i][j + 1] = !cell;
       } else if (rightEdge) {
         loopGrid[i + 1][j + 1] = !cell;
@@ -251,7 +255,7 @@ function generateGrid() {
       let bottomEdge = (cell && j + 1 === LOOP_ROWS - 1)
           || (j + 1 < LOOP_ROWS - 1 && loopGrid[i + 1][j + 2] !== cell);
 
-      if (topEdge && (!bottomEdge || window.app.sRand() < 0.5)) {
+      if (topEdge && (!bottomEdge || router.sRand() < 0.5)) {
         loopGrid[i + 1][j] = !cell;
       } else if (bottomEdge) {
         loopGrid[i + 1][j + 1] = !cell;
@@ -646,12 +650,12 @@ function getGridPathNeighborCoords(gridCoord) {
  * INIT
  ***********************************************/
 export function init() {
-  if (window.app.puzzleState.tutorialStage > tutorials.length) {
-    window.app.puzzleState.tutorialStage = 0;
+  if (router.puzzleState.tutorialStage > tutorials.length) {
+    router.puzzleState.tutorialStage = 0;
     updateForTutorialRecommendation();
   }
 
-  DIFFICULTY = window.app.router.difficulty;
+  DIFFICULTY = router.difficulty;
 
   ROWS = 5 + DIFFICULTY * 2;
   COLS = 5 + DIFFICULTY * 2;
@@ -667,8 +671,8 @@ export function init() {
   previousTouch = null;
   queuedSounds = [];
 
-  if (window.app.puzzleState.tutorialStage) {
-    const tutorial = tutorials[window.app.puzzleState.tutorialStage - 1];
+  if (router.puzzleState.tutorialStage) {
+    const tutorial = tutorials[router.puzzleState.tutorialStage - 1];
 
     ROWS = tutorial.rows;
     COLS = tutorial.cols;
@@ -728,7 +732,7 @@ export function drawInstructions() {
       ["Draw a loop of the given length, where the markers",
           "coincide with all straight segments before/after a turn."],
       ["Drag over the cells to draw/erase loop path segments."],
-      window.app.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length);
 }
 
 function areAllPathsLoops(gridToDraw) {
@@ -861,7 +865,7 @@ export function drawPuzzle() {
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  let gridToDraw = window.app.puzzleState.showingSolution ? solution : grid;
+  let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
   let pathLength = getPathLength(gridToDraw);
   let allPathsLoops = areAllPathsLoops(gridToDraw);
   let loops = getAllLoops(gridToDraw);
@@ -977,15 +981,15 @@ export function drawPuzzle() {
     }
   }
 
-  context.font = "bold " + TEXT_SIZE + "px Arial"
+  context.font = "bold " + TEXT_SIZE + `px ${FONT_FAMILY}`;
   context.fillStyle = allPathsLoops && loops.length === 1
       && pathLength !== solutionLength ? ALERT_COLOR : "#ffffff";
   context.textAlign = "center";
   context.fillText("Path Length: " + pathLength + " / " + solutionLength, CANVAS_WIDTH / 2, (CANVAS_HEIGHT - OFFSET_SIZE / 2) + TEXT_SIZE / 3);
 
-  if (!window.app.puzzleState.showingSolution) {
-    if (solved && window.app.puzzleState.interactive) {
-      endPuzzle(window.app.puzzleState.tutorialStage === tutorials.length);
+  if (!router.puzzleState.showingSolution) {
+    if (solved && router.puzzleState.interactive) {
+      endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
       audioManager.play(CHIME_SOUND);
     } else {
       queuedSounds.forEach(sound => audioManager.play(sound));
@@ -1000,20 +1004,24 @@ function getDrawCoord(coord, center = false) {
   let y = coord[1];
   let addition = center ? CELL_SIZE / 2 : 0;
 
-  let drawX = OFFSET_SIZE + x * CELL_SIZE + addition;
-  let drawY = OFFSET_SIZE + y * CELL_SIZE + addition;
-
   if (x < 0) {
-    drawX += ( CELL_SIZE / 2 - ARROW_SIZE / 2);
+    console.error("X coord out of bounds:", x);
+    x = 0;
   } else if (x >= COLS) {
-    drawX -= ( CELL_SIZE / 2 - ARROW_SIZE / 2);
+    console.error("X coord out of bounds:", x);
+    x = COLS - 1;
   }
 
   if (y < 0) {
-    drawY += ( CELL_SIZE / 2 - ARROW_SIZE / 2);
+    console.error("Y coord out of bounds:", y);
+    y = 0;
   } else if (y >= ROWS) {
-    drawY -= ( CELL_SIZE / 2 - ARROW_SIZE / 2);
+    console.error("Y coord out of bounds:", y);
+    y = ROWS - 1;
   }
+
+  let drawX = OFFSET_SIZE + x * CELL_SIZE + addition;
+  let drawY = OFFSET_SIZE + y * CELL_SIZE + addition;
 
   return [drawX, drawY];
 }
@@ -1070,13 +1078,12 @@ function pathInteraction(mouseX, mouseY) {
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
-    if (window.app.puzzleState.interactive) {
+    if (router.puzzleState.interactive) {
       dragging = true;
 
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
-      let coord = convertToGridCoord(mouseX, mouseY);
 
       pathInteraction(mouseX, mouseY);
     }
@@ -1088,7 +1095,7 @@ export function onMouseDown(event) {
 }
 
 export function onTouchStart(event) {
-  if (window.app.puzzleState.interactive && event.changedTouches.length === 1) {
+  if (router.puzzleState.interactive && event.changedTouches.length === 1) {
     dragging = true;
 
     let touch = event.changedTouches[0];
@@ -1102,7 +1109,7 @@ export function onTouchStart(event) {
 }
 
 export function onMouseMove(event) {
-  if (window.app.puzzleState.interactive && dragging) {
+  if (router.puzzleState.interactive && dragging) {
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
     let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1112,7 +1119,7 @@ export function onMouseMove(event) {
 }
 
 export function onTouchMove(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let movedTouch;
     let changedTouches = [...event.changedTouches];
 
@@ -1149,7 +1156,7 @@ export function onMouseUp(event) {
 }
 
 export function onTouchEnd(event) {
-  if (window.app.puzzleState.interactive && dragging && previousTouch) {
+  if (router.puzzleState.interactive && dragging && previousTouch) {
     let changedTouches = [...event.changedTouches];
 
     for (let i = 0; i < changedTouches.length; i++) {
