@@ -993,7 +993,9 @@ dialog {
   }
 
   &.faded {
-    opacity: 0.2;
+    opacity: 0.15;
+    color: transparent;
+    text-shadow: 0 0 0 white;
   }
 }
 
