@@ -471,10 +471,11 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
     const showTimer = this.getShowDailyChallengeTimerValue();
 
-    // Might be better to just show the challenge date like for past challenge replays,
-    // but it's good to give an indication that the timer is going, even if it's not shown
+    // If not showing the timer, just show the challenge date like for past challenge replays,
+    // but it might be good to give some indication that the timer is going, even if it's not shown...
     const content = showTimer ? this.formatTimerForHtml(this.activeDailyChallenge.startTime)
-        : "You got this!";
+        // : "You got this!";
+        : this.formatDateId(this.getDailyChallengeDateId());
 
     if (!this.stopUpdatesToCountdown) {
       countdownElement.innerHTML = content;

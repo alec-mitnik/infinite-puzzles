@@ -250,16 +250,18 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
       compiledInstructions.push(`Tutorial Puzzle  ${tutorialStage} of ${tutorialsTotal}.`);
     } else if (dailyChallengeManager.isDoingDailyChallenge()) {
       const dailyChallengeDateText = `Daily Challenge for ${dailyChallengeManager.formatDateId(dailyChallengeManager.activeDailyChallenge.id)}`;
+      const replayText = dailyChallengeManager.isDoingRecordedDailyChallengePuzzle() ? "" : " (Replay)";
+      const fullDailyChallengeDateText = `${dailyChallengeDateText}${replayText}`;
       const dailyChallengePuzzleVisualText = `Puzzle  ${dailyChallengeManager.activeDailyChallengePuzzleIndex + 1
           } / ${dailyChallengeManager.activeDailyChallenge.puzzles.length}`;
       const dailyChallengePuzzleReaderText = `Puzzle ${dailyChallengeManager.activeDailyChallengePuzzleIndex + 1
           } of ${dailyChallengeManager.activeDailyChallenge.puzzles.length}.`;
 
       context.font = `40px ${FONT_FAMILY}`;
-      context.fillText(dailyChallengeDateText, CANVAS_WIDTH / 2, yPos - 30);
+      context.fillText(fullDailyChallengeDateText, CANVAS_WIDTH / 2, yPos - 30);
       context.fillText(dailyChallengePuzzleVisualText, CANVAS_WIDTH / 2, yPos + 30);
 
-      compiledInstructions.push(dailyChallengeDateText, dailyChallengePuzzleReaderText);
+      compiledInstructions.push(fullDailyChallengeDateText, dailyChallengePuzzleReaderText);
     } else {
       const selectText = "Select ";
       const atomText = "⚛\uFE0E";
@@ -376,81 +378,71 @@ export function endPuzzle(lastTutorialStage) {
   router.puzzleState.ended = true;
   router.puzzleState.interactive = false;
   document.getElementById('controls').classList.add('solved');
-  let dailyChallengeReplay = false;
 
-  if (dailyChallengeManager.isDoingDailyChallenge()) {
-    // Handle daily challenge data if not already played
-    if (dailyChallengeManager.activeDailyChallenge.endTime == null
-        && dailyChallengeManager.getDailyChallengeDateId()
-        === dailyChallengeManager.activeDailyChallenge.id) {
-      dailyChallengeManager.activeDailyChallenge
-          .puzzles[dailyChallengeManager.activeDailyChallengePuzzleIndex].completed = true;
-      dailyChallengeManager.setDailyChallengePuzzlesForDialog();
+  // Handle daily challenge data if not already played
+  if (dailyChallengeManager.isDoingRecordedDailyChallengePuzzle()) {
+    dailyChallengeManager.activeDailyChallenge
+        .puzzles[dailyChallengeManager.activeDailyChallengePuzzleIndex].completed = true;
+    dailyChallengeManager.setDailyChallengePuzzlesForDialog();
 
-      if (dailyChallengeManager.activeDailyChallenge.puzzles.every(puzzle => puzzle.completed)) {
-        // Daily challenge completed
-        dailyChallengeManager.activeDailyChallenge.endTime = Date.now();
-        const duration = dailyChallengeManager.activeDailyChallenge.endTime
-            - dailyChallengeManager.activeDailyChallenge.startTime;
+    if (dailyChallengeManager.activeDailyChallenge.puzzles.every(puzzle => puzzle.completed)) {
+      // Daily challenge completed
+      dailyChallengeManager.activeDailyChallenge.endTime = Date.now();
+      const duration = dailyChallengeManager.activeDailyChallenge.endTime
+          - dailyChallengeManager.activeDailyChallenge.startTime;
 
-        // Update daily challenge data
-        statsManager.stats.dailyChallenges.totalCompleted++;
-        statsManager.stats.dailyChallenges.currentStreak++;
-        statsManager.stats.dailyChallenges.longestStreak = Math.max(
-          statsManager.stats.dailyChallenges.longestStreak,
-          statsManager.stats.dailyChallenges.currentStreak,
-        );
+      // Update daily challenge data
+      statsManager.stats.dailyChallenges.totalCompleted++;
+      statsManager.stats.dailyChallenges.currentStreak++;
+      statsManager.stats.dailyChallenges.longestStreak = Math.max(
+        statsManager.stats.dailyChallenges.longestStreak,
+        statsManager.stats.dailyChallenges.currentStreak,
+      );
 
-        const fastestCompletion = statsManager.stats.dailyChallenges.fastestCompletion;
-        if (fastestCompletion?.startTime == null || fastestCompletion?.endTime == null
-            || fastestCompletion.endTime < 0
-            || duration < fastestCompletion.endTime - fastestCompletion.startTime) {
-          statsManager.stats.dailyChallenges.fastestCompletion = {
-            ...dailyChallengeManager.activeDailyChallenge,
-          };
-        }
-
-        statsManager.saveStatsData();
-        dailyChallengeManager.startNextChallengeCountdown();
-        dailyChallengeManager.setDailyChallengePuzzlesForDialog(
-            dailyChallengeManager.activeDailyChallenge.id);
-
-        const formattedTime = dailyChallengeManager.formatTimerForHtml(0, duration);
-        document.getElementById('dailyChallengeJustCompletedMessage').innerHTML =
-            `You beat the daily challenge in ${formattedTime}!`;
-        const dailyChallengeDialog = document.getElementById('dailyChallengeDialog');
-        dailyChallengeDialog.classList.add('just-completed');
-
-        // If you're in the process of right-clicking to rotate a piece when the puzzle
-        // is suddenly solved and the popup is shown, it will open the context menu
-        // on the popup on mouse up, so disable interaction for a bit with a fancier transition
-        openDialogWithTransition(dailyChallengeDialog, 990);
+      const fastestCompletion = statsManager.stats.dailyChallenges.fastestCompletion;
+      if (fastestCompletion?.startTime == null || fastestCompletion?.endTime == null
+          || fastestCompletion.endTime < 0
+          || duration < fastestCompletion.endTime - fastestCompletion.startTime) {
+        statsManager.stats.dailyChallenges.fastestCompletion = {
+          ...dailyChallengeManager.activeDailyChallenge,
+        };
       }
 
-      dailyChallengeManager.saveDailyChallengeData();
-    } else {
-      dailyChallengeReplay = true;
+      statsManager.saveStatsData();
+      dailyChallengeManager.startNextChallengeCountdown();
+      dailyChallengeManager.setDailyChallengePuzzlesForDialog(
+          dailyChallengeManager.activeDailyChallenge.id);
+
+      const formattedTime = dailyChallengeManager.formatTimerForHtml(0, duration);
+      document.getElementById('dailyChallengeJustCompletedMessage').innerHTML =
+          `You beat the daily challenge in ${formattedTime}!`;
+      const dailyChallengeDialog = document.getElementById('dailyChallengeDialog');
+      dailyChallengeDialog.classList.add('just-completed');
+
+      // If you're in the process of right-clicking to rotate a piece when the puzzle
+      // is suddenly solved and the popup is shown, it will open the context menu
+      // on the popup on mouse up, so disable interaction for a bit with a fancier transition
+      openDialogWithTransition(dailyChallengeDialog, 990);
     }
+
+    dailyChallengeManager.saveDailyChallengeData();
   }
 
   // Allow daily challenge puzzles to count towards general puzzle stats
-  // So that it recognizes puzzle familiarity even if through daily challenge,
-  // but don't count replays, since those don't increase experience
-  // (missed challenge replays or continuing unsuccessful challenges might,
-  // but can't distinguish those from repeated replays)
+  // So that it recognizes puzzle familiarity even if through the daily challenge.
+  // Count replays too, since seed-generated puzzles could also be repeated
+  // and still count anyway.
   if (!router.puzzleState.tutorialStage) {
-    if (!dailyChallengeReplay) {
-      // Don't update stats if the solution was peeked
-      if (!router.puzzleState.solutionPeeked) {
-        // Update general puzzle stats
-        const puzzleKey = router.getCurrentPuzzleKey();
-        statsManager.stats.puzzles[puzzleKey].completions[router.difficulty]++;
-        statsManager.saveStatsData();
-      }
-
-      // Must go after updating the stats above
-      updateForTutorialRecommendation();
+    // Don't update stats if the solution was peeked
+    if (!router.puzzleState.solutionPeeked) {
+      // Update general puzzle stats
+      const puzzleKey = router.getCurrentPuzzleKey();
+      statsManager.stats.puzzles[puzzleKey].completions[router.difficulty]++;
+      statsManager.saveStatsData();
     }
+
+    // Must go after updating the stats above
+    updateForTutorialRecommendation();
   } else if (lastTutorialStage) {
     setTutorialDone();
     updateForTutorialRecommendation();
