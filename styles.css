@@ -820,6 +820,22 @@ dialog {
 #dailyChallengeDialog {
   #dailyChallengeDialogPuzzles {
     font-size: 3rem;
+
+    .puzzle-icon {
+      position: relative;
+
+      &.completed {
+        &::after {
+          content: '✅';
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          transform: translate(40%, 10%);
+          font-size: 0.5em;
+          text-shadow: 0 0 2px black;
+        }
+      }
+    }
   }
 
   #dailyChallengeDialogControls {
@@ -878,6 +894,26 @@ dialog {
   .modal-foreground {
     /* Keep a stable width for when the details section is expanded */
     width: 100%;
+  }
+
+  .puzzle-icon {
+    font-size: 1.25em;
+
+    &.ranked {
+      &:nth-of-type(1) {
+        font-size: 2em;
+      }
+
+      &:nth-of-type(n+3) {
+        font-size: 1em;
+      }
+    }
+
+    &.faded {
+      opacity: 0.2;
+      color: transparent;
+      text-shadow: 0 0 0 rgba(255, 255, 255, 0.5);
+    }
   }
 
   .statsGrid {
@@ -976,26 +1012,6 @@ dialog {
 
   #resetDataButton {
     margin-bottom: 16px;
-  }
-}
-
-.puzzle-icon {
-  font-size: 1.25em;
-
-  &.ranked {
-    &:nth-of-type(1) {
-      font-size: 2em;
-    }
-
-    &:nth-of-type(n+3) {
-      font-size: 1em;
-    }
-  }
-
-  &.faded {
-    opacity: 0.2;
-    color: transparent;
-    text-shadow: 0 0 0 rgba(255, 255, 255, 0.5);
   }
 }
 

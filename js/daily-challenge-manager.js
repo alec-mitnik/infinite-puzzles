@@ -2,7 +2,11 @@ import audioManager from "./audio-manager.js";
 import { PUZZLE_CONFIGS } from "./config.js";
 import router from "./router.js";
 import statsManager from "./stats-manager.js";
-import { generateSeed, generateSeeds, getPuzzleIconElement, getSeededRandomFunction, loadData, openDialogWithTransition, randomEl, saveData } from "./utils.js";
+import {
+  generateSeed, generateSeeds, getPuzzleIconElement, getSeededRandomFunction,
+  getTutorialDone, hasLevelBeenCompleted, loadData, openDialogWithTransition,
+  randomEl, saveData
+} from "./utils.js";
 
 const DAILY_CHALLENGES_KEY = 'dailyChallenges';
 const SHOW_DAILY_CHALLENGE_TIMER_KEY = 'showDailyChallengeTimer';
@@ -328,8 +332,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     const dailyChallengeDialogDateElement = document.getElementById('dailyChallengeDialogDate');
     dailyChallengeDialogDateElement.textContent = this.formatDateId(this.activeDailyChallenge.id);
 
-    // Ensure that today's daily challenge is created before setting the puzzles
-    this.setDailyChallengePuzzlesForDialog(this.getDailyChallengeForToday().id);
+    this.setDailyChallengePuzzlesForDialog();
     this.updateDailyChallengeCompletedContent();
 
     // Use arrow function to retain reference to this
@@ -407,7 +410,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     }
   }
 
-  generateDailyChallengePuzzlesDisplay(puzzles) {
+  generateDailyChallengePuzzlesDisplay(puzzles, showCompleted = false) {
     const displayElement = document.createElement('div');
 
     for (let i = 0; i < puzzles?.length; i++) {
@@ -420,13 +423,22 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
       const puzzle = puzzles[i];
       const puzzleElement = getPuzzleIconElement(puzzle.key);
+      puzzleElement.classList.add('puzzle-icon');
+
+      if (showCompleted && puzzle.completed) {
+        puzzleElement.classList.add('completed');
+        puzzleElement.ariaLabel += ' (Completed)';
+      }
+
       displayElement.appendChild(puzzleElement);
     }
 
     return displayElement;
   }
 
-  setDailyChallengePuzzlesForDialog(dateId) {
+  setDailyChallengePuzzlesForDialog() {
+    // Ensure that today's daily challenge is created before setting the puzzles
+    const dateId = this.getDailyChallengeForToday().id;
     const dailyChallenge = this.dailyChallenges[dateId];
 
     if (!dailyChallenge?.puzzles) {
@@ -436,7 +448,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
     const dailyChallengeDialogPuzzlesElement = document.getElementById('dailyChallengeDialogPuzzles');
     dailyChallengeDialogPuzzlesElement.innerHTML =
-        this.generateDailyChallengePuzzlesDisplay(dailyChallenge.puzzles).innerHTML;
+        this.generateDailyChallengePuzzlesDisplay(dailyChallenge.puzzles, true).innerHTML;
   }
 
   updateDailyChallengeTimer() {
@@ -566,6 +578,23 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
   // The activeDailyChallenge should have already been set before calling this function
   startDailyChallenge() {
+    if (!this.activeDailyChallenge.startTime
+        && this.getDailyChallengeDateId() === this.activeDailyChallenge.id) {
+      const familiarWithChallengePuzzles = this.activeDailyChallenge.puzzles.every(puzzle =>
+          hasLevelBeenCompleted(puzzle.key) || getTutorialDone(puzzle.key));
+
+      if (!familiarWithChallengePuzzles && !router.getConfirmation(
+        `It looks like you're not yet familiar with all the puzzles in this challenge.
+Start it anyway?`
+      )) {
+        return;
+      }
+
+      this.activeDailyChallenge.startTime = Date.now();
+      this.saveDailyChallengeData();
+      this.startDailyChallengeTimer();
+    }
+
     audioManager.play(audioManager.SoundEffects.GAME_START);
     document.getElementById("dailyChallengeDialog").close();
     document.getElementById("statsDialog").close();
@@ -575,13 +604,6 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
     // Prevent the countdown from suddenly changing before the first puzzle loads
     this.stopUpdatesToCountdown = true;
-
-    if (!this.activeDailyChallenge.startTime
-        && this.getDailyChallengeDateId() === this.activeDailyChallenge.id) {
-      this.activeDailyChallenge.startTime = Date.now();
-      this.saveDailyChallengeData();
-      this.startDailyChallengeTimer();
-    }
 
     this.difficultyToRestoreTo = router.difficulty;
     this.goToNextDailyChallengePuzzle();

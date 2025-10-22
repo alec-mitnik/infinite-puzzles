@@ -383,6 +383,7 @@ export function endPuzzle(lastTutorialStage) {
         === dailyChallengeManager.activeDailyChallenge.id) {
       dailyChallengeManager.activeDailyChallenge
           .puzzles[dailyChallengeManager.activeDailyChallengePuzzleIndex].completed = true;
+      dailyChallengeManager.setDailyChallengePuzzlesForDialog();
 
       if (dailyChallengeManager.activeDailyChallenge.puzzles.every(puzzle => puzzle.completed)) {
         // Daily challenge completed
