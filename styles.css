@@ -823,7 +823,11 @@ dialog {
 
     .puzzle-icon {
       position: relative;
+    }
+  }
 
+  &:not(.just-completed) {
+    .puzzle-icon {
       &.completed {
         &::after {
           content: '✅';
@@ -900,11 +904,11 @@ dialog {
     font-size: 1.25em;
 
     &.ranked {
-      &:nth-of-type(1) {
+      &.rank-1 {
         font-size: 2em;
       }
 
-      &:nth-of-type(n+3) {
+      &.rank-3 {
         font-size: 1em;
       }
     }

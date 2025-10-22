@@ -164,6 +164,7 @@ export function solutionToggle() {
         statsManager.saveStatsData();
 
         dailyChallengeManager.updateDailyChallengeCompletedContent();
+        dailyChallengeManager.startNextChallengeCountdown();
       }
 
       if (router.puzzleState.showingInstructions) {
@@ -375,6 +376,7 @@ export function endPuzzle(lastTutorialStage) {
   router.puzzleState.ended = true;
   router.puzzleState.interactive = false;
   document.getElementById('controls').classList.add('solved');
+  let dailyChallengeReplay = false;
 
   if (dailyChallengeManager.isDoingDailyChallenge()) {
     // Handle daily challenge data if not already played
@@ -400,10 +402,11 @@ export function endPuzzle(lastTutorialStage) {
         );
 
         const fastestCompletion = statsManager.stats.dailyChallenges.fastestCompletion;
-        if (!fastestCompletion?.duration || duration < fastestCompletion.duration) {
+        if (fastestCompletion?.startTime == null || fastestCompletion?.endTime == null
+            || fastestCompletion.endTime < 0
+            || duration < fastestCompletion.endTime - fastestCompletion.startTime) {
           statsManager.stats.dailyChallenges.fastestCompletion = {
-            id: dailyChallengeManager.activeDailyChallenge.id,
-            duration,
+            ...dailyChallengeManager.activeDailyChallenge,
           };
         }
 
@@ -425,18 +428,29 @@ export function endPuzzle(lastTutorialStage) {
       }
 
       dailyChallengeManager.saveDailyChallengeData();
+    } else {
+      dailyChallengeReplay = true;
     }
-  } else if (!router.puzzleState.tutorialStage) {
-    // Don't update stats if the solution was peeked
-    if (!router.puzzleState.solutionPeeked) {
-      // Update general puzzle stats
-      const puzzleKey = router.getCurrentPuzzleKey();
-      statsManager.stats.puzzles[puzzleKey].completions[router.difficulty]++;
-      statsManager.saveStatsData();
-    }
+  }
 
-    // Must go after updating the stats above
-    updateForTutorialRecommendation();
+  // Allow daily challenge puzzles to count towards general puzzle stats
+  // So that it recognizes puzzle familiarity even if through daily challenge,
+  // but don't count replays, since those don't increase experience
+  // (missed challenge replays or continuing unsuccessful challenges might,
+  // but can't distinguish those from repeated replays)
+  if (!router.puzzleState.tutorialStage) {
+    if (!dailyChallengeReplay) {
+      // Don't update stats if the solution was peeked
+      if (!router.puzzleState.solutionPeeked) {
+        // Update general puzzle stats
+        const puzzleKey = router.getCurrentPuzzleKey();
+        statsManager.stats.puzzles[puzzleKey].completions[router.difficulty]++;
+        statsManager.saveStatsData();
+      }
+
+      // Must go after updating the stats above
+      updateForTutorialRecommendation();
+    }
   } else if (lastTutorialStage) {
     setTutorialDone();
     updateForTutorialRecommendation();

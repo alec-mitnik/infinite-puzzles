@@ -43,6 +43,18 @@ class StatsManager {
       openDialogWithTransition(statsDialog);
     });
 
+    document.getElementById('markTutorialsCompletedButton')?.addEventListener('click', () => {
+      if (router.getConfirmation(`This option is intended for if you lost your data or switched to a new platform.
+Immediately set all tutorials as completed?`)) {
+        for (const puzzleKey of Object.keys(PUZZLE_CONFIGS)) {
+          this.stats.puzzles[puzzleKey].tutorialDone = true;
+        }
+
+        this.saveStatsData();
+        this.updateDisplayedStats();
+      }
+    })
+
     document.getElementById('resetDataButton')?.addEventListener('click', () => {
       if (router.getConfirmation("Reset all data?\nThis cannot be undone.")) {
         clearData();
@@ -55,6 +67,12 @@ class StatsManager {
 
   saveStatsData() {
     saveData(STATS_KEY, JSON.stringify(this.stats));
+  }
+
+  getRankAccountingForTies(sortedEntries, index) {
+    const value = sortedEntries[index][1];
+    return index + 2 -
+        sortedEntries.slice(0, index + 1).filter(entry => entry[1] === value).length;
   }
 
   updateDisplayedStats() {
@@ -76,11 +94,12 @@ class StatsManager {
       return b[1] - a[1];
     }).slice(0, 3);
 
-    // Most Played - Not bothering to account for ties
+    // Most Played
     document.getElementById('statFavoritePuzzlesValue').innerHTML = puzzlesSortedByCompletion.length ?
         puzzlesSortedByCompletion.map(([puzzleKey, _value], i) => {
-          const prefix = puzzlesSortedByCompletion.length > 1 ? `${i + 1}.&nbsp;` : '';
-          return `${prefix}${getPuzzleIconElement(puzzleKey, 'puzzle-icon ranked').outerHTML}`;
+          const rank = this.getRankAccountingForTies(puzzlesSortedByCompletion, i);
+          const prefix = puzzlesSortedByCompletion.length > 1 ? `${rank}.&nbsp;` : '';
+          return `${prefix}${getPuzzleIconElement(puzzleKey, `puzzle-icon ranked rank-${rank}`).outerHTML}`;
         }).join('&nbsp; ') : "None yet";
 
     // Find the puzzles completed at the highest difficulties,
@@ -92,11 +111,12 @@ class StatsManager {
       return b[1] - a[1];
     }).slice(0, 3);
 
-    // Greatest Mastery - Not bothering to account for ties
+    // Greatest Mastery
     document.getElementById('statGreatestMasteryValue').innerHTML = puzzlesSortedByMastery.length ?
         puzzlesSortedByMastery.map(([puzzleKey, _value], i) => {
-          const prefix = puzzlesSortedByMastery.length > 1 ? `${i + 1}.&nbsp;` : '';
-          return `${prefix}${getPuzzleIconElement(puzzleKey, 'puzzle-icon ranked').outerHTML}`;
+          const rank = this.getRankAccountingForTies(puzzlesSortedByMastery, i);
+          const prefix = puzzlesSortedByMastery.length > 1 ? `${rank}.&nbsp;` : '';
+          return `${prefix}${getPuzzleIconElement(puzzleKey, `puzzle-icon ranked rank-${rank}`).outerHTML}`;
         }).join('&nbsp; ') : "None yet";
 
     document.getElementById('statDailyChallengeStreakValue').textContent =
@@ -104,10 +124,16 @@ class StatsManager {
     document.getElementById('statLongestDailyChallengeStreakValue').textContent =
         this.stats.dailyChallenges.longestStreak.toLocaleString();
     document.getElementById('statFastestDailyChallengeCompletionValue').innerHTML =
-        this.stats.dailyChallenges.fastestCompletion?.duration
+        this.stats.dailyChallenges.fastestCompletion?.endTime != null
+        && this.stats.dailyChallenges.fastestCompletion?.startTime != null
         && this.stats.dailyChallenges.fastestCompletion?.id ?
-            `<span class="smaller-text">${dailyChallengeManager.formatDateId(this.stats.dailyChallenges.fastestCompletion.id)
-            }</span><br />${dailyChallengeManager.formatTimerForHtml(0, this.stats.dailyChallenges.fastestCompletion.duration)}`
+            `<span class="smaller-text">${dailyChallengeManager.formatDateId(
+              this.stats.dailyChallenges.fastestCompletion.id
+            )}</span>${dailyChallengeManager.generateDailyChallengePuzzlesDisplay(
+              this.stats.dailyChallenges.fastestCompletion.puzzles
+            ).outerHTML}${dailyChallengeManager.formatTimerForHtml(0,
+                this.stats.dailyChallenges.fastestCompletion.endTime
+                - this.stats.dailyChallenges.fastestCompletion.startTime)}`
             : "None yet";
     document.getElementById('statTotalDailyChallengesCompletedValue').textContent =
         this.stats.dailyChallenges.totalCompleted?.toLocaleString();
@@ -122,6 +148,11 @@ class StatsManager {
       const pastDailyChallengeElement = dailyChallengeManager.getPastDailyChallengeElement(id);
       li.appendChild(pastDailyChallengeElement);
       dailyChallengeArchiveList.appendChild(li);
+    }
+
+    // Hide the button to mark tutorials as completed if they have all been completed
+    if (Object.values(this.stats.puzzles).every(puzzle => puzzle.tutorialDone)) {
+      document.getElementById('markTutorialsCompletedButton').classList.add('hidden');
     }
   }
 }

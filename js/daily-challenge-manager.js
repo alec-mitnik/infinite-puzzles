@@ -10,9 +10,13 @@ import {
 
 const DAILY_CHALLENGES_KEY = 'dailyChallenges';
 const SHOW_DAILY_CHALLENGE_TIMER_KEY = 'showDailyChallengeTimer';
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
 const UTC_OFFSET = -5; // EST
 const CHALLENGE_PUZZLE_COUNT = 3;
+const TIMING_BUFFER = 10;
 
 class DailyChallengeManager {
   activeDailyChallenge;
@@ -129,7 +133,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     );
 
     // Uncomment to test cutoffs at different times
-    // cutoff += ((3 * 60) + 36) * 60 * 1000;
+    // cutoff += 2 * MS_PER_HOUR + 56 * MS_PER_MINUTE;
 
     // If it's before today's cutoff, we’re still on the previous day's period
     if (now.getTime() < cutoff) {
@@ -175,7 +179,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
   formatMsCountdown(ms) {
     // Round up to nearest second
-    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const totalSec = Math.max(0, Math.ceil(ms / MS_PER_SECOND));
     let timeText;
 
     if (totalSec < 60) {
@@ -200,7 +204,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
   // Show as `mm:ss`, or `h:mm:ss` if over an hour
   formatTimerForText(startTime, endTime = Date.now()) {
-    const totalSec = Math.floor((endTime - startTime) / 1000);
+    const totalSec = Math.floor((endTime - startTime) / MS_PER_SECOND);
     const totalMin = Math.floor(totalSec / 60);
     const h = Math.floor(totalMin / 60);
     const m = totalMin % 60;
@@ -272,8 +276,9 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
   }
 
   handleNewDailyChallengeAvailable() {
-    // Ensure new daily challenge data has been
-    const currentId = this.getDailyChallengeForToday().id;
+    // Ensure new daily challenge data has been created
+    const newDailyChallenge = this.getDailyChallengeForToday();
+    const currentId = newDailyChallenge.id;
     const lastId = this.getLatestAttemptedDailyChallengeId();
     const previousId = this.getDailyChallengeDateId(-1);
     const challengeDate = this.formatDateId(currentId);
@@ -286,6 +291,14 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     document.getElementById('startDailyChallengeButton').textContent = "Start Daily Challenge!";
     document.getElementById('dailyChallengeDialogDate').textContent = challengeDate;
     document.getElementById("dailyChallengeIcon").classList.remove("faded");
+
+    if (!this.isDoingDailyChallenge()) {
+      // Ensure the active daily challenge is always the latest one
+      // when not doing a daily challenge
+      this.activeDailyChallenge = newDailyChallenge;
+    }
+
+    this.setDailyChallengePuzzlesForDialog();
 
     // If the previous day's challenge was not completed, reset the streak
     if (lastId !== previousId || latestDailyChallenge.endTime == null
@@ -340,10 +353,18 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
       const lastId = this.getLatestAttemptedDailyChallengeId();
       const dailyChallenge = this.getDailyChallengeForToday();
       const currentId = dailyChallenge.id;
+      const ms = this.getMsUntilNextDate();
 
       // Replaying a past challenge, or today's challenge hasn't been attempted yet
       if ((this.isDoingDailyChallenge() && dailyChallenge.id !== this.activeDailyChallenge.id)
             || currentId !== lastId) {
+        if (currentId !== lastId) {
+          // Creates the new daily challenge, updates the active one
+          // (if not in still playing one), and updates the displays,
+          // so important to do this first
+          this.handleNewDailyChallengeAvailable();
+        }
+
         const challengeDate = this.formatDateId(this.activeDailyChallenge.id);
         timerElement.textContent = challengeDate;
         timerElement.classList.remove('timer');
@@ -353,10 +374,8 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
           countdownElement.classList.remove('timer');
         }
 
-        if (currentId !== lastId) {
-          this.handleNewDailyChallengeAvailable();
-        }
-
+        // Set the next update for just after the next challenge becomes available
+        this.challengeCountdownTimeoutId = setTimeout(update, ms + TIMING_BUFFER);
         return;
       }
 
@@ -370,7 +389,6 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
       // Daily challenge already attempted today
       dailyChallengeDialog.classList.add('completed');
       startDailyChallengeButton.textContent = "Replay Daily Challenge";
-      const ms = this.getMsUntilNextDate();
       const countdown = this.formatMsCountdown(ms);
       const countdownHtml = `<span class="small-text">Next challenge in:</span><br />${countdown}`;
       countdownElement.innerHTML = countdownHtml;
@@ -378,23 +396,19 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
       countdownElement.classList.remove('timer');
       timerElement.classList.remove('timer');
 
-
       // Figure out when to update next
-      const OFFSET = 10;
-      const MS_PER_SECOND = 1000;
-      const MS_PER_MINUTE = 60 * MS_PER_SECOND;
       let delay;
 
       if (ms < MS_PER_SECOND) {
         // Under 1 second (raised to show "1s"), so update after the remaining time
         // (ensuring we reach just after the start of the new date)
-        delay = ms + OFFSET;
+        delay = ms + TIMING_BUFFER;
       } else if (ms < MS_PER_MINUTE) {
         // Under 1 minute, so update every second (just past the second mark)
-        delay = (ms % MS_PER_SECOND) + OFFSET;
+        delay = (ms % MS_PER_SECOND) + TIMING_BUFFER;
       } else {
         // Otherwise, update every minute (just past the minute mark)
-        delay = (ms % MS_PER_MINUTE) + OFFSET;
+        delay = (ms % MS_PER_MINUTE) + TIMING_BUFFER;
       }
 
       this.challengeCountdownTimeoutId = setTimeout(update, delay);
@@ -506,8 +520,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
       // Update every second, just past the second mark
       const ms = Date.now() - this.activeDailyChallenge.startTime;
-      const OFFSET = 10;
-      const delay = 1000 - (ms % 1000) + OFFSET;
+      const delay = MS_PER_SECOND - (ms % MS_PER_SECOND) + TIMING_BUFFER;
       this.challengeTimerTimeoutId = setTimeout(update, delay);
     }
 
@@ -592,7 +605,6 @@ Start it anyway?`
 
       this.activeDailyChallenge.startTime = Date.now();
       this.saveDailyChallengeData();
-      this.startDailyChallengeTimer();
     }
 
     audioManager.play(audioManager.SoundEffects.GAME_START);
@@ -602,14 +614,16 @@ Start it anyway?`
     // Recalculate the puzzles each time to reset their sRand functions
     this.resetDailyChallengePuzzleRandomness(this.activeDailyChallenge.id);
 
-    // Prevent the countdown from suddenly changing before the first puzzle loads
-    this.stopUpdatesToCountdown = true;
-
     this.difficultyToRestoreTo = router.difficulty;
     this.goToNextDailyChallengePuzzle();
 
+    // Prevent the countdown from suddenly changing before the first puzzle loads
+    // (Needs to go before starting the countdown/timer)
+    this.stopUpdatesToCountdown = true;
+
     // Ensure the display gets updated immediately after starting the
-    // challenge puzzle, in case we are replaying a past challenge
+    // challenge puzzle, in case we are replaying a past challenge.
+    // Will also start the timer if starting today's challenge.
     this.startNextChallengeCountdown();
   }
 

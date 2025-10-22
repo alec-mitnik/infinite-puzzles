@@ -4,7 +4,7 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 /*
  * TODO:
  *
- * Account for ties in stats data?
+ *
  *
  *
  * Ideas:
