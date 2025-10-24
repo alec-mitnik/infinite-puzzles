@@ -324,7 +324,7 @@ button:disabled {
 
       #dailyChallengeIcon {
         /* Emoji has extra space around it compared to small countdown text  */
-        margin: -5px;
+        margin: -0.13em;
       }
     }
   }
@@ -407,7 +407,7 @@ button:disabled {
       overflow: hidden;
 
       > span {
-        /* Avoid expanding the sidebar size */
+        /* Use scale rather than font-size to avoid expanding the sidebar size */
         transform: scale(1.4);
         line-height: 1;
       }
@@ -492,13 +492,22 @@ button:disabled {
   display: none !important;
 }
 
-@media (orientation: landscape) {
+@media (orientation: portrait) {
   /* Use viewport-fit=cover and safe-area-insets for the sidebars so that
   the gutters match the sidebar backgrounds rather than the body background */
-  .puzzleLinks:first-child, #controls {
+  #settings .submenu-primary {
+    padding-top: env(safe-area-inset-top);
+  }
+  .puzzleGames .submenu-secondary, #controls {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (orientation: landscape) {
+  .puzzleGames .submenu-secondary, #controls {
     padding-left: env(safe-area-inset-left);
   }
-  #settings:last-child {
+  #settings .submenu-primary {
     padding-right: env(safe-area-inset-right);
   }
 
