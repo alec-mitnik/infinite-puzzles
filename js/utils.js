@@ -148,13 +148,14 @@ function hideSolution() {
   }
 }
 
-export function solutionToggle() {
+export async function solutionToggle() {
   if (!router.puzzleState.showingSolution) {
     const doingRecordedDailyChallengePuzzle =
         dailyChallengeManager.isDoingRecordedDailyChallengePuzzle();
 
-    if (!doingRecordedDailyChallengePuzzle || router.getConfirmation(
-        "Give up on the daily challenge and view the solution?\nNote that this will end your current streak.")) {
+    if (!doingRecordedDailyChallengePuzzle || await router.getConfirmation(
+        `Note that this will end your current streak.`,
+        'Give up on the daily challenge and view the solution?')) {
       if (doingRecordedDailyChallengePuzzle) {
         // Mark challenge run as unsuccessful and reset the current streak.
         // JSON does not support NaN.

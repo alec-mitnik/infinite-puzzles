@@ -43,9 +43,9 @@ class StatsManager {
       openDialogWithTransition(statsDialog);
     });
 
-    document.getElementById('markTutorialsCompletedButton')?.addEventListener('click', () => {
-      if (router.getConfirmation(`This option is intended for if you lost your data or switched to a new platform.
-Immediately set all tutorials as completed?`)) {
+    document.getElementById('markTutorialsCompletedButton')?.addEventListener('click', async () => {
+      if (await router.getConfirmation('This option is intended for if you lost your data or switched to a new platform.',
+          'Immediately set all tutorials as completed?')) {
         for (const puzzleKey of Object.keys(PUZZLE_CONFIGS)) {
           this.stats.puzzles[puzzleKey].tutorialDone = true;
         }
@@ -55,8 +55,8 @@ Immediately set all tutorials as completed?`)) {
       }
     })
 
-    document.getElementById('resetDataButton')?.addEventListener('click', () => {
-      if (router.getConfirmation("Reset all data?\nThis cannot be undone.")) {
+    document.getElementById('resetDataButton')?.addEventListener('click', async () => {
+      if (await router.getConfirmation('This cannot be undone.', 'Reset All Data?')) {
         clearData();
         statsDialog.close();
         document.body.classList.add('loading');

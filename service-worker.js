@@ -1,10 +1,11 @@
-let CACHE_VERSION = 224;
+let CACHE_VERSION = 225;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- * Confirmations kick you out of fullscreen mode!
+ * Make the daily challenge more prominent once it's available (for users who are familiar with its/all puzzles)
+ * Make the home screen less overwhelming?  Make the puzzle icons look more clickable, as full emojis?
  *
  *
  * Ideas:
@@ -115,9 +116,9 @@ self.addEventListener('fetch', event => {
 
             // Clone the response to cache and return original to browser
             const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
+            void caches.open(CACHE_NAME)
               .then(cache => {
-                cache.put(event.request.url.split('?')[0], responseToCache);
+                void cache.put(event.request.url.split('?')[0], responseToCache);
               });
 
             return response;

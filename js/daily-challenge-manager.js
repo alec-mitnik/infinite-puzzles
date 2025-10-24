@@ -42,7 +42,7 @@ class DailyChallengeManager {
 
     document.getElementById('startDailyChallengeButton')?.addEventListener('click', () => {
       this.activeDailyChallenge = this.getDailyChallengeForToday();
-      this.startDailyChallenge();
+      void this.startDailyChallenge();
     });
 
     const dailyChallengeShareResultButton = document.getElementById('dailyChallengeShareResultButton');
@@ -54,7 +54,7 @@ class DailyChallengeManager {
       dailyChallengeShareResultButton.addEventListener('click', () => {
         const dailyChallenge = this.getDailyChallengeForToday();
 
-        navigator.share({
+        void navigator.share({
           text: `Infinite Puzzles
 Daily Challenge for ${this.formatDateId(dailyChallenge.id)}
 ${dailyChallengeDialogPuzzles.textContent}
@@ -535,9 +535,12 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     }
   }
 
-  exitDailyChallenge() {
-    router.navigate('home');
-    router.setDifficulty(this.difficultyToRestoreTo, false);
+  async exitDailyChallenge() {
+    if (!(await router.navigate('home'))) {
+      return;
+    }
+
+    void router.setDifficulty(this.difficultyToRestoreTo, false);
     this.difficultyToRestoreTo = undefined;
 
     // Should already get reset when the puzzle loads, but here too as a failsafe
@@ -551,7 +554,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     this.calculateNextChallengePuzzleIndex();
 
     if (this.activeDailyChallengePuzzleIndex < 0) {
-      this.exitDailyChallenge();
+      void this.exitDailyChallenge();
       return;
     }
 
@@ -560,7 +563,7 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     // Avoid triggering a reload for the difficulty
     router.difficulty = activePuzzle.difficulty;
     router.updateDifficultyUI();
-    router.navigate(activePuzzle.key);
+    void router.navigate(activePuzzle.key);
   }
 
   calculateNextChallengePuzzleIndex() {
@@ -591,16 +594,15 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
   }
 
   // The activeDailyChallenge should have already been set before calling this function
-  startDailyChallenge() {
+  async startDailyChallenge() {
     if (!this.activeDailyChallenge.startTime
         && this.getDailyChallengeDateId() === this.activeDailyChallenge.id) {
       const familiarWithChallengePuzzles = this.activeDailyChallenge.puzzles.every(puzzle =>
           hasLevelBeenCompleted(puzzle.key) || getTutorialDone(puzzle.key));
 
-      if (!familiarWithChallengePuzzles && !router.getConfirmation(
-        `It looks like you're not yet familiar with all the puzzles in this challenge.
-Start it anyway?`
-      )) {
+      if (!familiarWithChallengePuzzles && !(await router.getConfirmation(
+        `It looks like you're not yet familiar with all the puzzles in this challenge.  Start it anyway?`
+      ))) {
         return;
       }
 
@@ -671,7 +673,7 @@ Start it anyway?`
     replayButton.ariaLabel = `Replay daily challenge for ${formattedDate}`;
     replayButton.addEventListener('click', () => {
       this.activeDailyChallenge = dailyChallenge;
-      this.startDailyChallenge();
+      void this.startDailyChallenge();
     });
     pastChallengeElement.appendChild(replayButton);
 

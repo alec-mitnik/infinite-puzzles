@@ -588,6 +588,22 @@ dialog {
     }
   }
 
+  &.no-close-button {
+    button.close-button {
+      display: none;
+    }
+
+    .modal-foreground .modal-content h1 {
+      margin: 0;
+    }
+  }
+
+  &.hug {
+    .modal-foreground {
+      min-width: auto;
+    }
+  }
+
   .dialog-inner-wrapper {
     width: 100%;
     height: 100%;
@@ -597,6 +613,10 @@ dialog {
     align-items: center;
   }
 
+  /* The main purpose of this custom backdrop implementation is to be able to
+  give it a click handler to close on click.  Apparently, setting closedby="any"
+  on the dialog tag is for supporting exactly this behavior, but it's not fully
+  supported yet (in Safari) */
   .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -624,7 +644,8 @@ dialog {
 
     .modal-content {
       background-color: var(--gray);
-      border: 1px solid var(--gray);;
+      border: 2px solid var(--gray);
+      border-radius: inherit;
       width: 100%;
       height: 100%;
       display: flex;
@@ -643,12 +664,10 @@ dialog {
       }
 
       h1 {
-        margin: 0;
+        /* Ensure space for close button */
+        margin: 0 56px;
         font-weight: bold;
         font-size: 2.75rem;
-
-        /* Ensure space for close button */
-        margin-inline: 56px;
       }
 
       h2 {
@@ -700,7 +719,7 @@ dialog {
   }
 
   hr {
-    margin-block: 8px;
+    margin-block: 16px;
     color: var(--light-gray);
     border-style: solid;
     width: 100%;
@@ -777,6 +796,19 @@ dialog {
     display: inline-flex;
     margin-top: 8px;
     font-size: max(1.5rem, 16px);
+
+    &.bottom-button {
+      margin-bottom: 8px;
+    }
+
+    &.golden {
+      color: var(--gold);
+      border-color: currentColor;
+    }
+
+    &.spaced-out {
+      margin-inline: 4px;
+    }
 
     @media (hover: hover) and (pointer: fine) {
       &:hover:not(:disabled) {
@@ -856,10 +888,6 @@ dialog {
     gap: 16px;
     justify-content: center;
     align-items: baseline;
-
-    #startDailyChallengeButton {
-      margin-bottom: 8px;
-    }
   }
 
   #replayDailyChallengeNote {
@@ -1022,9 +1050,29 @@ dialog {
     /* counteracting margin-collapse */
     padding-top: 1px;
   }
+}
 
-  #resetDataButton {
-    margin-bottom: 16px;
+#confirmationDialog {
+  .modal-content {
+    border-color: color-mix(in srgb, var(--gold) 25%, transparent);
+  }
+
+  h1 {
+    /* Wrap the header text while keeping the warning icons in place */
+    display: flex;
+    gap: 8px;
+
+    &::before {
+      content: '⚠️ ' / '';
+    }
+
+    &::after {
+      content: ' ⚠️' / '';
+    }
+  }
+
+  .scroll-container:has(p:empty) {
+    display: none;
   }
 }
 

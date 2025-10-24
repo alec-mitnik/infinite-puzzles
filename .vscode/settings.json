@@ -1,9 +1,11 @@
 {
   "cSpell.words": [
+    "closedby",
     "kofi",
     "perma",
     "serviceworker",
-    "Tileset"
+    "Tileset",
+    "tsparser"
   ],
   "cSpell.ignoreWords": [
     "BLASTWAVEFX",

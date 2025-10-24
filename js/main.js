@@ -3,7 +3,10 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 import dailyChallengeManager from './daily-challenge-manager.js';
 import router from './router.js';
 import statsManager from './stats-manager.js';
-import { isLocalStorageAvailable, openDialogWithTransition, solutionToggle, startButtonClick } from './utils.js';
+import {
+  isLocalStorageAvailable, openDialogWithTransition, solutionToggle,
+  startButtonClick
+} from './utils.js';
 
 // Register service worker and online status
 if ('serviceWorker' in navigator) {
@@ -15,7 +18,7 @@ if ('serviceWorker' in navigator) {
   console.log('App loaded as ' + (navigator.onLine ? 'online' : 'offline'));
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
+    void navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
         console.log('ServiceWorker registered with scope:', registration.scope);
 
@@ -32,7 +35,7 @@ if ('serviceWorker' in navigator) {
         });
 
         // Check for updates on page load
-        registration.update();
+        void registration.update();
       })
       .catch(error => {
         console.error('ServiceWorker registration failed:', error);
@@ -97,7 +100,7 @@ window.matchMedia("(orientation: portrait)").addEventListener('change',
     (event) => updateLayoutForOrientation(event.matches));
 
 // Set up app initialization
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   updateLayoutForOrientation(window.matchMedia("(orientation: portrait)").matches);
 
   if (!isLocalStorageAvailable()) {
@@ -119,14 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
     sharePuzzleLinkWithNavigatorButton.style.display = 'none';
   } else {
     sharePuzzleSeedWithNavigatorButton.addEventListener('click', () => {
-      navigator.share({
+      void navigator.share({
         title: document.title,
         text: router.seed,
       });
     });
 
     sharePuzzleLinkWithNavigatorButton.addEventListener('click', () => {
-      navigator.share({
+      void navigator.share({
         title: document.title,
         text: 'I want to share this puzzle with you!',
         url: document.getElementById('sharePuzzleUrl').textContent,
@@ -137,13 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const generatePuzzleFromSeedForm = document.getElementById('generatePuzzleFromSeedForm');
   const newSeedInput = generatePuzzleFromSeedForm.newSeed;
 
-  generatePuzzleFromSeedForm.addEventListener('submit', (event) => {
+  generatePuzzleFromSeedForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const newSeed = newSeedInput.value;
     router.seed = newSeed;
 
-    if (router.reloadPuzzle(newSeed)) {
+    if (await router.reloadPuzzle(newSeed)) {
       generatePuzzleFromSeedForm.reset();
       document.getElementById('puzzleSharingDialog').close();
     }
@@ -176,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const puzzleKey = puzzleButton.ariaLabel.replace(/\s/g, '');
 
     puzzleButton.addEventListener('click', () => {
-      router.navigate(puzzleKey);
+      void router.navigate(puzzleKey);
     });
   }
 
@@ -194,14 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Home
   document.getElementById('homeButton')?.addEventListener('click', () => {
     if (dailyChallengeManager.isDoingDailyChallenge()) {
-      dailyChallengeManager.exitDailyChallenge();
+      void dailyChallengeManager.exitDailyChallenge();
     } else {
-      router.navigate('home');
+      void router.navigate('home');
     }
   });
   // Toggle Tutorial
   document.getElementById('tutorialButton')?.addEventListener('click', () => {
-    router.toggleTutorial();
+    void router.toggleTutorial();
   });
   // Instructions
   document.getElementById('instructionsButton')?.addEventListener('click', () => {
@@ -209,15 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   // Show Solution
   document.getElementById('solutionButton')?.addEventListener('click', () => {
-    solutionToggle();
+    void solutionToggle();
   });
   // Generate New Puzzle
   document.getElementById('generateNewPuzzleButton')?.addEventListener('click', () => {
-    router.reloadPuzzle();
+    void router.reloadPuzzle();
   });
   // Next Tutorial Puzzle
   document.getElementById('nextTutorialPuzzleButton')?.addEventListener('click', () => {
-    router.reloadPuzzle();
+    void router.reloadPuzzle();
   });
   // Next Daily Challenge Puzzle
   document.getElementById('nextDailyChallengePuzzleButton')?.addEventListener('click', () => {
@@ -283,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initialize routing
-  router.init();
+  await router.init();
 
   // Initialize stats
   statsManager.init();
@@ -324,7 +327,7 @@ function requestFullScreen(element) {
 
 function exitFullScreen() {
   if (document.exitFullscreen) {
-    document.exitFullscreen();
+    void document.exitFullscreen();
   } else if (document.webkitExitFullscreen) {
     document.webkitExitFullscreen();
   } else if (document.mozCancelFullScreen) {

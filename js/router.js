@@ -3,7 +3,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONF
 import dailyChallengeManager from './daily-challenge-manager.js';
 import {
   generateSeed, getPuzzleCanvas, getSeededRandomFunction,
-  getTutorialDone, stopConfetti, updateForTutorialRecommendation
+  getTutorialDone, openDialogWithTransition, stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
 
 class Router {
@@ -52,7 +52,7 @@ class Router {
     }
   }
 
-  init() {
+  async init() {
     // Handle abandoning puzzles
     window.addEventListener('beforeunload', (event) => {
       // Check if we need to confirm leaving current puzzle
@@ -71,7 +71,7 @@ class Router {
         return;
       }
 
-      this.setDifficulty(difficulty);
+      void this.setDifficulty(difficulty);
     }
 
     // Handle difficulty controls
@@ -138,9 +138,9 @@ class Router {
     });
 
     // Handle popstate events (browser back/forward)
-    window.addEventListener('popstate', (event) => {
+    window.addEventListener('popstate', async (event) => {
       if (!this.cancelingNavigation) {
-        if (!this.confirmAbandon()) {
+        if (!(await this.confirmAbandon())) {
           this.cancelingNavigation = true;
           window.history.forward();
           return;
@@ -151,7 +151,7 @@ class Router {
         this.loadRoute(event.state.route, false, this.cancelingNavigation);
 
         // Retain latest difficulty setting in the URL
-        this.setDifficulty(this.difficulty);
+        void this.setDifficulty(this.difficulty);
       } else {
         // Default to home if no state
         this.loadRoute('home', false, this.cancelingNavigation);
@@ -161,7 +161,7 @@ class Router {
     });
 
     // Initial loading
-    this.setDifficulty(this.difficulty);
+    await this.setDifficulty(this.difficulty);
     this.loadRoute(this.currentRoute, false);
 
     // Update difficulty UI
@@ -221,8 +221,8 @@ class Router {
     }
   }
 
-  reloadPuzzle(newSeed = '') {
-    if (this.confirmAbandon()) {
+  async reloadPuzzle(newSeed = '') {
+    if (await this.confirmAbandon()) {
       this.seed = newSeed;
       this.loadRoute(this.currentRoute);
       return true;
@@ -231,16 +231,17 @@ class Router {
     return false;
   }
 
-  toggleTutorial() {
+  async toggleTutorial() {
     const startTutorial = !this.puzzleState.tutorialStage;
 
-    if (startTutorial && !this.confirmAbandon()) {
+    if (startTutorial && !(await this.confirmAbandon())) {
       return;
     }
 
     // If exiting the tutorial, and it hasn't been done yet, show the prompt
-    if (!startTutorial && !getTutorialDone() && !this.getConfirmation(
-        "Exit Tutorial?\nYou can try again at any time and skip through any of its levels.")) {
+    if (!startTutorial && !getTutorialDone() && !(await this.getConfirmation(
+        'You can try again at any time and skip through any of its levels.',
+        'Exit Tutorial?'))) {
       // If the confirmation to exit was cancelled, abort
       return;
     }
@@ -257,25 +258,53 @@ class Router {
         && this.puzzleState && this.puzzleState.started && !this.puzzleState.ended;
   }
 
-  getConfirmation(message) {
+  // The native confirmation dialog kicks you out of fullscreen mode,
+  // so need to use a custom, manual implementation instead
+  /* getConfirmation(message) {
     // Navigating back at any point breaks confirmation dialogs in mobile iOS
     let startingTime = Date.now();
-    const abandonConfirmed = confirm(message);
-    return abandonConfirmed || Date.now() - startingTime < 10;
+    const confirmed = confirm(message);
+    return confirmed || Date.now() - startingTime < 10;
+  } */
+
+  // Note that even with this custom implementation allowing for confirmation in fullscreen mode,
+  // the Escape key will still exit fullscreen mode before it closes a dialog...
+  getConfirmation(message, title = 'Are You Sure?') {
+    return new Promise((resolve) => {
+      const confirmationDialog = document.getElementById('confirmationDialog');
+
+      // Just in case
+      if (confirmationDialog.open) {
+        confirmationDialog.close();
+      }
+
+      openDialogWithTransition(confirmationDialog);
+
+      // Apparently this can't be relied on to get reset automatically,
+      // so it's important to make sure it's always reset manually
+      confirmationDialog.returnValue = '';
+
+      document.getElementById('confirmationDialogTitle').textContent = title;
+      document.getElementById('confirmationDialogMessage').textContent = message;
+
+      confirmationDialog.onclose = () => {
+        resolve(confirmationDialog.returnValue === 'confirm');
+      };
+    });
   }
 
-  confirmAbandon() {
+  async confirmAbandon() {
     // Check if we need to confirm leaving current puzzle
     if (this.getNavigationConfirmCondition()) {
-      return this.getConfirmation("Abandon Puzzle?");
+      return await this.getConfirmation('', 'Abandon Puzzle?');
     }
 
     return true;
   }
 
-  navigate(route) {
+  async navigate(route) {
     // Check if we need to confirm leaving current puzzle
-    if (this.confirmAbandon()) {
+    if (await this.confirmAbandon()) {
       this.seed = '';
 
       if (!route || route === 'home') {
@@ -286,7 +315,10 @@ class Router {
       }
 
       this.loadRoute(route);
+      return true;
     }
+
+    return false;
   }
 
   // Load home page content
@@ -420,7 +452,7 @@ class Router {
     }
   }
 
-  setDifficulty(value, updateHistory = true) {
+  async setDifficulty(value, updateHistory = true) {
     if (isNaN(value) || value < 1 || value > 4) {
       value = 1; // Default to easy if invalid
     }
@@ -441,7 +473,7 @@ class Router {
       return;
     }
 
-    if (this.puzzleState?.tutorialStage || this.reloadPuzzle()) {
+    if (this.puzzleState?.tutorialStage || await this.reloadPuzzle()) {
       // Update UI
       this.updateDifficultyUI();
     } else {

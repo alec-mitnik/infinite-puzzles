@@ -36,6 +36,41 @@
 </head>
 
 <body class="loading">
+  <!-- Confirmation Dialog -->
+  <dialog id="confirmationDialog" class="no-close-button hug"
+      aria-labelledby="confirmationDialogTitle" aria-describedby="confirmationDialogMessage">
+    <div class="dialog-inner-wrapper">
+      <!-- For this dialog, don't close it when clicking the backdrop -->
+      <div class="modal-backdrop" aria-hidden="true"></div>
+      <div class="modal-foreground">
+        <!-- <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('confirmationDialog').close()">
+          <span aria-hidden="true"></span>
+        </button> -->
+
+        <div class="modal-content" tabindex="-1">
+          <h1 id="confirmationDialogTitle"></h1>
+
+          <div class="scroll-container">
+            <p id="confirmationDialogMessage"></p>
+          </div>
+
+          <hr />
+
+          <!-- This method allows for dialog closure without the need for a custom event listener -->
+          <form method="dialog">
+            <button autofocus type="submit" class="bottom-button spaced-out">
+              Cancel
+            </button>
+            <button type="submit" value="confirm" class="bottom-button golden spaced-out">
+              Confirm
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <section id="settings" class="menu-primary sidebar-group" role="group" aria-label="Puzzle Settings">
     <div class="sidebar submenu-primary">
       <!-- Volume -->
@@ -170,7 +205,7 @@
                 Show Timer
               </label>
 
-              <button id="startDailyChallengeButton"></button>
+              <button id="startDailyChallengeButton" class="bottom-button"></button>
             </div>
 
             <p id="replayDailyChallengeNote" class="smaller-text">
@@ -283,8 +318,10 @@
 
             <hr />
 
-            <button id="markTutorialsCompletedButton">Mark Tutorials as Completed</button>
-            <button id="resetDataButton">Reset Data</button>
+            <button id="markTutorialsCompletedButton" class="bottom-button spaced-out">
+              Mark Tutorials as Completed
+            </button>
+            <button id="resetDataButton" class="bottom-button spaced-out">Reset Data</button>
           </div>
         </div>
       </div>
