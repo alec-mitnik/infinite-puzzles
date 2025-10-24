@@ -228,15 +228,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   // Open Puzzle Sharing Dialog
   document.getElementById('sharePuzzleButton')?.addEventListener('click', () => {
+    const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
     const sharePuzzleOptions = document.getElementById('sharePuzzleOptions');
     const sharePuzzleTutorialMessage = document.getElementById('sharePuzzleTutorialMessage');
 
     if (router.puzzleState.tutorialStage) {
       sharePuzzleOptions.style.display = 'none';
       sharePuzzleTutorialMessage.style.display = null;
+      puzzleSharingDialog.ariaDescribedByElements = [sharePuzzleTutorialMessage];
     } else {
       sharePuzzleOptions.style.display = null;
       sharePuzzleTutorialMessage.style.display = 'none';
+      puzzleSharingDialog.ariaDescribedByElements =
+          [document.getElementById('puzzleSharingExplanation')];
 
       document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
       document.getElementById('generatePuzzleFromSeedForm').reset();
@@ -260,7 +264,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('seedInstructionsDifficultyLabel').textContent = difficultyAriaLabel;
     }
 
-    const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
     openDialogWithTransition(puzzleSharingDialog);
   });
 

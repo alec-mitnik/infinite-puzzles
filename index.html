@@ -38,7 +38,8 @@
 <body class="loading">
   <!-- Confirmation Dialog -->
   <dialog id="confirmationDialog" class="no-close-button hug"
-      aria-labelledby="confirmationDialogTitle" aria-describedby="confirmationDialogMessage">
+      role="alertdialog" aria-labelledby="confirmationDialogTitle"
+      aria-describedby="confirmationDialogMessage">
     <div class="dialog-inner-wrapper">
       <!-- For this dialog, don't close it when clicking the backdrop -->
       <div class="modal-backdrop" aria-hidden="true"></div>
@@ -136,7 +137,8 @@
   </section>
 
   <!-- Daily Challenge Dialog -->
-  <dialog id="dailyChallengeDialog" aria-labelledBy="dailyChallengeDialogTitle">
+  <dialog id="dailyChallengeDialog" aria-labelledBy="dailyChallengeDialogTitle"
+      aria-describedby="dailyChallengeExplanation">
     <div class="dialog-inner-wrapper">
       <div class="modal-backdrop" aria-hidden="true"
           onclick="document.getElementById('dailyChallengeDialog').close()"></div>
@@ -426,7 +428,10 @@
   </div>
 
   <!-- Puzzle Sharing Dialog -->
-  <dialog id="puzzleSharingDialog" aria-labelledBy="sharePuzzleTitle">
+  <dialog id="puzzleSharingDialog" aria-labelledBy="sharePuzzleTitle"
+      aria-describedby="puzzleSharingExplanation">
+    <!-- Aria described-by set programmatically on open, to account for tutorial state,
+    since even hidden elements get announced by screen readers -->
     <div class="dialog-inner-wrapper">
       <div class="modal-backdrop" aria-hidden="true"
           onclick="document.getElementById('puzzleSharingDialog').close()"></div>
@@ -444,7 +449,7 @@
           </p>
 
           <div id="sharePuzzleOptions" class="scroll-container">
-            <p class="smaller-text">
+            <p id="puzzleSharingExplanation" class="smaller-text">
               Puzzles are generated from seed text, which means you can share this specific generated puzzle with others using the options below!
             </p>
 
