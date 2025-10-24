@@ -1,10 +1,9 @@
-let CACHE_VERSION = 226;
+let CACHE_VERSION = 227;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- * Make the daily challenge more prominent once it's available (for users who are familiar with its/all puzzles)
  * Make the home screen less overwhelming?  Make the puzzle icons look more grouped and clickable?
  *
  *

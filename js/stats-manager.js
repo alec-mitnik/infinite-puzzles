@@ -52,6 +52,9 @@ class StatsManager {
 
         this.saveStatsData();
         this.updateDisplayedStats();
+
+        // Allow the shine class to be applied if applicable now that all puzzles are familiar
+        dailyChallengeManager.startNextChallengeCountdown();
       }
     })
 

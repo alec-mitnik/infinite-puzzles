@@ -275,6 +275,11 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
         .filter(id => this.dailyChallenges[id].startTime != null).sort().pop());
   }
 
+  isFamiliarWithChallengePuzzles(dailyChallenge) {
+    return dailyChallenge.puzzles.every(puzzle =>
+        hasLevelBeenCompleted(puzzle.key) || getTutorialDone(puzzle.key));
+  }
+
   handleNewDailyChallengeAvailable() {
     // Ensure new daily challenge data has been created
     const newDailyChallenge = this.getDailyChallengeForToday();
@@ -291,6 +296,10 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     document.getElementById('startDailyChallengeButton').textContent = "Start Daily Challenge!";
     document.getElementById('dailyChallengeDialogDate').textContent = challengeDate;
     document.getElementById("dailyChallengeIcon").classList.remove("faded");
+
+    if (this.isFamiliarWithChallengePuzzles(newDailyChallenge)) {
+      document.getElementById('dailyChallengeButton').classList.add('shine');
+    }
 
     if (!this.isDoingDailyChallenge()) {
       // Ensure the active daily challenge is always the latest one
@@ -341,6 +350,8 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
     const countdownElement = document.getElementById('dailyChallengeCountdown');
     const timerElement = document.getElementById('dailyChallengeTimer');
     const dailyChallengeDialog = document.getElementById('dailyChallengeDialog');
+    const dailyChallengeIcon = document.getElementById('dailyChallengeIcon');
+    const dailyChallengeButton = document.getElementById('dailyChallengeButton');
     const startDailyChallengeButton = document.getElementById('startDailyChallengeButton');
     const dailyChallengeDialogDateElement = document.getElementById('dailyChallengeDialogDate');
     dailyChallengeDialogDateElement.textContent = this.formatDateId(this.activeDailyChallenge.id);
@@ -382,12 +393,16 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
       // Is the current daily challenge in progress (and we're not currently replaying a past one)?
       if (dailyChallenge.startTime && dailyChallenge.endTime == null
           && dailyChallenge.id === this.activeDailyChallenge.id) {
+        // Already in progress, so add the shine class even if unfamiliar with the puzzles
+        dailyChallengeButton.classList.add('shine');
         this.startDailyChallengeTimer();
         return;
       }
 
       // Daily challenge already attempted today
       dailyChallengeDialog.classList.add('completed');
+      dailyChallengeIcon.classList.add('faded');
+      dailyChallengeButton.classList.remove('shine');
       startDailyChallengeButton.textContent = "Replay Daily Challenge";
       const countdown = this.formatMsCountdown(ms);
       const countdownHtml = `<span class="small-text">Next challenge in:</span><br />${countdown}`;
@@ -597,10 +612,8 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
   async startDailyChallenge() {
     if (!this.activeDailyChallenge.startTime
         && this.getDailyChallengeDateId() === this.activeDailyChallenge.id) {
-      const familiarWithChallengePuzzles = this.activeDailyChallenge.puzzles.every(puzzle =>
-          hasLevelBeenCompleted(puzzle.key) || getTutorialDone(puzzle.key));
-
-      if (!familiarWithChallengePuzzles && !(await router.getConfirmation(
+      if (!this.isFamiliarWithChallengePuzzles(this.activeDailyChallenge)
+          && !(await router.getConfirmation(
         `It looks like you're not yet familiar with all the puzzles in this challenge.  Start it anyway?`
       ))) {
         return;
