@@ -1,10 +1,10 @@
-let CACHE_VERSION = 223;
+let CACHE_VERSION = 224;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- *
+ * Confirmations kick you out of fullscreen mode!
  *
  *
  * Ideas:

@@ -498,13 +498,13 @@ button:disabled {
   #settings .submenu-primary {
     padding-top: env(safe-area-inset-top);
   }
-  .puzzleGames .submenu-secondary, #controls {
+  #puzzleGames .submenu-secondary, #controls {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
 @media (orientation: landscape) {
-  .puzzleGames .submenu-secondary, #controls {
+  #puzzleGames .submenu-secondary, #controls {
     padding-left: env(safe-area-inset-left);
   }
   #settings .submenu-primary {
