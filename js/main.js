@@ -1,5 +1,5 @@
 import audioManager from './audio-manager.js';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, PUZZLE_CONFIGS } from './config.js';
 import dailyChallengeManager from './daily-challenge-manager.js';
 import router from './router.js';
 import statsManager from './stats-manager.js';
@@ -101,6 +101,34 @@ window.matchMedia("(orientation: portrait)").addEventListener('change',
 
 // Set up app initialization
 document.addEventListener('DOMContentLoaded', async () => {
+  // Generate the puzzle links
+  const puzzleBar1 = document.querySelector('.puzzleLinks.submenu-primary');
+  const puzzleBar2 = document.querySelector('.puzzleLinks.submenu-secondary');
+  const puzzles = Object.values(PUZZLE_CONFIGS);
+
+  for (let i = 0; i < puzzles.length; i++) {
+    /* <button aria-label="Tetromino Grid Puzzle">
+      <span role="img" aria-Label="Tetromino Grid Puzzle">🔲︎</span>
+    </button> */
+
+    const puzzle = puzzles[i];
+
+    const span = document.createElement('span');
+    span.role = 'img';
+    span.ariaLabel = puzzle.name;
+    span.textContent = puzzle.icon;
+
+    const button = document.createElement('button');
+    button.ariaLabel = puzzle.name;
+    button.appendChild(span);
+
+    if (i < puzzles.length / 2) {
+      puzzleBar1.appendChild(button);
+    } else {
+      puzzleBar2.appendChild(button);
+    }
+  }
+
   updateLayoutForOrientation(window.matchMedia("(orientation: portrait)").matches);
 
   if (!isLocalStorageAvailable()) {
