@@ -1000,6 +1000,12 @@ dialog {
       grid-column: 1 / -1;
     }
 
+    .double-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
     #statTutorialsCompletedValue {
       font-size: inherit;
       display: flex;

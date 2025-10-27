@@ -141,6 +141,22 @@ class StatsManager {
     document.getElementById('statTotalDailyChallengesCompletedValue').textContent =
         this.stats.dailyChallenges.totalCompleted?.toLocaleString();
 
+    const dailyChallengeValuesSortedByCompletion =
+        // Sort by decreasing duration, to favor faster times
+        // in the case of an even number of entries
+        Object.values(dailyChallengeManager.dailyChallenges)
+        .filter(challenge => challenge.startTime >= 0 && challenge.endTime >= 0)
+        .sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
+    const medianDailyChallengeCompletion = dailyChallengeValuesSortedByCompletion.length ?
+        dailyChallengeValuesSortedByCompletion[Math.floor(dailyChallengeValuesSortedByCompletion.length / 2)]
+        : null;
+    document.getElementById('statMedianDailyChallengeCompletionValue').innerHTML =
+        medianDailyChallengeCompletion ?
+        dailyChallengeManager.formatTimerForHtml(
+          medianDailyChallengeCompletion.startTime,
+          medianDailyChallengeCompletion.endTime
+        ) : "None yet";
+
     const dailyChallengeArchiveList = document.getElementById('dailyChallengeArchiveList');
     dailyChallengeArchiveList.textContent = '';
 

@@ -332,7 +332,8 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
 
     const yearAgoDateId = this.getDailyChallengeDateId(-365);
 
-    // Only keep a year's worth of daily challenge data
+    // Keep a year's worth of daily challenge data,
+    // used for calculating median completion time
     for (const dateId in this.dailyChallenges) {
       if (Number(dateId) <= yearAgoDateId) {
         delete this.dailyChallenges[dateId];
