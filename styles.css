@@ -110,10 +110,18 @@ body {
   @media (orientation: landscape) {
     button:first-child {
       border-top-color: transparent;
+
+      &::before {
+        display: none;
+      }
     }
 
     button:last-child {
       border-bottom-color: transparent;
+
+      &::after {
+        display: none;
+      }
     }
 
     &.submenu-secondary button {
@@ -140,10 +148,18 @@ body {
   @media (orientation: portrait) {
     button:first-child {
       border-left-color: transparent;
+
+      &::before {
+        display: none;
+      }
     }
 
     button:last-child {
       border-right-color: transparent;
+
+      &::after {
+        display: none;
+      }
     }
 
     &.submenu-secondary button {
@@ -519,7 +535,7 @@ button:disabled {
     &:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
         ):not(#difficulty-group.daily-challenge &) {
       @media (hover: hover) and (pointer: fine) {
-        &:hover {
+        &:hover:not(.active) {
           background-color: var(--light-gray);
         }
       }
@@ -597,21 +613,27 @@ button:disabled {
   }
 }
 
-#tutorialButton.active, #solutionButton.active {
-  > span {
-    background-color: var(--gold);
-    color: var(--gray);
-
-    @media (prefers-contrast: more) {
-      border: 2px solid white;
-    }
+@media (prefers-contrast: more) {
+  #controls button {
+    margin: 2px;
   }
 }
 
-#instructionsButton.active > span {
+#tutorialButton.active, #solutionButton.active {
+  background-color: var(--gold);
+  color: var(--gray);
+
+  @media (prefers-contrast: more) {
+    margin: 0;
+    border: 2px solid white;
+  }
+}
+
+#instructionsButton.active {
   background-color: var(--blue);
 
   @media (prefers-contrast: more) {
+    margin: 0;
     border: 2px solid white;
   }
 }
@@ -666,6 +688,10 @@ button:disabled {
   #settings .submenu-primary {
     button, label {
       padding-top: env(safe-area-inset-top);
+
+      &.selected {
+        padding-top: calc(10px + env(safe-area-inset-top));
+      }
     }
   }
   #puzzleGames .submenu-secondary, #controls {
@@ -684,6 +710,10 @@ button:disabled {
   #settings .submenu-primary {
     button, label {
       padding-right: env(safe-area-inset-right);
+
+      &.selected {
+        padding-right: calc(10px + env(safe-area-inset-top));
+      }
     }
   }
 
