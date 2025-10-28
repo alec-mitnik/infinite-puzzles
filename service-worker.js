@@ -1,10 +1,10 @@
-let CACHE_VERSION = 230;
+let CACHE_VERSION = 231;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- * Make the home screen less overwhelming?  Make the puzzle icons look more grouped and clickable?
+ *
  *
  *
  * Ideas:

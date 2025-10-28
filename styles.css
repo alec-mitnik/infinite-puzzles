@@ -118,6 +118,12 @@ body {
 
     &.submenu-secondary button {
       border-left-color: transparent;
+
+      &:nth-child(odd) {
+        &::before {
+          display: none;
+        }
+      }
     }
 
     &.submenu-primary button {
@@ -142,6 +148,12 @@ body {
 
     &.submenu-secondary button {
       border-bottom-color: transparent;
+
+      &:nth-child(even) {
+        &::after {
+          display: none;
+        }
+      }
     }
 
     &.submenu-primary button {
@@ -652,19 +664,27 @@ button:disabled {
   /* Use viewport-fit=cover and safe-area-insets for the sidebars so that
   the gutters match the sidebar backgrounds rather than the body background */
   #settings .submenu-primary {
-    padding-top: env(safe-area-inset-top);
+    button, label {
+      padding-top: env(safe-area-inset-top);
+    }
   }
   #puzzleGames .submenu-secondary, #controls {
-    padding-bottom: env(safe-area-inset-bottom);
+    button, label {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }
 
 @media (orientation: landscape) {
   #puzzleGames .submenu-secondary, #controls {
-    padding-left: env(safe-area-inset-left);
+    button, label {
+      padding-left: env(safe-area-inset-left);
+    }
   }
   #settings .submenu-primary {
-    padding-right: env(safe-area-inset-right);
+    button, label {
+      padding-right: env(safe-area-inset-right);
+    }
   }
 
   body, .sidebar-group {
