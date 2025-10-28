@@ -712,7 +712,7 @@ button:disabled {
       padding-right: env(safe-area-inset-right);
 
       &.selected {
-        padding-right: calc(10px + env(safe-area-inset-top));
+        padding-right: calc(10px + env(safe-area-inset-right));
       }
     }
   }
