@@ -93,6 +93,131 @@ body {
   flex-direction: column;
 }
 
+#puzzleGames, #controls, #settings {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 16px 0 rgba(0 0 0 / 0.5), 0 0 4px 0 rgba(0 0 0 / 0.3);
+}
+
+/* Added specificity */
+.puzzleLinks.sidebar {
+  --cutout-size: 0.45em;
+  --cutout-position: calc(-0.5 * (6px + var(--cutout-size)));
+
+  /* Needs to be opaque so that it isn't affected by the hover highlight */
+  --border-color: #2a2a2a;
+
+  @media (orientation: landscape) {
+    button:first-child {
+      border-top-color: transparent;
+    }
+
+    button:last-child {
+      border-bottom-color: transparent;
+    }
+
+    &.submenu-secondary button {
+      border-left-color: transparent;
+    }
+
+    &.submenu-primary button {
+      border-right-color: transparent;
+
+      &:nth-child(even) {
+        &::after {
+          display: none;
+        }
+      }
+    }
+  }
+
+  @media (orientation: portrait) {
+    button:first-child {
+      border-left-color: transparent;
+    }
+
+    button:last-child {
+      border-right-color: transparent;
+    }
+
+    &.submenu-secondary button {
+      border-bottom-color: transparent;
+    }
+
+    &.submenu-primary button {
+      border-top-color: transparent;
+
+      &:nth-child(odd) {
+        &::before {
+          display: none;
+        }
+      }
+    }
+  }
+
+  button {
+    /* Allow jigsaw piece circles to stick out */
+    overflow: visible;
+    border: 1px solid var(--border-color);
+
+    &::before, &::after {
+      content: '';
+      background: inherit;
+      width: var(--cutout-size);
+      height: var(--cutout-size);
+      border-radius: 100vh;
+      position: absolute;
+      align-self: center;
+      z-index: 1;
+      border: 2px solid transparent;
+      rotate: -45deg;
+    }
+
+    > span {
+      /* Ensure the puzzle icon always shows above any jigsaw piece circles */
+      z-index: 5;
+
+      /* Shrink them a bit anyway to reduce clutter */
+      font-size: 0.75em;
+    }
+  }
+
+  /* Create a jigsaw pattern */
+  &.submenu-primary button:nth-child(even),
+  &.submenu-secondary button:nth-child(odd) {
+    background: inherit;
+
+    &::before {
+      left: var(--cutout-position);
+      border-left-color: var(--border-color);
+      border-top-color: var(--border-color);
+    }
+
+    &::after {
+      right: var(--cutout-position);
+      border-right-color: var(--border-color);
+      border-bottom-color: var(--border-color);
+    }
+  }
+
+  &.submenu-primary button:nth-child(odd),
+  &.submenu-secondary button:nth-child(even) {
+    background: inherit;
+
+    &::before {
+      top: var(--cutout-position);
+      border-top-color: var(--border-color);
+      border-right-color: var(--border-color);
+    }
+
+    &::after {
+      bottom: var(--cutout-position);
+      border-bottom-color: var(--border-color);
+      border-left-color: var(--border-color);
+    }
+  }
+}
+
 #canvasContainer {
   transition: opacity 1s;
   background-color: black; /* For browsers that do not support gradients */
