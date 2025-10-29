@@ -201,6 +201,15 @@ body {
       rotate: -45deg;
     }
 
+    @media (prefers-contrast: more) {
+      border: none;
+
+      &::before, &::after {
+        border: none;
+        display: none;
+      }
+    }
+
     > span {
       /* Ensure the puzzle icon always shows above any jigsaw piece circles */
       z-index: 5;
@@ -471,8 +480,6 @@ button:disabled {
 
       @media (orientation: landscape) {
         flex-direction: column;
-        gap: 20%;
-        margin-top: -15%;
       }
 
       #dailyChallengeIcon {
@@ -515,7 +522,9 @@ button:disabled {
       max-width: 100%;
 
       @media (orientation: landscape) {
-        position: absolute;
+        /* Don't count the contents towards the parent's
+        calculated content width - hallelujah! */
+        contain: inline-size;
         width: 100%;
       }
     }
@@ -533,9 +542,9 @@ button:disabled {
     overflow: hidden;
 
     &:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
-        ):not(#difficulty-group.daily-challenge &) {
+        ):not(#difficulty-group.daily-challenge &):not(.active) {
       @media (hover: hover) and (pointer: fine) {
-        &:hover:not(.active) {
+        &:hover:not(:active) {
           background-color: var(--light-gray);
         }
       }
@@ -910,15 +919,16 @@ dialog {
           margin: 0;
         }
 
-        @media (hover: hover) and (pointer: fine) {
-          &:hover:not(:disabled) {
-            background-color: var(--light-gray);
+        &:not(:disabled) {
+          @media (hover: hover) and (pointer: fine) {
+            &:hover:not(:active) {
+              background-color: var(--light-gray);
+            }
           }
-        }
 
-        &:active:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
-            ):not(#difficulty-group.daily-challenge &) {
-          background-color: var(--med-light-gray);
+          &:active {
+            background-color: var(--med-light-gray);
+          }
         }
       }
     }
@@ -1016,15 +1026,16 @@ dialog {
       margin-inline: 4px;
     }
 
-    @media (hover: hover) and (pointer: fine) {
-      &:hover:not(:disabled) {
-        background-color: var(--light-gray);
+    &:not(:disabled) {
+      @media (hover: hover) and (pointer: fine) {
+        &:hover:not(:active) {
+          background-color: var(--light-gray);
+        }
       }
-    }
 
-    &:active:not(:disabled):not(:has(input:disabled)):not(.selected):not(:checked
-        ):not(#difficulty-group.daily-challenge &) {
-      background-color: var(--med-light-gray);
+      &:active {
+        background-color: var(--med-light-gray);
+      }
     }
   }
 
@@ -1304,7 +1315,10 @@ dialog {
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       background: black;
-      box-shadow: 0 0 6px 2px var(--gold);
+
+      &:not(:active) {
+        box-shadow: 0 0 6px 2px var(--gold);
+      }
     }
   }
 
