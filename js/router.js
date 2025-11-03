@@ -111,6 +111,11 @@ class Router {
         this.currentPuzzle.onTouchEnd(event);
       }
     }, { passive: false });
+    canvasContainer?.addEventListener('touchcancel', (event) => {
+      if (typeof this.currentPuzzle?.onTouchEnd === 'function') {
+        this.currentPuzzle.onTouchEnd(event);
+      }
+    }, { passive: false });
 
     let puzzleCanvas = getPuzzleCanvas();
     puzzleCanvas?.addEventListener('mousedown', (event) => {
