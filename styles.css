@@ -13,6 +13,8 @@
   --med-light-gray: #444;
   --light-gray: #555;
   --indigo: #333366;
+
+  --dialog-max-width: 800px;
 }
 
 canvas {
@@ -102,7 +104,8 @@ body {
 /* Added specificity */
 .puzzleLinks.sidebar {
   --cutout-size: 0.45em;
-  --cutout-position: calc(-0.5 * (6px + var(--cutout-size)));
+  --cutout-position: 0;
+  --cutout-rotation: -45deg;
 
   /* Needs to be opaque so that it isn't affected by the hover highlight */
   --border-color: #2a2a2a;
@@ -198,7 +201,6 @@ body {
       align-self: center;
       z-index: 1;
       border: 2px solid transparent;
-      rotate: -45deg;
     }
 
     @media (prefers-contrast: more) {
@@ -226,12 +228,14 @@ body {
 
     &::before {
       left: var(--cutout-position);
+      transform: translateX(-50%) rotate(var(--cutout-rotation));
       border-left-color: var(--border-color);
       border-top-color: var(--border-color);
     }
 
     &::after {
       right: var(--cutout-position);
+      transform: translateX(50%) rotate(var(--cutout-rotation));
       border-right-color: var(--border-color);
       border-bottom-color: var(--border-color);
     }
@@ -243,12 +247,14 @@ body {
 
     &::before {
       top: var(--cutout-position);
+      transform: translateY(-50%) rotate(var(--cutout-rotation));
       border-top-color: var(--border-color);
       border-right-color: var(--border-color);
     }
 
     &::after {
       bottom: var(--cutout-position);
+      transform: translateY(50%) rotate(var(--cutout-rotation));
       border-bottom-color: var(--border-color);
       border-left-color: var(--border-color);
     }
@@ -854,10 +860,10 @@ dialog {
     box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5);
     border-radius: 16px;
     width: auto;
-    max-width: min(100%, 800px);
+    max-width: min(100%, var(--dialog-max-width));
     max-height: 100%;
     /* max-height: max-content; - Doesn't work in Firefox */
-    min-width: max(200px, min(50%, 800px));
+    min-width: max(200px, min(50%, var(--dialog-max-width)));
     /* min-height: max(200px, 50%); */
     overflow: auto;
 
@@ -1198,10 +1204,15 @@ dialog {
 
     #statTutorialsCompletedValue {
       font-size: inherit;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(6, auto);
       justify-content: center;
-      gap: 6px;
+      gap: 0 8px;
+
+      /* Match to --dialog-max-width */
+      @media (width >= 800px) {
+        grid-template-columns: repeat(12, auto);
+      }
 
       &, li {
         margin: 0;

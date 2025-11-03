@@ -615,7 +615,9 @@ Completed in ${this.formatTimerForText(dailyChallenge.startTime, dailyChallenge.
         && this.getDailyChallengeDateId() === this.activeDailyChallenge.id) {
       if (!this.isFamiliarWithChallengePuzzles(this.activeDailyChallenge)
           && !(await router.getConfirmation(
-        `It looks like you're not yet familiar with all the puzzles in this challenge.  Start it anyway?`
+        `It looks like you're not yet familiar with all the puzzles in this challenge.  \
+Each puzzle has an incremental tutorial that you might want to try first.  \
+Start the challenge anyway?`
       ))) {
         return;
       }
