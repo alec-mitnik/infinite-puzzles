@@ -730,7 +730,7 @@ button:disabled {
 
 @media (orientation: landscape) {
   #puzzleGames .submenu-secondary, #controls {
-    button, label {
+    button, label, #dailyChallengeControlsTimerWrapper {
       padding-left: env(safe-area-inset-left);
     }
   }
