@@ -722,7 +722,7 @@ button:disabled {
     }
   }
   #puzzleGames .submenu-secondary, #controls {
-    button, label {
+    button, label, #dailyChallengeControlsTimerWrapper {
       padding-bottom: env(safe-area-inset-bottom);
     }
   }
