@@ -335,14 +335,18 @@ canvas#puzzleCanvas {
 
       > span {
         transform: scale(1);
-        animation: scaleFlare 2s ease-in-out infinite;
+        animation: scaleFlare 2s ease-in-out infinite forwards;
         color: var(--gold);
 
         @media (prefers-reduced-motion: reduce) {
           animation-iteration-count: 1.5;
-          animation-fill-mode: forwards;
         }
       }
+    }
+
+    #generateNewPuzzleButton > span {
+      /* Be less insistent for just generating a new puzzle */
+      animation-iteration-count: 1.5;
     }
   }
 }

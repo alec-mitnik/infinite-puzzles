@@ -1,11 +1,8 @@
-let CACHE_VERSION = 240;
+let CACHE_VERSION = 241;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
- *
- * Look into using SVG to center the rendered loading spinner emoji by
- * "putting the emoji in an svg and spinning the svg"
  *
  * Add reset option for all puzzles, like the Tetromino Grid Puzzle.
  * Leverage puzzle seed generation for this?
@@ -14,19 +11,28 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
  * Keep the mp3 as a fallback?  Can convert with Audacity.
  *
- * Make the reset/next puzzle icon animation "less annoying"?
+ * Add keyboard support for the Slider Path Puzzle with arrow keys, at least?
+ * Tetromino Grid Puzzle and Color Pieces Puzzle would need a way to tab through each piece,
+ * showing keyboard focus, move it with arrow keys, snapping to the grid, and rotating it with space?
+ * Maybe use number keys for the Light Switches Puzzle?
+ * Arithmetic Grid Puzzle could number the tiles 1-9, showing the labels only while :focus-visible is true?
+ * Circuit Grid Puzzle could be similar, with left/right arrow keys for rotation
+ * Shifting Grid Puzzle could select a tile just for keyboard controls using same coordinate system,
+ * then shift tiles with arrow keys (but too many tiles at largest difficulty unless I use rapid succession...)
+ * For the Tangled Graph Puzzle, could select a node with number keys
+ * (rapid succession for two-digit numbers) and then move with arrow keys?
+ * Marked Loop puzzle would need a cursor moved with arrow keys that marked/erased while holding down space?
+ * Can make activation of the canvas while it has focus invoke the start button?
  *
- * Add keyboard support for the Slider Path Puzzle, at least?
+ * Improve color-blindness accessibility
+ *
+ *
+ * Ideas:
  *
  * Make logic grid puzzle clearer regarding rows needing to match symbol sets.
  * Show a message like "Numbers go in this row, etc." for the first tutorial?
  *
- * Improve color-blindness accessibility
- *
  * More semantic puzzle sharing icon?
- *
- *
- * Ideas:
  *
  * Might be nice to store each puzzle move, so that it could be
  * played back to you or even shared (as a gif?)
