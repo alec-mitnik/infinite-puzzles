@@ -52,6 +52,7 @@ html {
     line-height: 200px;
     font-size: 200px;
     animation: spin 0.5s linear infinite;
+    transform-origin: center 52.5%;
   }
 
   @media (prefers-reduced-motion: reduce) {

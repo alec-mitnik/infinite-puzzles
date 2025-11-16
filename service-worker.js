@@ -1,10 +1,29 @@
-let CACHE_VERSION = 239;
+let CACHE_VERSION = 240;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
+ * Look into using SVG to center the rendered loading spinner emoji by
+ * "putting the emoji in an svg and spinning the svg"
  *
+ * Add reset option for all puzzles, like the Tetromino Grid Puzzle.
+ * Leverage puzzle seed generation for this?
+ * But reloading the puzzle page would show the instructions again...
+ *
+ * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
+ * Keep the mp3 as a fallback?  Can convert with Audacity.
+ *
+ * Make the reset/next puzzle icon animation "less annoying"?
+ *
+ * Add keyboard support for the Slider Path Puzzle, at least?
+ *
+ * Make logic grid puzzle clearer regarding rows needing to match symbol sets.
+ * Show a message like "Numbers go in this row, etc." for the first tutorial?
+ *
+ * Improve color-blindness accessibility
+ *
+ * More semantic puzzle sharing icon?
  *
  *
  * Ideas:

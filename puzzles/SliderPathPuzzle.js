@@ -345,7 +345,7 @@ export function init() {
 
 export function drawInstructions() {
   drawInstructionsHelper("Slider Path Puzzle", "🚩\uFE0E",
-      ["Break all the white blocks and land in the goal.",
+      ["Break all the white blocks and land in the green goal.",
           "Hint: alternate vertical and horizontal moves."],
       ["Click or tap the arrows to move the slider."],
       router.puzzleState.tutorialStage, tutorials.length);
