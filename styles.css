@@ -1037,6 +1037,7 @@ dialog {
     border-radius: 8px;
     padding: 2px 12px;
     display: inline-flex;
+    align-items: center;
     margin-top: 8px;
     font-size: max(1.5rem, 16px);
 
@@ -1100,6 +1101,12 @@ dialog {
       }
     }
   }
+}
+
+svg.share-icon {
+  height: 0.8em;
+  margin-top: 0.1em;
+  margin-right: 12px;
 }
 
 #dailyChallengeDialog {

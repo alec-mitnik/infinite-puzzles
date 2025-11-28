@@ -36,6 +36,22 @@
 </head>
 
 <body class="loading">
+  <!-- Share Icon -->
+  <svg style="display: none;">
+    <defs>
+      <symbol id="share-icon" stroke="currentColor" fill="currentColor">
+        <g stroke-width="10">
+          <line x1="80" y1="20" x2="20" y2="50" />
+          <line x1="80" y1="80" x2="20" y2="50" />
+        </g>
+
+        <circle cx="80" cy="20" r="16" />
+        <circle cx="80" cy="80" r="16" />
+        <circle cx="20" cy="50" r="16" />
+      </symbol>
+    </defs>
+  </svg>
+
   <!-- Confirmation Dialog -->
   <dialog id="confirmationDialog" class="no-close-button hug"
       role="alertdialog" aria-labelledby="confirmationDialogTitle"
@@ -431,7 +447,14 @@
             </h2>
             <code id="sharePuzzleUrl" class="link-text"></code><br />
 
-            <button id="sharePuzzleLinkWithNavigatorButton">Share Link to Current Puzzle</button>
+            <button id="sharePuzzleLinkWithNavigatorButton">
+              <!-- SVGs may be announced as graphics by screen readers,
+              but don't support an alt, so need to use aria-hidden when decorative -->
+              <svg aria-hidden="true" viewBox="0 0 100 100" class="share-icon">
+                <use href="#share-icon" />
+              </svg>
+              Share Link to Current Puzzle
+            </button>
 
             <hr />
 
@@ -442,7 +465,14 @@
                 Current Puzzle Seed: <code id="sharePuzzleSeed"></code>
               </p>
 
-              <button id="sharePuzzleSeedWithNavigatorButton">Share Puzzle Seed</button>
+              <button id="sharePuzzleSeedWithNavigatorButton">
+              <!-- SVGs may be announced as graphics by screen readers,
+              but don't support an alt, so need to use aria-hidden when decorative -->
+                <svg viewBox="0 0 100 100" class="share-icon">
+                  <use href="#share-icon" />
+                </svg>
+                Share Puzzle Seed
+              </button>
 
               <p>
                 When sharing this seed directly, the recipient needs to do the following:
