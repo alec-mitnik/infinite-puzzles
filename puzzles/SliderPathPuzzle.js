@@ -808,29 +808,98 @@ export function onTouchStart(event) {
   }
 }
 
-function handleLeftClickOrTap(coord) {
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (event.code === "KeyR" && !event.ctrlKey && !event.metaKey
+        && !event.altKey && !event.shiftKey) {
+      restart();
+    }
+
+    // Undo
+    if (event.code === "KeyZ" && (event.ctrlKey || event.metaKey)
+        && !event.altKey && !event.shiftKey) {
+      undo();
+    }
+
+    // Move
+    if (event.code === "ArrowLeft" || event.code === "KeyA"
+        || event.code === "ArrowRight" || event.code === "KeyD"
+        || event.code === "ArrowUp" || event.code === "KeyW"
+        || event.code === "ArrowDown" || event.code === "KeyS") {
+      let sliderCoord;
+
+      for (let i = 0; i < COLS; i++) {
+        for (let j = 0; j < ROWS; j++) {
+          let gridCell = grid[i][j];
+          if (gridCell.containsSlider) {
+            sliderCoord = [i, j];
+            break;
+          }
+        }
+      }
+
+      if (event.code === "ArrowLeft" || event.code === "KeyA") {
+        handleLeftClickOrTap([sliderCoord[0] - 1, sliderCoord[1]], true);
+      } else if (event.code === "ArrowRight" || event.code === "KeyD") {
+        handleLeftClickOrTap([sliderCoord[0] + 1, sliderCoord[1]], true);
+      } else if (event.code === "ArrowUp" || event.code === "KeyW") {
+        handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] - 1], true);
+      } else if (event.code === "ArrowDown" || event.code === "KeyS") {
+        handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] + 1], true);
+      }
+    }
+  }
+}
+
+function restart() {
+  if (!gridHistory.length) {
+    return;
+  }
+
+  // Alternative approach if I wanted to be able to undo restarts,
+  // but would need to figure out alternateToVerticalHistory and
+  // disabling the restart action for the initial restarted state
+
+  // if (gridHistory >= HISTORY_LIMIT) {
+    // gridHistory.shift();
+  // }
+
+  // gridHistory.push(deepCopy(grid));
+
+  gridHistory = [];
+  alternateToVerticalHistory = [];
+
+  grid = deepCopy(solution);
+  audioManager.play(RESTART_SOUND);
+  drawPuzzle();
+}
+
+function undo() {
+  if (gridHistory.length > 0) {
+    audioManager.play(UNDO_SOUND);
+    grid = gridHistory.pop();
+    alternateToVerticalHistory.pop();
+    drawPuzzle();
+  }
+}
+
+function handleLeftClickOrTap(coord, movementOnly = false) {
   // Restart
   if ((coord[0] === COLS || coord[0] === COLS - 1) && coord[1] === -1) {
-    // if (gridHistory >= HISTORY_LIMIT) {
-      // gridHistory.shift();
-    // }
+    if (movementOnly) {
+      return;
+    }
 
-    // gridHistory.push(deepCopy(grid));
-    gridHistory = [];
-    alternateToVerticalHistory = [];
-
-    grid = deepCopy(solution);
-    audioManager.play(RESTART_SOUND);
-    drawPuzzle();
+    restart();
 
   // Undo
   } else if ((coord[0] === -1 || coord[0] === 0) && coord[1] === -1) {
-    if (gridHistory.length > 0) {
-      audioManager.play(UNDO_SOUND);
-      grid = gridHistory.pop();
-      alternateToVerticalHistory.pop();
-      drawPuzzle();
+    if (movementOnly) {
+      return;
     }
+
+    undo();
   } else {
     let rightMove = false;
     let leftMove = false;

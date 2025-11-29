@@ -3,7 +3,8 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONF
 import dailyChallengeManager from './daily-challenge-manager.js';
 import {
   generateSeed, getPuzzleCanvas, getSeededRandomFunction,
-  getTutorialDone, openDialogWithTransition, stopConfetti, updateForTutorialRecommendation
+  getTutorialDone, openDialogWithTransition, startButtonClick,
+  stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
 
 class Router {
@@ -116,6 +117,18 @@ class Router {
         this.currentPuzzle.onTouchEnd(event);
       }
     }, { passive: false });
+
+    canvasContainer?.addEventListener('keydown', (event) => {
+      if (router.puzzleState.showingInstructions
+          && (event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter")) {
+        startButtonClick();
+        return;
+      }
+
+      if (typeof this.currentPuzzle?.onKeyDown === 'function') {
+        this.currentPuzzle.onKeyDown(event);
+      }
+    });
 
     let puzzleCanvas = getPuzzleCanvas();
     puzzleCanvas?.addEventListener('mousedown', (event) => {

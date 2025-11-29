@@ -98,7 +98,11 @@ export function finishedLoading() {
 export function startButtonClick() {
   if (router.puzzleState.loaded) {
     router.puzzleState.showingInstructions = false;
-    getPuzzleCanvas().ariaDescription = null;
+    const canvas = getPuzzleCanvas();
+    canvas.ariaDescription = null;
+
+    // Enable keyboard controls
+    canvas.focus();
 
     router.currentPuzzle.drawPuzzle();
 

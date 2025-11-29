@@ -354,10 +354,15 @@
     </div>
   </dialog>
 
-  <main id="canvasContainer">
-    <canvas id="puzzleCanvas" tabindex="0" aria-label="Puzzle Canvas" oncontextmenu="return false;"></canvas>
+  <!-- Allow it to take click focus for keyboard puzzle controls -->
+  <main id="canvasContainer" tabindex="-1">
+    <!-- Use application role to prevent screen readers from blocking keyboard input -->
+    <canvas id="puzzleCanvas" tabindex="0" role="application" aria-label="Puzzle Canvas"
+        oncontextmenu="return false;"></canvas>
 
-    <button disabled id="startButton" aria-label="Start Puzzle">
+    <!-- For keyboard users, activation is handled on the canvas container instead,
+    since focus is already being brought to the canvas -->
+    <button tabindex="-1" disabled id="startButton" aria-label="Start Puzzle" aria-hidden="true">
       <span></span>
     </button>
   </main>
