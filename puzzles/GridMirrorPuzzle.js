@@ -1160,11 +1160,13 @@ export function onKeyDown(event) {
     // Restart
     if (isRestartKey(event)) {
       restart();
+      return;
     }
 
     // Undo
     if (isUndoKey(event)) {
       undo();
+      return;
     }
 
     // Move

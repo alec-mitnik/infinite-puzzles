@@ -1,13 +1,13 @@
 import audioManager from "../js/audio-manager.js";
 import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
-  SUCCESS_COLOR
+  FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const TILE_VISIBILITY_RATE = 1;
@@ -17,6 +17,7 @@ const LINE_THICKNESS = 12;
 
 const SNAP_SOUND = audioManager.SoundEffects.CLICK;
 const ROTATE_SOUND = audioManager.SoundEffects.WARP;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -613,6 +614,8 @@ let CELL_CONNECTION_THICKNESS;
 
 let grid;
 let solution;
+let originalState;
+let atOriginalState = true;
 let dragging = null;
 let previousTouch = null;
 let tiles = [];
@@ -977,6 +980,29 @@ export function drawPuzzle() {
     });
   });
 
+  if (!solved && !router.puzzleState.showingSolution && !atOriginalState) {
+    // Restart
+    const NODE_SIZE = CELL_SIZE;
+    const OFFSET_SIZE = CELL_SIZE * 0.8;
+    const ADJUSTMENT = CELL_SIZE * 0.1;
+    context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
+    context.textAlign = "right";
+    context.fillStyle = "#ffffff";
+    context.fillText("Restart", ADJUSTMENT + CANVAS_WIDTH - CELL_SIZE,
+        OFFSET_SIZE / 2 + NODE_SIZE / 12);
+
+    context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
+    context.strokeStyle = "#ffffff";
+    context.beginPath();
+    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE / 2,
+        OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.35);
+    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.2);
+    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.24);
+    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.3);
+    context.stroke();
+  }
+
   tilesToDraw.forEach(tile => {
     let isOverlapping = tileIsOverlapping(tile, tilesToDraw);
     let validPlacement = tileHasValidPlacement(tile);
@@ -1169,7 +1195,8 @@ export function init() {
 
         let maxY = CANVAS_WIDTH - CELL_SIZE * (0.5 + tileMaxCoordY - tile.cells[0].coordinates[1]);
         let minY = bottomEdge ? maxY
-          : CELL_SIZE * (0.5 + tile.cells[0].coordinates[1] - tileMinCoordY);
+          : CELL_SIZE * (0.5 + tile.cells[0].coordinates[1] - tileMinCoordY)
+          + CELL_SIZE; // Leave space for restart button
         let moveY = router.sRand() * (maxY - minY) + minY - tile.cells[0].y;
 
         tile.cells.forEach(cell => {
@@ -1182,11 +1209,34 @@ export function init() {
     });
   } while (puzzleSolved());
 
+  originalState = deepCopy(tiles);
+  atOriginalState = true;
+
   updateForTutorialState();
 
   drawInstructions();
 
   finishedLoading();
+}
+
+function restart() {
+  if (!atOriginalState) {
+    tiles = deepCopy(originalState);
+    atOriginalState = true;
+    dragging = null;
+    previousTouch = null;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -1213,6 +1263,11 @@ export function onMouseDown(event) {
             }
           }
         }
+      }
+
+      // Restart
+      if (mouseX >= CANVAS_WIDTH - 2 * CELL_SIZE && mouseY <= CELL_SIZE * 0.8) {
+        restart();
       }
     }
 
@@ -1263,6 +1318,11 @@ export function onTouchStart(event) {
             }
           }
         }
+      }
+
+      // Restart
+      if (touchX >= CANVAS_WIDTH - 2 * CELL_SIZE && touchY <= CELL_SIZE * 0.8) {
+        restart();
       }
     }
 
@@ -1437,6 +1497,8 @@ function snapToGrid(tile, playSound = true) {
       });
     }
   });
+
+  atOriginalState = false;
 
   if (playSound) {
     queuedSounds.push(SNAP_SOUND);

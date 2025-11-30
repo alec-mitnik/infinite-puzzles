@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, isRestartKey, isUndoKey, onMiddleMouseDown, onMiddleMouseUp,
   randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -367,7 +367,6 @@ function generateGrid() {
     let connectionMade = false;
     while (!connectionMade) {
       if (!availableDirections.length) {
-        //console.log("Restarting Grid Generation");
         generateGrid();
         return;
       }
@@ -654,6 +653,8 @@ export function init() {
     }
   }
 
+  savedGrid = null;
+
   updateForTutorialState();
 
   drawInstructions();
@@ -786,29 +787,6 @@ export function drawPuzzle() {
       context.lineCap = "butt";
       context.strokeStyle = "#ffffff";
 
-      // Save
-      let saveCoord = getDrawCoord([COLS, ROWS], true);
-      saveCoord[0] += 9;
-
-      context.textAlign = "center";
-      context.fillText("Save", saveCoord[0],
-          saveCoord[1] + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20);
-
-      context.beginPath();
-
-      context.moveTo(...saveCoord);
-      context.lineTo(saveCoord[0], saveCoord[1] - OFFSET_SIZE * 0.4);
-      context.moveTo(saveCoord[0] - OFFSET_SIZE * 0.15, saveCoord[1] - OFFSET_SIZE * 0.15);
-      context.lineTo(...saveCoord);
-      context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.15, saveCoord[1] - OFFSET_SIZE * 0.15);
-
-      context.moveTo(saveCoord[0] - OFFSET_SIZE * 0.3, saveCoord[1] - OFFSET_SIZE * 0.35);
-      context.lineTo(saveCoord[0] - OFFSET_SIZE * 0.3, saveCoord[1] + OFFSET_SIZE * 0.15);
-      context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.3, saveCoord[1] + OFFSET_SIZE * 0.15);
-      context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.3, saveCoord[1] - OFFSET_SIZE * 0.35);
-
-      context.stroke();
-
       // Load
       if (savedGrid) {
         let loadCoord = getDrawCoord([-1, ROWS], true);
@@ -843,7 +821,8 @@ export function drawPuzzle() {
             restartCoord[1] + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20);
 
         context.beginPath();
-        context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2, OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+        context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2,
+            OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
         context.lineTo(OFFSET_SIZE * 1.55 + COLS * CELL_SIZE, OFFSET_SIZE * 0.35);
         context.lineTo(OFFSET_SIZE * 1.6 + COLS * CELL_SIZE, OFFSET_SIZE * 0.2);
         context.lineTo(OFFSET_SIZE * 1.48 + COLS * CELL_SIZE, OFFSET_SIZE / 4);
@@ -863,6 +842,29 @@ export function drawPuzzle() {
         context.moveTo(OFFSET_SIZE * 0.45, OFFSET_SIZE * 0.35);
         context.lineTo(OFFSET_SIZE * 0.3, OFFSET_SIZE / 2);
         context.lineTo(OFFSET_SIZE * 0.45, OFFSET_SIZE * 0.65);
+        context.stroke();
+
+        // Save
+        let saveCoord = getDrawCoord([COLS, ROWS], true);
+        saveCoord[0] += 9;
+
+        context.textAlign = "center";
+        context.fillText("Save", saveCoord[0],
+            saveCoord[1] + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20);
+
+        context.beginPath();
+
+        context.moveTo(...saveCoord);
+        context.lineTo(saveCoord[0], saveCoord[1] - OFFSET_SIZE * 0.4);
+        context.moveTo(saveCoord[0] - OFFSET_SIZE * 0.15, saveCoord[1] - OFFSET_SIZE * 0.15);
+        context.lineTo(...saveCoord);
+        context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.15, saveCoord[1] - OFFSET_SIZE * 0.15);
+
+        context.moveTo(saveCoord[0] - OFFSET_SIZE * 0.3, saveCoord[1] - OFFSET_SIZE * 0.35);
+        context.lineTo(saveCoord[0] - OFFSET_SIZE * 0.3, saveCoord[1] + OFFSET_SIZE * 0.15);
+        context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.3, saveCoord[1] + OFFSET_SIZE * 0.15);
+        context.lineTo(saveCoord[0] + OFFSET_SIZE * 0.3, saveCoord[1] - OFFSET_SIZE * 0.35);
+
         context.stroke();
       }
     }
@@ -1047,48 +1049,94 @@ export function onTouchStart(event) {
   }
 }
 
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+      return;
+    }
+
+    // Undo
+    if (isUndoKey(event)) {
+      undo();
+      return;
+    }
+
+    // Save
+    if (event.code === "KeyS" && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+      save();
+      event.preventDefault();
+      return;
+    }
+
+    // Load
+    if (event.code === "KeyL" && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+      load();
+      event.preventDefault();
+      return;
+    }
+  }
+}
+
+function restart() {
+  if (gridHistory.length > 0) {
+    grid = gridHistory[0];
+    startingTile = getStartingTileForGrid(grid);
+    gridHistory = [];
+
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+function undo() {
+  if (gridHistory.length > 0) {
+    grid = gridHistory.pop();
+    startingTile = getStartingTileForGrid(grid);
+
+    audioManager.play(UNDO_SOUND);
+    drawPuzzle();
+  }
+}
+
+function save() {
+  savedGrid = deepCopy(grid);
+  audioManager.play(SAVE_SOUND);
+  drawPuzzle();
+}
+
+function load() {
+  if (savedGrid) {
+    if (gridHistory >= HISTORY_LIMIT) {
+      gridHistory.shift();
+    }
+
+    gridHistory.push(deepCopy(grid));
+    grid = deepCopy(savedGrid);
+    startingTile = getStartingTileForGrid(grid);
+
+    audioManager.play(LOAD_SOUND);
+    drawPuzzle();
+  }
+}
+
 function handleLeftClickOrTap(coord) {
   // Restart
   if (coord[0] >= COLS && coord[1] < 0) {
-    if (gridHistory.length > 0) {
-      grid = gridHistory[0];
-      startingTile = getStartingTileForGrid(grid);
-      gridHistory = [];
-
-      audioManager.play(RESTART_SOUND);
-      drawPuzzle();
-    }
+    restart();
 
   // Undo
   } else if (coord[0] < 0 && coord[1] < 0) {
-    if (gridHistory.length > 0) {
-      grid = gridHistory.pop();
-      startingTile = getStartingTileForGrid(grid);
-
-      audioManager.play(UNDO_SOUND);
-      drawPuzzle();
-    }
+    undo();
 
   // Save
   } else if (coord[0] >= COLS && coord[1] >= ROWS) {
-    savedGrid = deepCopy(grid);
-    audioManager.play(SAVE_SOUND);
-    drawPuzzle();
+    save();
 
   // Load
   } else if (coord[0] < 0 && coord[1] >= ROWS) {
-    if (savedGrid) {
-      if (gridHistory >= HISTORY_LIMIT) {
-        gridHistory.shift();
-      }
-
-      gridHistory.push(deepCopy(grid));
-      grid = deepCopy(savedGrid);
-      startingTile = getStartingTileForGrid(grid);
-
-      audioManager.play(LOAD_SOUND);
-      drawPuzzle();
-    }
+    load();
   } else {
     let direction = null;
     let index = -1;

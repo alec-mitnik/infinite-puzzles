@@ -1,13 +1,13 @@
 import audioManager from "../js/audio-manager.js";
 import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
-  SUCCESS_COLOR
+  FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const TILE_SIZE = 3;
@@ -21,6 +21,7 @@ const TILE_BORDER = 2;
 const SELECT_SOUND = audioManager.SoundEffects.CLICK;
 const SWAP_SOUND = audioManager.SoundEffects.WHIR;
 const ROTATE_SOUND = audioManager.SoundEffects.WARP;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const TUTORIAL_CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / 2;
@@ -284,6 +285,8 @@ let FIXED_TILES;
 
 let grid;
 let solution;
+let originalState;
+let atOriginalState;
 let selection = null;
 let circuitEnds = [];
 let queuedSounds = [];
@@ -680,6 +683,28 @@ export function drawPuzzle() {
     }
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
+
+    if (!atOriginalState) {
+      // Restart
+      const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
+      context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
+      context.fillStyle = "#FFFFFF";
+      context.textAlign = "center";
+      context.fillText("Restart", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
+          OFFSET_SIZE * 0.5 + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20 + 10);
+
+      context.lineWidth = 6;
+      context.strokeStyle = "#FFFFFF";
+
+      context.beginPath();
+      context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2,
+          OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+      context.lineTo(OFFSET_SIZE * 1.55 + COLS * CELL_SIZE, OFFSET_SIZE * 0.35);
+      context.lineTo(OFFSET_SIZE * 1.6 + COLS * CELL_SIZE, OFFSET_SIZE * 0.2);
+      context.lineTo(OFFSET_SIZE * 1.48 + COLS * CELL_SIZE, OFFSET_SIZE / 4);
+      context.lineTo(OFFSET_SIZE * 1.525 + COLS * CELL_SIZE, OFFSET_SIZE * 0.3);
+      context.stroke();
+    }
   }
 
   queuedSounds = [];
@@ -862,6 +887,9 @@ export function init() {
     }
   }
 
+  originalState = deepCopy(grid);
+  atOriginalState = true;
+
   updateForTutorialState();
 
   drawInstructions();
@@ -882,6 +910,25 @@ function rotateTile(tile, playSound = true) {
       coord[1] = x;
     });
   });
+}
+
+function restart() {
+  if (!atOriginalState) {
+    grid = deepCopy(originalState);
+    atOriginalState = true;
+    selection = null;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -920,6 +967,7 @@ export function onMouseDown(event) {
               tile.y = coordinate[2];
               grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
 
+              atOriginalState = false;
               selection = null;
               drawPuzzle();
             }
@@ -932,6 +980,10 @@ export function onMouseDown(event) {
 
           return;
         }
+      }
+
+      if (mouseX >= CANVAS_WIDTH - OFFSET_SIZE && mouseY <= OFFSET_SIZE) {
+        restart();
       }
     }
 
@@ -950,6 +1002,7 @@ export function onMouseDown(event) {
         if (!tile.fixed && mouseX > tile.x && mouseY > tile.y
             && mouseX - tile.x < CELL_SIZE && mouseY - tile.y < CELL_SIZE) {
           rotateTile(tile);
+          atOriginalState = false;
 
           drawPuzzle();
           return;
@@ -1011,6 +1064,7 @@ export function onTouchStart(event) {
 
       if (touchedTile) {
         rotateTile(touchedTile);
+        atOriginalState = false;
 
         drawPuzzle();
       }
@@ -1059,6 +1113,7 @@ export function onTouchStart(event) {
               tile.y = coordinate[2];
               grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
 
+              atOriginalState = false;
               selection = null;
               drawPuzzle();
             }
@@ -1071,6 +1126,10 @@ export function onTouchStart(event) {
 
           return;
         }
+      }
+
+      if (touchX >= CANVAS_WIDTH - OFFSET_SIZE && touchY <= OFFSET_SIZE) {
+        restart();
       }
     }
   }

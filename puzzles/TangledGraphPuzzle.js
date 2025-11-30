@@ -6,14 +6,16 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp,
   randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
+const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
 const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
 
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -472,6 +474,8 @@ let GRAPH_SIZE;
 let FIXED_NODES;
 
 let solution;
+let originalState;
+let atOriginalState = true;
 let dragging = null;
 let previousTouch = null;
 let nodes = [];
@@ -739,6 +743,27 @@ export function drawPuzzle() {
   let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
+  // Will get overwritten if solved
+  if (!atOriginalState) {
+    // Restart
+    const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
+    context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
+    context.fillStyle = "#FFFFFF";
+    context.textAlign = "center";
+    context.fillText("Restart", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
+        OFFSET_SIZE * 0.5 + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20 + 10);
+
+    context.lineWidth = 6;
+    context.strokeStyle = "#FFFFFF";
+    context.beginPath();
+    context.arc(CANVAS_WIDTH - OFFSET_SIZE * 0.5, OFFSET_SIZE / 2, OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(OFFSET_SIZE * 1.55 + CANVAS_WIDTH - OFFSET_SIZE * 2, OFFSET_SIZE * 0.35);
+    context.lineTo(OFFSET_SIZE * 1.6 + CANVAS_WIDTH - OFFSET_SIZE * 2, OFFSET_SIZE * 0.2);
+    context.lineTo(OFFSET_SIZE * 1.48 + CANVAS_WIDTH - OFFSET_SIZE * 2, OFFSET_SIZE / 4);
+    context.lineTo(OFFSET_SIZE * 1.525 + CANVAS_WIDTH - OFFSET_SIZE * 2, OFFSET_SIZE * 0.3);
+    context.stroke();
+  }
+
   let solved = !dragging;
 
   let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
@@ -975,11 +1000,43 @@ export function init() {
     }
   }
 
+  atOriginalState = true;
+  originalState = {};
+
+  // Can't deep copy because of infinite looping with neighbors
+  for (const node of nodes) {
+    originalState[node.id] = [node.x, node.y];
+  }
+
   updateForTutorialState();
 
   drawInstructions();
 
   finishedLoading();
+}
+
+function restart() {
+  if (!atOriginalState) {
+    for (const node of nodes) {
+      node.x = originalState[node.id][0];
+      node.y = originalState[node.id][1];
+    }
+
+    atOriginalState = true;
+    dragging = null;
+    previousTouch = null;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -1004,6 +1061,10 @@ export function onMouseDown(event) {
           dragging = node;
           return;
         }
+      }
+
+      if (mouseX >= CANVAS_WIDTH - OFFSET_SIZE && mouseY <= OFFSET_SIZE) {
+        restart();
       }
     }
 
@@ -1040,6 +1101,10 @@ export function onTouchStart(event) {
         dragging = node;
         return;
       }
+    }
+
+    if (touchX >= CANVAS_WIDTH - OFFSET_SIZE && touchY <= OFFSET_SIZE) {
+      restart();
     }
   }
 }
@@ -1165,5 +1230,6 @@ function releaseNode(node, playSound = true) {
     queuedSounds.push(CLINK_SOUND);
   }
 
+  atOriginalState = false;
   previousTouch = null;
 }
