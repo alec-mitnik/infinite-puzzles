@@ -88,7 +88,6 @@ export function getPuzzleIconElement(puzzleKey, className = undefined) {
 export function finishedLoading() {
   // Add delay so pending clicks don't end up succeeding
   setTimeout(() => {
-    document.getElementById("startButton").disabled = false;
     router.puzzleState.showingInstructions = true;
     router.puzzleState.loaded = true;
     document.getElementById("canvasContainer").classList.remove("loading");
@@ -119,6 +118,53 @@ export function startButtonClick() {
       updateForTutorialRecommendation();
     }
   }
+}
+
+export function isRightDirKey(event) {
+  return event.code === "ArrowRight" || event.code === "KeyD" || event.code === "Numpad6";
+}
+
+export function isLeftDirKey(event) {
+  return event.code === "ArrowLeft" || event.code === "KeyA" || event.code === "Numpad4";
+}
+
+export function isUpDirKey(event) {
+  return event.code === "ArrowUp" || event.code === "KeyW" || event.code === "Numpad8";
+}
+
+export function isDownDirKey(event) {
+  return event.code === "ArrowDown" || event.code === "KeyS" || event.code === "Numpad5"
+      || event.code === "KeyX" || event.code === "Numpad2";
+}
+
+export function isUpLeftDirKey(event) {
+  return event.code === "Numpad7" || event.code === "KeyQ";
+}
+
+export function isUpRightDirKey(event) {
+  return event.code === "Numpad9" || event.code === "KeyE";
+}
+
+export function isDownLeftDirKey(event) {
+  return event.code === "Numpad1" || event.code === "KeyZ";
+}
+
+export function isDownRightDirKey(event) {
+  return event.code === "Numpad3" || event.code === "KeyC";
+}
+
+export function isUndoKey(event) {
+  return event.code === "KeyZ" && (event.ctrlKey || event.metaKey)
+        && !event.altKey && !event.shiftKey;
+}
+
+export function isRestartKey(event) {
+  return event.code === "KeyR" && !event.ctrlKey && !event.metaKey
+        && !event.altKey && !event.shiftKey;
+}
+
+export function hasModifierKeys(event) {
+  return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
 }
 
 function showSolution() {
@@ -303,9 +349,6 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
     compiledInstructions.push(`${promptText}${promptTextActionPhonetic}!`);
 
     canvas.ariaDescription = compiledInstructions.join('\n');
-
-    // This one it pronounces fine...
-    document.getElementById('startButton').ariaLabel = router.puzzleState.started ? 'Resume Puzzle' : 'Start Puzzle';
   } else {
     startButtonClick();
   }

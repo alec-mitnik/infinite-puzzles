@@ -212,12 +212,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Handle puzzle start button
-  document.getElementById('startButton')?.addEventListener('click', () => {
-    startButtonClick();
+  const canvasContainer = document.getElementById('canvasContainer');
+  canvasContainer?.addEventListener('click', () => {
+    if (router.currentPuzzle && router.puzzleState.showingInstructions) {
+      startButtonClick();
+    }
   });
-  document.getElementById('startButton')?.addEventListener('touchend', (event) => {
-    startButtonClick();
-    event.preventDefault();
+  canvasContainer?.addEventListener('touchend', (event) => {
+    if (router.currentPuzzle && router.puzzleState.showingInstructions) {
+      startButtonClick();
+      event.preventDefault();
+    }
   });
 
   // Handle puzzle controls

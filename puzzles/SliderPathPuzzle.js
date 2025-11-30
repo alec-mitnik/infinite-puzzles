@@ -6,7 +6,8 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, hasModifierKeys, isDownDirKey, isLeftDirKey, isRestartKey,
+  isRightDirKey, isUndoKey, isUpDirKey, onMiddleMouseDown, onMiddleMouseUp,
   peek, randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -488,7 +489,8 @@ export function drawPuzzle() {
         context.lineWidth = LINE_THICKNESS;
         context.strokeStyle = "#ffffff";
         context.beginPath();
-        context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2, OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+        context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2,
+            OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
         context.lineTo(OFFSET_SIZE * 1.55 + COLS * CELL_SIZE, OFFSET_SIZE * 0.35);
         context.lineTo(OFFSET_SIZE * 1.6 + COLS * CELL_SIZE, OFFSET_SIZE * 0.2);
         context.lineTo(OFFSET_SIZE * 1.48 + COLS * CELL_SIZE, OFFSET_SIZE / 4);
@@ -811,22 +813,19 @@ export function onTouchStart(event) {
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
     // Restart
-    if (event.code === "KeyR" && !event.ctrlKey && !event.metaKey
-        && !event.altKey && !event.shiftKey) {
+    if (isRestartKey(event)) {
       restart();
     }
 
     // Undo
-    if (event.code === "KeyZ" && (event.ctrlKey || event.metaKey)
-        && !event.altKey && !event.shiftKey) {
+    if (isUndoKey(event)) {
       undo();
     }
 
     // Move
-    if (event.code === "ArrowLeft" || event.code === "KeyA"
-        || event.code === "ArrowRight" || event.code === "KeyD"
-        || event.code === "ArrowUp" || event.code === "KeyW"
-        || event.code === "ArrowDown" || event.code === "KeyS") {
+    if (!hasModifierKeys(event)
+        && (isLeftDirKey(event) || isRightDirKey(event)
+        || isUpDirKey(event) || isDownDirKey(event))) {
       let sliderCoord;
 
       for (let i = 0; i < COLS; i++) {
@@ -839,13 +838,13 @@ export function onKeyDown(event) {
         }
       }
 
-      if (event.code === "ArrowLeft" || event.code === "KeyA") {
+      if (isLeftDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0] - 1, sliderCoord[1]], true);
-      } else if (event.code === "ArrowRight" || event.code === "KeyD") {
+      } else if (isRightDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0] + 1, sliderCoord[1]], true);
-      } else if (event.code === "ArrowUp" || event.code === "KeyW") {
+      } else if (isUpDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] - 1], true);
-      } else if (event.code === "ArrowDown" || event.code === "KeyS") {
+      } else if (isDownDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] + 1], true);
       }
     }

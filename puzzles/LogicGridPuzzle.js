@@ -865,7 +865,7 @@ function generateLogic() {
       return;
     }
 
-    obscureNodes(nodesToObscure);
+    void obscureNodes(nodesToObscure);
   });
 }
 
@@ -1084,7 +1084,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
         return;
       }
 
-      obscureNodes(nodesToObscure/* , tries */);
+      void obscureNodes(nodesToObscure/* , tries */);
     });
   } else {
     //console.log("Tries:", tries);
@@ -1097,7 +1097,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
         return;
       }
 
-      simplifyNodes(nodesToSimplify);
+      void simplifyNodes(nodesToSimplify);
     });
   }
 }
@@ -1156,7 +1156,7 @@ async function simplifyNodes(nodesToSimplify) {
         return;
       }
 
-      simplifyNodes(nodesToSimplify);
+      void simplifyNodes(nodesToSimplify);
     });
   } else {
     setTimeout(() => {
@@ -1238,7 +1238,7 @@ function organizeRules() {
         return;
       }
 
-      generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes);
+      void generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes);
     });
   } else {
     finishRules(rulesList, xorList);
@@ -1349,7 +1349,7 @@ async function generateXorRules(convertList, falseRules, rulesList, xorList, non
         return;
       }
 
-      generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes, idsChecked);
+      void generateXorRules(convertList, falseRules, rulesList, xorList, nonFixedNodes, idsChecked);
     });
   } else {
     rulesList = rulesList.concat(convertList);
@@ -2020,7 +2020,7 @@ export function onMouseMove(event) {
       dragging.x += mouseDelta.x * CANVAS_WIDTH / canvasRect.width;
       dragging.y += mouseDelta.y * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }
@@ -2047,7 +2047,7 @@ export function onTouchMove(event) {
       dragging.x += movementX * CANVAS_WIDTH / canvasRect.width;
       dragging.y += movementY * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }

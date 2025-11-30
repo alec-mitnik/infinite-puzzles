@@ -1171,7 +1171,7 @@ export function onMouseMove(event) {
       dragging.canvasCoord[0] += mouseDelta.x * CANVAS_WIDTH / canvasRect.width;
       dragging.canvasCoord[1] += mouseDelta.y * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }
@@ -1198,7 +1198,7 @@ export function onTouchMove(event) {
       dragging.canvasCoord[0] += movementX * CANVAS_WIDTH / canvasRect.width;
       dragging.canvasCoord[1] += movementY * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }

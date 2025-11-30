@@ -1063,7 +1063,7 @@ export function onMouseMove(event) {
       dragging.x += mouseDelta.x * CANVAS_WIDTH / canvasRect.width;
       dragging.y += mouseDelta.y * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }
@@ -1090,7 +1090,7 @@ export function onTouchMove(event) {
       dragging.x += movementX * CANVAS_WIDTH / canvasRect.width;
       dragging.y += movementY * CANVAS_HEIGHT / canvasRect.height;
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }

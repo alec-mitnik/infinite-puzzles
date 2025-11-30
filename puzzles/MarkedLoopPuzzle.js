@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomEl,
+  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomEl,
   removeCoord, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -18,6 +18,7 @@ const TILE_BORDER = 4;
 
 const CLEAR_SOUND = audioManager.SoundEffects.WARP;
 const CLICK_SOUND = audioManager.SoundEffects.CLICK;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -987,6 +988,24 @@ export function drawPuzzle() {
   context.textAlign = "center";
   context.fillText("Path Length: " + pathLength + " / " + solutionLength, CANVAS_WIDTH / 2, (CANVAS_HEIGHT - OFFSET_SIZE / 2) + TEXT_SIZE / 3);
 
+  if (!solved && !atOriginalState()) {
+    // Restart
+    context.textAlign = "right";
+    context.fillStyle = "#ffffff";
+    context.fillText("Restart", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + TEXT_SIZE / 3);
+
+    context.lineWidth = 6;
+    context.strokeStyle = "#ffffff";
+    context.beginPath();
+    context.arc(OFFSET_SIZE * 1.5 + COLS * CELL_SIZE, OFFSET_SIZE / 2,
+        OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(OFFSET_SIZE * 1.55 + COLS * CELL_SIZE, OFFSET_SIZE * 0.35);
+    context.lineTo(OFFSET_SIZE * 1.6 + COLS * CELL_SIZE, OFFSET_SIZE * 0.2);
+    context.lineTo(OFFSET_SIZE * 1.48 + COLS * CELL_SIZE, OFFSET_SIZE / 4);
+    context.lineTo(OFFSET_SIZE * 1.525 + COLS * CELL_SIZE, OFFSET_SIZE * 0.3);
+    context.stroke();
+  }
+
   if (!router.puzzleState.showingSolution) {
     if (solved && router.puzzleState.interactive) {
       endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
@@ -1075,16 +1094,44 @@ function pathInteraction(mouseX, mouseY) {
   }
 }
 
+function atOriginalState() {
+  return grid.every(row => row.every(tile => tile.neighborPaths.length === 0));
+}
+
+function restart() {
+  if (!atOriginalState()) {
+    grid.forEach(row => row.forEach(tile => tile.neighborPaths = []));
+    draggingTile = null;
+    draggingValue = null;
+    dragging = false;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
+}
+
 export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
     if (router.puzzleState.interactive) {
-      dragging = true;
-
       let canvasRect = getPuzzleCanvas().getBoundingClientRect();
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
+      if (mouseX >= LOOP_COLS * CELL_SIZE + OFFSET_SIZE && mouseY <= OFFSET_SIZE) {
+        restart();
+        return;
+      }
+
+      dragging = true;
       pathInteraction(mouseX, mouseY);
     }
 

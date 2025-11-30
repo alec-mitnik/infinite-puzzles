@@ -278,16 +278,6 @@ body {
   }
 }
 
-#startButton {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background-color: transparent;
-  color: #ffffff;
-  font-size: 24px;
-}
-
 canvas#puzzleCanvas {
   position: absolute;
   top: 0;
@@ -309,10 +299,6 @@ canvas#puzzleCanvas {
     bottom: env(safe-area-inset-bottom);
     max-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
-}
-
-#canvasContainer.started #startButton {
-  display: none;
 }
 
 #controls {

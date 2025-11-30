@@ -3,8 +3,8 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONF
 import dailyChallengeManager from './daily-challenge-manager.js';
 import {
   generateSeed, getPuzzleCanvas, getSeededRandomFunction,
-  getTutorialDone, openDialogWithTransition, startButtonClick,
-  stopConfetti, updateForTutorialRecommendation
+  getTutorialDone, openDialogWithTransition,
+  startButtonClick, stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
 
 class Router {
@@ -119,7 +119,7 @@ class Router {
     }, { passive: false });
 
     canvasContainer?.addEventListener('keydown', (event) => {
-      if (router.puzzleState.showingInstructions
+      if (this.currentPuzzle && this.puzzleState.showingInstructions
           && (event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter")) {
         startButtonClick();
         return;
@@ -449,7 +449,6 @@ class Router {
       // Initialize puzzle
       if (typeof this.currentPuzzle.init === 'function') {
         canvasContainer.classList.add('loading');
-        document.getElementById('startButton').disabled = true;
 
         if (this.puzzleState.tutorialStage) {
           this.puzzleState.tutorialStage++;

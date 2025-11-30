@@ -1299,7 +1299,7 @@ export function onMouseMove(event) {
         cell.y += mouseDelta.y * CANVAS_HEIGHT / canvasRect.height;
       });
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }
@@ -1339,7 +1339,7 @@ export function onTouchMove(event) {
         });
       }
 
-      drawPuzzle();
+      requestAnimationFrame(drawPuzzle);
     }
   }
 }

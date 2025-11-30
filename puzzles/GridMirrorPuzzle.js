@@ -6,7 +6,10 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, hasModifierKeys, isDownDirKey, isDownLeftDirKey,
+  isDownRightDirKey, isLeftDirKey, isRestartKey,
+  isRightDirKey, isUndoKey, isUpDirKey, isUpLeftDirKey, isUpRightDirKey,
+  onMiddleMouseDown, onMiddleMouseUp,
   randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -896,7 +899,7 @@ export function drawPuzzle() {
         // Restart
         let restartOffset = 1.93;
         context.textAlign = "right";
-        context.fillText("Restart", (COLS - restartOffset + 0.2) * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
+        context.fillText("Restart", (COLS - restartOffset) * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
 
         context.lineWidth = LINE_THICKNESS;
         context.strokeStyle = "#ffffff";
@@ -911,7 +914,7 @@ export function drawPuzzle() {
         // Undo
         let undoOffset = 2.1;
         context.textAlign = "left";
-        context.fillText("Undo", OFFSET_SIZE + (undoOffset - 0.2) * CELL_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
+        context.fillText("Undo", OFFSET_SIZE + undoOffset * CELL_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
 
         context.beginPath();
         context.moveTo(OFFSET_SIZE * 0.75 + undoOffset * CELL_SIZE, OFFSET_SIZE / 2);
@@ -1152,29 +1155,84 @@ export function onTouchStart(event) {
   }
 }
 
-function handleLeftClickOrTap(coord) {
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+
+    // Undo
+    if (isUndoKey(event)) {
+      undo();
+    }
+
+    // Move
+    if (availableMirrors > 0 && !hasModifierKeys(event)) {
+      if (isLeftDirKey(event)) {
+        handleLeftClickOrTap([-1, ROWS / 2], true);
+      } else if (isRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, ROWS / 2], true);
+      } else if (isUpDirKey(event)) {
+        handleLeftClickOrTap([COLS / 2, -1], true);
+      } else if (isDownDirKey(event)) {
+        handleLeftClickOrTap([COLS / 2, ROWS], true);
+      } else if (isUpLeftDirKey(event)) {
+        handleLeftClickOrTap([-1, -1], true);
+      } else if (isUpRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, -1], true);
+      } else if (isDownLeftDirKey(event)) {
+        handleLeftClickOrTap([-1, ROWS], true);
+      } else if (isDownRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, ROWS], true);
+      }
+    }
+  }
+}
+
+function restart() {
+  if (!gridHistory.length) {
+    return;
+  }
+
+  gridHistory = [];
+  tapsHistory = [];
+  availableTaps = allowedTaps;
+  mirrorsHistory = [];
+  availableMirrors = allowedMirrors;
+
+  grid = deepCopy(solution);
+  audioManager.play(RESTART_SOUND);
+  drawPuzzle();
+}
+
+function undo() {
+  if (gridHistory.length > 0) {
+    audioManager.play(UNDO_SOUND);
+    grid = gridHistory.pop();
+    availableTaps = tapsHistory.pop();
+    availableMirrors = mirrorsHistory.pop();
+
+    drawPuzzle();
+  }
+}
+
+function handleLeftClickOrTap(coord, movementOnly = false) {
   // Restart
   if ((coord[0] <= COLS - 2 && coord[0] >= COLS - 3) && coord[1] === -1) {
-    gridHistory = [];
-    tapsHistory = [];
-    availableTaps = allowedTaps;
-    mirrorsHistory = [];
-    availableMirrors = allowedMirrors;
+    if (movementOnly) {
+      return;
+    }
 
-    grid = deepCopy(solution);
-    audioManager.play(RESTART_SOUND);
-    drawPuzzle();
+    restart();
 
   // Undo
   } else if ((coord[0] >= 1 && coord[0] <= 2) && coord[1] === -1) {
-    if (gridHistory.length > 0) {
-      audioManager.play(UNDO_SOUND);
-      grid = gridHistory.pop();
-      availableTaps = tapsHistory.pop();
-      availableMirrors = mirrorsHistory.pop();
-
-      drawPuzzle();
+    if (movementOnly) {
+      return;
     }
+
+    undo();
   } else if (coord[0] >= 0 && coord[0] < COLS
       && coord[1] >= 0 && coord[1] < ROWS) {
     if (availableTaps > 0) {
