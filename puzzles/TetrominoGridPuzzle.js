@@ -931,6 +931,7 @@ export function init() {
 function restart() {
   if (!atOriginalState) {
     dragging = null;
+    previousTouch = null;
     tiles = deepCopy(originalState);
     atOriginalState = true;
     audioManager.play(RESTART_SOUND);
@@ -1026,6 +1027,11 @@ export function onTouchStart(event) {
             }
           }
         }
+      }
+
+      // Restart
+      if (touchX >= CANVAS_WIDTH - 2 * CELL_SIZE && touchY <= CELL_SIZE * 0.8) {
+        restart();
       }
     }
 

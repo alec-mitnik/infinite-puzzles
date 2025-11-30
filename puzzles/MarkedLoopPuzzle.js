@@ -1101,6 +1101,7 @@ function atOriginalState() {
 function restart() {
   if (!atOriginalState()) {
     grid.forEach(row => row.forEach(tile => tile.neighborPaths = []));
+    previousTouch = null;
     draggingTile = null;
     draggingValue = null;
     dragging = false;
@@ -1143,14 +1144,18 @@ export function onMouseDown(event) {
 
 export function onTouchStart(event) {
   if (router.puzzleState.interactive && event.changedTouches.length === 1) {
-    dragging = true;
-
-    let touch = event.changedTouches[0];
-    previousTouch = touch;
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
+    let touch = event.changedTouches[0];
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
+    if (touchX >= LOOP_COLS * CELL_SIZE + OFFSET_SIZE && touchY <= OFFSET_SIZE) {
+      restart();
+      return;
+    }
+
+    previousTouch = touch;
+    dragging = true;
     pathInteraction(touchX, touchY);
   }
 }
