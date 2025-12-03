@@ -992,7 +992,7 @@ export function drawPuzzle() {
     // Restart
     context.textAlign = "right";
     context.fillStyle = "#ffffff";
-    context.fillText("Restart", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + TEXT_SIZE / 3);
+    context.fillText("Reset", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + TEXT_SIZE / 3);
 
     context.lineWidth = 6;
     context.strokeStyle = "#ffffff";
@@ -1127,7 +1127,7 @@ export function onMouseDown(event) {
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
-      if (mouseX >= LOOP_COLS * CELL_SIZE + OFFSET_SIZE && mouseY <= OFFSET_SIZE) {
+      if (mouseX >= COLS * CELL_SIZE && mouseY <= OFFSET_SIZE * 0.9) {
         restart();
         return;
       }
@@ -1149,7 +1149,7 @@ export function onTouchStart(event) {
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
-    if (touchX >= LOOP_COLS * CELL_SIZE + OFFSET_SIZE && touchY <= OFFSET_SIZE) {
+    if (touchX >= COLS * CELL_SIZE && touchY <= OFFSET_SIZE * 0.9) {
       restart();
       return;
     }

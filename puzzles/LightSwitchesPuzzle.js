@@ -1,13 +1,13 @@
 import audioManager from "../js/audio-manager.js";
 import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
-  SUCCESS_COLOR
+  FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  onMiddleMouseDown, onMiddleMouseUp, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
@@ -16,6 +16,7 @@ const LINE_THICKNESS = 12;
 const SWITCH_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 
 const SWITCH_SOUND = audioManager.SoundEffects.CLICK;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -161,6 +162,8 @@ let CELL_SIZE;
 
 let grid;
 let lightSwitches;
+let originalGrid;
+let originalSwitches;
 let solutionGrid;
 let solutionSwitches;
 let queuedSounds = [];
@@ -204,6 +207,33 @@ export function drawPuzzle() {
     }
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
+
+    if (!atOriginalState()) {
+      // Restart
+      const OFFSET_SIZE = CELL_SIZE * 0.9;
+      const verticalOffset = Math.max(ROWS, COLS) * CELL_SIZE;
+      const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
+      context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
+      context.fillStyle = "#FFFFFF";
+      context.textAlign = "center";
+      context.fillText("Reset", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
+          verticalOffset + OFFSET_SIZE * 0.5 + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20 + 10);
+
+      context.lineWidth = Math.max(ROWS, COLS) <= 2 ? 16 : 12;
+      context.strokeStyle = "#FFFFFF";
+      context.beginPath();
+      context.arc(CANVAS_WIDTH - OFFSET_SIZE * 0.5,
+          verticalOffset + OFFSET_SIZE / 2, OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+      context.lineTo(OFFSET_SIZE * 1.55 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.35);
+      context.lineTo(OFFSET_SIZE * 1.6 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.2);
+      context.lineTo(OFFSET_SIZE * 1.48 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.24);
+      context.lineTo(OFFSET_SIZE * 1.525 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.3);
+      context.stroke();
+    }
   }
 
   queuedSounds = [];
@@ -411,11 +441,37 @@ export function init() {
     }
   });
 
+  originalGrid = deepCopy(grid);
+  originalSwitches = deepCopy(lightSwitches);
+
   updateForTutorialState();
 
   drawInstructions();
 
   finishedLoading();
+}
+
+function atOriginalState() {
+  // Are all switches turned off
+  return lightSwitches.every(lightSwitch => !lightSwitch.toggled);
+}
+
+function restart() {
+  if (!atOriginalState()) {
+    lightSwitches = deepCopy(originalSwitches);
+    grid = deepCopy(originalGrid);
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -438,6 +494,10 @@ export function onMouseDown(event) {
           drawPuzzle();
           return;
         }
+      }
+
+      if (mouseX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
+        restart();
       }
     }
 
@@ -466,6 +526,10 @@ export function onTouchStart(event) {
         drawPuzzle();
         return;
       }
+    }
+
+    if (touchX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
+      restart();
     }
   }
 }

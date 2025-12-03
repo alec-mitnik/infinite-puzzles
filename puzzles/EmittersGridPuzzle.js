@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp,
   randomEl, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -388,8 +388,9 @@ let LINE_THICKNESS;
 
 let grid;
 let nodes;
+let originalState;
+let atOriginalState = true;
 let solution;
-let initialState;
 let dragging = null;
 let previousTouch = null;
 let queuedSounds = [];
@@ -688,30 +689,7 @@ export function drawPuzzle() {
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (!router.puzzleState.showingSolution && !router.puzzleState.ended) {
-    // Reset
-    context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
-    context.textAlign = "center";
-    context.fillStyle = "#ffffff";
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = LINE_THICKNESS;
-    let resetX = CANVAS_WIDTH - CELL_SIZE / 2;
-    let resetY = CANVAS_HEIGHT - CELL_SIZE / 2 - CELL_SIZE * 1 / 20;
-
-    context.fillText("Reset", resetX,
-        resetY + CELL_SIZE / 12 + CELL_SIZE * 8 / 20);
-
-    context.beginPath();
-    context.arc(resetX, resetY, CELL_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
-    context.lineTo(resetX + CELL_SIZE * 0.05, resetY - CELL_SIZE * 0.15);
-    context.lineTo(resetX + CELL_SIZE * 0.1, resetY - CELL_SIZE * 0.3);
-    context.lineTo(resetX - CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
-    context.lineTo(resetX + CELL_SIZE * 0.028, resetY - CELL_SIZE * 0.18);
-    context.lineTo(resetX + CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
-    context.stroke();
-  }
-
-
+  // Draw grid
   context.strokeStyle = "#808080";
   context.lineWidth = LINE_THICKNESS;
   context.lineCap = "square";
@@ -747,6 +725,29 @@ export function drawPuzzle() {
   let solved = !dragging && allNodesInGrid && !anyOverlapping
       && !rowsWithSharedEmitters.length && !rowsWithSharedBlocks.length
       && !columnsWithSharedEmitters.length && !columnsWithSharedBlocks.length;
+
+  if (!solved && !atOriginalState) {
+    // Restart
+    context.font = "bold " + (CELL_SIZE / 5) + `px ${FONT_FAMILY}`;
+    context.textAlign = "center";
+    context.fillStyle = "#ffffff";
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = LINE_THICKNESS;
+    let resetX = CANVAS_WIDTH - CELL_SIZE / 2;
+    let resetY = CANVAS_HEIGHT - CELL_SIZE / 2 - CELL_SIZE * 1 / 20;
+
+    context.fillText("Reset", resetX,
+        resetY + CELL_SIZE / 12 + CELL_SIZE * 8 / 20);
+
+    context.beginPath();
+    context.arc(resetX, resetY, CELL_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(resetX + CELL_SIZE * 0.05, resetY - CELL_SIZE * 0.15);
+    context.lineTo(resetX + CELL_SIZE * 0.1, resetY - CELL_SIZE * 0.3);
+    context.lineTo(resetX - CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
+    context.lineTo(resetX + CELL_SIZE * 0.028, resetY - CELL_SIZE * 0.18);
+    context.lineTo(resetX + CELL_SIZE * 0.03, resetY - CELL_SIZE * 0.25);
+    context.stroke();
+  }
 
   drawEmissions(context);
   context.lineWidth = LINE_THICKNESS;
@@ -1070,7 +1071,8 @@ function finishInit() {
     node.coord = canvasToGridCoord(node.canvasCoord);
   });
 
-  initialState = deepCopy(nodes);
+  originalState = deepCopy(nodes);
+  atOriginalState = true;
 
   updateForTutorialState();
 
@@ -1079,10 +1081,24 @@ function finishInit() {
   finishedLoading();
 }
 
-function resetPuzzle() {
-  nodes = deepCopy(initialState);
-  audioManager.play(RESET_SOUND);
-  drawPuzzle();
+function restart() {
+  if (!atOriginalState) {
+    nodes = deepCopy(originalState);
+    atOriginalState = true;
+    dragging = null;
+    previousTouch = null;
+    audioManager.play(RESET_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -1108,7 +1124,7 @@ export function onMouseDown(event) {
       }
 
       if (mouseX > CANVAS_WIDTH - CELL_SIZE && mouseY > CANVAS_HEIGHT - CELL_SIZE) {
-        resetPuzzle();
+        restart();
       }
     }
 
@@ -1147,7 +1163,7 @@ export function onTouchStart(event) {
     }
 
     if (touchX > CANVAS_WIDTH - CELL_SIZE && touchY > CANVAS_HEIGHT - CELL_SIZE) {
-      resetPuzzle();
+      restart();
     }
   }
 }
@@ -1270,6 +1286,7 @@ function releaseNode(node, playSound = true) {
   node.coord = canvasToGridCoord(node.canvasCoord);
 
   previousTouch = null;
+  atOriginalState = false;
 }
 
 function gridToCanvasCoord(coord, center = false) {

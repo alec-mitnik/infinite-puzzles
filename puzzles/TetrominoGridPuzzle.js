@@ -757,7 +757,7 @@ export function drawPuzzle() {
     context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.textAlign = "right";
     context.fillStyle = "#ffffff";
-    context.fillText("Restart", ADJUSTMENT + COLS * CELL_SIZE + CELL_SIZE,
+    context.fillText("Reset", ADJUSTMENT + COLS * CELL_SIZE + CELL_SIZE,
         OFFSET_SIZE / 2 + NODE_SIZE / 12);
 
     context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
@@ -975,7 +975,7 @@ export function onMouseDown(event) {
       }
 
       // Restart
-      if (mouseX >= CANVAS_WIDTH - 2 * CELL_SIZE && mouseY <= CELL_SIZE * 0.8) {
+      if (mouseX >= CANVAS_WIDTH - 1.8 * CELL_SIZE && mouseY <= CELL_SIZE * 0.8) {
         restart();
       }
     }
@@ -1030,7 +1030,7 @@ export function onTouchStart(event) {
       }
 
       // Restart
-      if (touchX >= CANVAS_WIDTH - 2 * CELL_SIZE && touchY <= CELL_SIZE * 0.8) {
+      if (touchX >= CANVAS_WIDTH - 1.8 * CELL_SIZE && touchY <= CELL_SIZE * 0.8) {
         restart();
       }
     }

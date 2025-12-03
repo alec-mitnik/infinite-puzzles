@@ -817,7 +817,7 @@ export function drawPuzzle() {
         let restartCoord = getDrawCoord([COLS, -1], true);
 
         context.textAlign = "center";
-        context.fillText("Restart", restartCoord[0] + 10,
+        context.fillText("Reset", restartCoord[0] + 10,
             restartCoord[1] + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20);
 
         context.beginPath();

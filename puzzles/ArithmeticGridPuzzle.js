@@ -573,7 +573,7 @@ export function drawPuzzle() {
       context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
       context.fillStyle = "#FFFFFF";
       context.textAlign = "center";
-      context.fillText("Restart", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
+      context.fillText("Reset", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
           verticalOffset + OFFSET_SIZE * 0.5 + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20 + 10);
 
       context.lineWidth = Math.max(ROWS, COLS) <= 2 ? 16 : 12;

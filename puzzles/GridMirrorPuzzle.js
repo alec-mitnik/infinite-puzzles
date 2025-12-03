@@ -899,7 +899,8 @@ export function drawPuzzle() {
         // Restart
         let restartOffset = 1.93;
         context.textAlign = "right";
-        context.fillText("Restart", (COLS - restartOffset) * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
+        context.fillText("Reset",
+            (COLS - restartOffset) * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
 
         context.lineWidth = LINE_THICKNESS;
         context.strokeStyle = "#ffffff";

@@ -484,7 +484,7 @@ export function drawPuzzle() {
         context.font = "bold " + (NODE_SIZE / 4) + `px ${FONT_FAMILY}`;
         context.textAlign = "right";
         context.fillStyle = "#ffffff";
-        context.fillText("Restart", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
+        context.fillText("Reset", COLS * CELL_SIZE + OFFSET_SIZE, OFFSET_SIZE / 2 + NODE_SIZE / 12);
 
         context.lineWidth = LINE_THICKNESS;
         context.strokeStyle = "#ffffff";
