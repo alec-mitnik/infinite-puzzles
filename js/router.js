@@ -358,8 +358,19 @@ class Router {
     context.textAlign = "center";
     context.fillStyle = "#ffffff";
     context.fillText("\u221E Infinite Puzzles \u221E", CANVAS_WIDTH / 2, 140);
+
     context.font = `bold 40px ${FONT_FAMILY}`;
-    context.fillText("\u223D By Alec Mitnik \u223C", CANVAS_WIDTH / 2, 220);
+    const attributionText = "By Alec Mitnik";
+    const attributionTextWidth = context.measureText(attributionText).width;
+    context.fillText(attributionText, CANVAS_WIDTH / 2, 220);
+
+    // system-ui font renders the tilde characters differently to each other in iOS Safari
+    context.font = "bold 40px Arial, sans-serif";
+    context.textAlign = "right";
+    context.fillText("\u223D ", CANVAS_WIDTH / 2 - attributionTextWidth / 2, 220);
+    context.textAlign = "left";
+    context.fillText(" \u223C", CANVAS_WIDTH / 2 + attributionTextWidth / 2, 220);
+    context.textAlign = "center";
     compiledText.push("Infinite Puzzles: By Alec Mitnik.");
 
     context.font = `104px ${FONT_FAMILY}`;

@@ -1,15 +1,10 @@
-let CACHE_VERSION = 248;
+let CACHE_VERSION = 249;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- * Add reset option for all puzzles, like the Tetromino Grid Puzzle.
- * Leverage puzzle seed generation for this?
- * But reloading the puzzle page would show the instructions again...
- *
- * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
- * Keep the mp3 as a fallback?  Can convert with Audacity.
+ * Add reset option for all puzzles.
  *
  * Add keyboard support for the Slider Path Puzzle with arrow keys, at least?
  * Tetromino Grid Puzzle and Color Pieces Puzzle would need a way to tab through each piece,
@@ -23,6 +18,9 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  * (rapid succession for two-digit numbers) and then move with arrow keys?
  * Marked Loop puzzle would need a cursor moved with arrow keys that marked/erased while holding down space?
  * Can make activation of the canvas while it has focus invoke the start button?
+ *
+ * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
+ * Keep the mp3 as a fallback?  Can convert with Audacity.
  *
  * Improve color-blindness accessibility
  *
