@@ -1089,7 +1089,7 @@ export function init() {
     // Quick: 5/5/3, Casual: 5/5/0, Challenging: 10/10/20, Intense: 10/10/10
     ROWS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
     COLS = GRID_MASK_SIZE + (DIFFICULTY > 2 ? GRID_MASK_SIZE : 0);
-    FIXED_TILES = DIFFICULTY === 1 ? 2 : (DIFFICULTY === 2 ? 0 : (DIFFICULTY === 3 ? 20 : 10));
+    FIXED_TILES = DIFFICULTY === 1 ? 3 : (DIFFICULTY === 2 ? 0 : (DIFFICULTY === 3 ? 20 : 10));
     CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
     CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
 

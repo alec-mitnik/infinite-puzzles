@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
   updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -24,6 +24,7 @@ const SYMBOL_SETS = [DIGITS, LETTERS, SHAPE_SYMBOLS, CHESS_SYMBOLS, GREEK_LETTER
 
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const SNAP_SOUND = audioManager.SoundEffects.CLICK;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -793,6 +794,8 @@ let GRID_HEIGHT;
 let NODE_SIZE;
 
 let solution;
+let originalState;
+let atOriginalState = true;
 let dragging = null;
 let previousTouch = null;
 let displayedRules = [];
@@ -1612,10 +1615,32 @@ export function drawPuzzle() {
     }
   }
 
+  if (!solved && !atOriginalState) {
+    // Restart
+    const OFFSET_SIZE = CELL_SIZE * 0.8;
+    const ADJUSTMENT = CELL_SIZE * 0.1;
+    context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
+    context.textAlign = "right";
+    context.fillStyle = "#ffffff";
+    context.fillText("Restart", ADJUSTMENT + CANVAS_WIDTH - CELL_SIZE,
+        OFFSET_SIZE / 2 + CELL_SIZE / 12);
+
+    context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
+    context.strokeStyle = "#ffffff";
+    context.beginPath();
+    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE / 2,
+        OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.35);
+    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.2);
+    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.24);
+    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.3);
+    context.stroke();
+  }
+
   // Draw rules
   context.font = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
-  let yPos = CELL_SIZE / 2 + NODE_SIZE * 2 / 3;
+  let yPos = CELL_SIZE + NODE_SIZE * 2 / 3;
   let index = 0;
 
   displayedRules.forEach((ruleObj) => {
@@ -1940,11 +1965,34 @@ function finishInit() {
     node.y = CANVAS_HEIGHT - CELL_SIZE / 2 - ((i % moveableNodesPerSet) * CELL_SIZE / 2);
   });
 
+  originalState = deepCopy(nodes);
+  atOriginalState = true;
+
   drawInstructions();
 
   isGenerating = false;
 
   finishedLoading();
+}
+
+function restart() {
+  if (!atOriginalState) {
+    nodes = deepCopy(originalState);
+    dragging = null;
+    previousTouch = null;
+    atOriginalState = true;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -1965,6 +2013,13 @@ export function onMouseDown(event) {
           dragging = node;
           return;
         }
+      }
+
+      let restartOffsetFactor = COLS <= 3 ? 0.7 : COLS - 1;
+
+      if (mouseX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.1
+          && mouseY <= CELL_SIZE * 0.8) {
+        restart();
       }
     }
 
@@ -1997,6 +2052,13 @@ export function onTouchStart(event) {
         dragging = node;
         return;
       }
+    }
+
+    let restartOffsetFactor = COLS <= 3 ? 0.7 : COLS - 1;
+
+    if (touchX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.1
+        && touchY <= CELL_SIZE * 0.8) {
+      restart();
     }
   }
 }
@@ -2119,4 +2181,5 @@ function releaseNode(node, playSound = true) {
   node.y = yPos;
 
   previousTouch = null;
+  atOriginalState = false;
 }

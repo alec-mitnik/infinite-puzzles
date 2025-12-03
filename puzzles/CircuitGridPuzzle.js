@@ -286,7 +286,6 @@ let FIXED_TILES;
 let grid;
 let solution;
 let originalState;
-let atOriginalState;
 let selection = null;
 let circuitEnds = [];
 let queuedSounds = [];
@@ -684,7 +683,7 @@ export function drawPuzzle() {
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
 
-    if (!atOriginalState) {
+    if (!atOriginalState()) {
       // Restart
       const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
       context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
@@ -888,7 +887,6 @@ export function init() {
   }
 
   originalState = deepCopy(grid);
-  atOriginalState = true;
 
   updateForTutorialState();
 
@@ -912,10 +910,36 @@ function rotateTile(tile, playSound = true) {
   });
 }
 
+function atOriginalState() {
+  // Compare the grid and originalState circuit paths
+  return grid.every((row, rowIndex) => {
+    return row.every((tile, tileIndex) => {
+      const originalStateTile = originalState[rowIndex][tileIndex];
+
+      for (let i = 0; i < tile.circuitPaths.length; i++) {
+        const tileCircuitPath = tile.circuitPaths[i];
+        const originalTileCircuitPath = originalStateTile.circuitPaths[i];
+
+        if (tileCircuitPath.length !== originalTileCircuitPath.length) {
+          return false;
+        }
+
+        for (let j = 0; j < tileCircuitPath.length; j++) {
+          if (tileCircuitPath[j][0] !== originalTileCircuitPath[j][0]
+              || tileCircuitPath[j][1] !== originalTileCircuitPath[j][1]) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  });
+}
+
 function restart() {
-  if (!atOriginalState) {
+  if (!atOriginalState()) {
     grid = deepCopy(originalState);
-    atOriginalState = true;
     selection = null;
     audioManager.play(RESTART_SOUND);
     drawPuzzle();
@@ -967,7 +991,6 @@ export function onMouseDown(event) {
               tile.y = coordinate[2];
               grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
 
-              atOriginalState = false;
               selection = null;
               drawPuzzle();
             }
@@ -1002,7 +1025,6 @@ export function onMouseDown(event) {
         if (!tile.fixed && mouseX > tile.x && mouseY > tile.y
             && mouseX - tile.x < CELL_SIZE && mouseY - tile.y < CELL_SIZE) {
           rotateTile(tile);
-          atOriginalState = false;
 
           drawPuzzle();
           return;
@@ -1064,8 +1086,6 @@ export function onTouchStart(event) {
 
       if (touchedTile) {
         rotateTile(touchedTile);
-        atOriginalState = false;
-
         drawPuzzle();
       }
     }
@@ -1113,7 +1133,6 @@ export function onTouchStart(event) {
               tile.y = coordinate[2];
               grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
 
-              atOriginalState = false;
               selection = null;
               drawPuzzle();
             }

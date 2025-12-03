@@ -1,4 +1,4 @@
-let CACHE_VERSION = 249;
+let CACHE_VERSION = 250;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*

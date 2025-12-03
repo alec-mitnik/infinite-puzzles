@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, onMiddleMouseDown, onMiddleMouseUp,
+  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp,
   randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -21,6 +21,7 @@ const LINE_THICKNESS = 12;
 const SELECT_SOUND = audioManager.SoundEffects.CLICK;
 const SELECT_FAIL_SOUND = audioManager.SoundEffects.CLINK;
 const SWAP_SOUND = audioManager.SoundEffects.WHIR;
+const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const TUTORIAL_CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 3;
@@ -332,6 +333,7 @@ let MINUS_RATE;
 
 let grid;
 let signGrid;
+let originalState;
 let solution;
 let selection = null;
 let rowTotals = [];
@@ -350,11 +352,13 @@ function generateGrid() {
     }
   }
 
-  let rawGrid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => nums.splice(randomIndex(nums), 1)[0]));
+  let rawGrid = Array.from({length: COLS},
+      () => Array.from({length: ROWS}, () => nums.splice(randomIndex(nums), 1)[0]));
   grid = Array.from({length: COLS}, () => Array.from({length: ROWS}, () => {}));
 
   // 1 is plus, -1 is minus, invalid coordinates will just be unused
-  signGrid = Array.from({length: 2 * COLS - 1}, () => Array.from({length: 2 * ROWS - 1}, () => router.sRand() < MINUS_RATE ? -1 : 1));
+  signGrid = Array.from({length: 2 * COLS - 1},
+      () => Array.from({length: 2 * ROWS - 1}, () => router.sRand() < MINUS_RATE ? -1 : 1));
 
   rawGrid.forEach((col, colIndex) => {
     let colTotal = col.reduce((total, num, i) => {
@@ -560,6 +564,35 @@ export function drawPuzzle() {
     }
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
+
+    if (!atOriginalState()) {
+      // Restart
+      const OFFSET_SIZE = CELL_SIZE * 0.9;
+      const verticalOffset = ROWS * CELL_SIZE;
+      const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
+      context.font = "bold " + (ARROW_SIZE / 4) + `px ${FONT_FAMILY}`;
+      context.fillStyle = "#FFFFFF";
+      context.textAlign = "center";
+      context.fillText("Restart", CANVAS_WIDTH - OFFSET_SIZE * 0.5 ,
+          verticalOffset + OFFSET_SIZE * 0.5 + ARROW_SIZE / 12 + OFFSET_SIZE * 7 / 20 + 10);
+
+      context.lineWidth = Math.max(ROWS, COLS) <= 2 ? 16 : 12;
+      context.strokeStyle = "#FFFFFF";
+      context.beginPath();
+      context.arc(CANVAS_WIDTH - OFFSET_SIZE * 0.5,
+          verticalOffset + OFFSET_SIZE / 2, OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+      context.lineTo(OFFSET_SIZE * 1.55 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.35);
+      context.lineTo(OFFSET_SIZE * 1.6 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.2);
+      context.lineTo(OFFSET_SIZE * 1.48 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.24);
+      context.lineTo(OFFSET_SIZE * 1.525 + CANVAS_WIDTH - OFFSET_SIZE * 2,
+          verticalOffset + OFFSET_SIZE * 0.3);
+      context.stroke();
+
+      context.lineWidth = LINE_THICKNESS;
+    }
   }
 
   queuedSounds = [];
@@ -663,11 +696,40 @@ export function init() {
     }
   }
 
+  originalState = deepCopy(grid);
+
   updateForTutorialState();
 
   drawInstructions();
 
   finishedLoading();
+}
+
+function atOriginalState() {
+  // Compare all tile values
+  return grid.every((row, rowIndex) => {
+    return row.every((tile, tileIndex) => {
+      return tile.num === originalState[rowIndex][tileIndex].num;
+    });
+  });
+}
+
+function restart() {
+  if (!atOriginalState()) {
+    grid = deepCopy(originalState);
+    selection = null;
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
+  }
+}
+
+export function onKeyDown(event) {
+  if (router.puzzleState.interactive) {
+    // Restart
+    if (isRestartKey(event)) {
+      restart();
+    }
+  }
 }
 
 export function onMouseDown(event) {
@@ -734,6 +796,11 @@ export function onMouseDown(event) {
             return;
           // }
         }
+      }
+
+      // Restart
+      if (mouseX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
+        restart();
       }
     }
 
@@ -808,6 +875,11 @@ export function onTouchStart(event) {
           return;
         // }
       }
+    }
+
+    // Restart
+    if (touchX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
+      restart();
     }
   }
 }
