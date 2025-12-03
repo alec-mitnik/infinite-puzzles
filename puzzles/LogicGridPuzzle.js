@@ -1619,28 +1619,36 @@ export function drawPuzzle() {
     // Restart
     const OFFSET_SIZE = CELL_SIZE * 0.8;
     const ADJUSTMENT = CELL_SIZE * 0.1;
+    const verticalOffset = CANVAS_HEIGHT - OFFSET_SIZE;
     context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
     context.textAlign = "right";
     context.fillStyle = "#ffffff";
     context.fillText("Reset", ADJUSTMENT + CANVAS_WIDTH - CELL_SIZE,
-        OFFSET_SIZE / 2 + CELL_SIZE / 12);
+        verticalOffset + OFFSET_SIZE / 2 + CELL_SIZE / 12);
 
     context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
     context.strokeStyle = "#ffffff";
     context.beginPath();
-    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE / 2,
+    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE / 2,
         OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
-    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.35);
-    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.2);
-    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.24);
-    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE), OFFSET_SIZE * 0.3);
+    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.35);
+    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.2);
+    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.24);
+    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.3);
     context.stroke();
+
+    context.lineWidth = LINE_THICKNESS;
   }
 
   // Draw rules
   context.font = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
-  let yPos = CELL_SIZE + NODE_SIZE * 2 / 3;
+  let yPos = CELL_SIZE * 0.35 + NODE_SIZE * 2 / 3;
   let index = 0;
 
   displayedRules.forEach((ruleObj) => {
@@ -2018,7 +2026,7 @@ export function onMouseDown(event) {
       let restartOffsetFactor = COLS <= 3 ? 1 : COLS - 1;
 
       if (mouseX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.12
-          && mouseY <= CELL_SIZE * 0.8) {
+          && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.8) {
         restart();
       }
     }
@@ -2057,7 +2065,7 @@ export function onTouchStart(event) {
     let restartOffsetFactor = COLS <= 3 ? 1 : COLS - 1;
 
     if (touchX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.12
-        && touchY <= CELL_SIZE * 0.8) {
+        && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.8) {
       restart();
     }
   }
