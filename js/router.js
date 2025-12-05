@@ -89,9 +89,37 @@ class Router {
       handleDifficultySelection.call(this, 4);
     });
 
+    // Detect keyboard usage
+    document.addEventListener('keydown', () => {
+      if (!this.puzzleState.usingKeyboard) {
+        this.puzzleState.usingKeyboard = true;
+        this.currentPuzzle?.drawPuzzle();
+      }
+    });
+    document.addEventListener('mousemove', () => {
+      if (this.puzzleState.usingKeyboard) {
+        this.puzzleState.usingKeyboard = false;
+        this.currentPuzzle?.drawPuzzle();
+      }
+    });
+    document.addEventListener('mousedown', () => {
+      if (this.puzzleState.usingKeyboard) {
+        this.puzzleState.usingKeyboard = false;
+        this.currentPuzzle?.drawPuzzle();
+      }
+    });
+    document.addEventListener('touchstart', () => {
+      if (this.puzzleState.usingKeyboard) {
+        this.puzzleState.usingKeyboard = false;
+        this.currentPuzzle?.drawPuzzle();
+      }
+    });
+
     // Handle canvas inputs
     let canvasContainer = document.getElementById('canvasContainer');
     canvasContainer?.addEventListener('touchstart', (event) => {
+      this.puzzleState.usingKeyboard = false;
+
       if (typeof this.currentPuzzle?.onTouchStart === 'function') {
         this.currentPuzzle.onTouchStart(event);
       }
@@ -127,6 +155,11 @@ class Router {
 
       if (typeof this.currentPuzzle?.onKeyDown === 'function') {
         this.currentPuzzle.onKeyDown(event);
+      }
+    });
+    canvasContainer?.addEventListener('keyup', (event) => {
+      if (typeof this.currentPuzzle?.onKeyUp === 'function') {
+        this.currentPuzzle.onKeyUp(event);
       }
     });
 

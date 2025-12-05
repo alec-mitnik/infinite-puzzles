@@ -517,13 +517,14 @@ export function drawPuzzle() {
   }
 }
 
+// Arrows
 function drawMoveCells(sliderCoord, gridToDraw, context) {
   if (sliderCoord[0] > 0) {
     let cell = gridToDraw[sliderCoord[0] - 1][sliderCoord[1]];
 
     if (!cell.block) {
       context.lineWidth = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? LINE_THICKNESS : LINE_THICKNESS * 2;
-      context.strokeStyle = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? "#ccaa8080" : ALERT_COLOR;
+      context.strokeStyle = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? `${ALERT_COLOR}80` : ALERT_COLOR;
 
       // Relative
       let coord = getDrawCoord(sliderCoord[0] - 1, sliderCoord[1], true);
@@ -553,7 +554,7 @@ function drawMoveCells(sliderCoord, gridToDraw, context) {
 
     if (!cell.block) {
       context.lineWidth = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? LINE_THICKNESS : LINE_THICKNESS * 2;
-      context.strokeStyle = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? "#ccaa8080" : ALERT_COLOR;
+      context.strokeStyle = alternateToVerticalHistory.length > 0 && peek(alternateToVerticalHistory) ? `${ALERT_COLOR}80` : ALERT_COLOR;
 
       // Relative
       let coord = getDrawCoord(sliderCoord[0] + 1, sliderCoord[1], true);
@@ -584,7 +585,7 @@ function drawMoveCells(sliderCoord, gridToDraw, context) {
 
     if (!cell.block) {
       context.lineWidth = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? LINE_THICKNESS * 2 : LINE_THICKNESS;
-      context.strokeStyle = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? ALERT_COLOR : "#ccaa8080";
+      context.strokeStyle = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? ALERT_COLOR : `${ALERT_COLOR}80`;
 
       // Relative
       let coord = getDrawCoord(sliderCoord[0], sliderCoord[1] - 1, true);
@@ -615,7 +616,7 @@ function drawMoveCells(sliderCoord, gridToDraw, context) {
 
     if (!cell.block) {
       context.lineWidth = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? LINE_THICKNESS * 2 : LINE_THICKNESS;
-      context.strokeStyle = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? ALERT_COLOR : "#ccaa8080";
+      context.strokeStyle = alternateToVerticalHistory.length === 0 || peek(alternateToVerticalHistory) ? ALERT_COLOR : `${ALERT_COLOR}80`;
 
       // Relative
       let coord = getDrawCoord(sliderCoord[0], sliderCoord[1] + 1, true);

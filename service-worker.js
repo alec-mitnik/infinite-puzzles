@@ -1,10 +1,8 @@
-let CACHE_VERSION = 252;
+let CACHE_VERSION = 253;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
- *
- * Add reset option for all puzzles.
  *
  * Add keyboard support for the Slider Path Puzzle with arrow keys, at least?
  * Tetromino Grid Puzzle and Color Pieces Puzzle would need a way to tab through each piece,
@@ -19,18 +17,19 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  * Marked Loop puzzle would need a cursor moved with arrow keys that marked/erased while holding down space?
  * Can make activation of the canvas while it has focus invoke the start button?
  *
+ * Present keyboard controls somewhere.
+ * Make keyboard controls mappable?
+ *
+ * Improve color-blindness accessibility.
+ *
  * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
  * Keep the mp3 as a fallback?  Can convert with Audacity.
- *
- * Improve color-blindness accessibility
  *
  *
  * Ideas:
  *
  * Make logic grid puzzle clearer regarding rows needing to match symbol sets.
  * Show a message like "Numbers go in this row, etc." for the first tutorial?
- *
- * More semantic puzzle sharing icon?
  *
  * Might be nice to store each puzzle move, so that it could be
  * played back to you or even shared (as a gif?)

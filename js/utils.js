@@ -523,9 +523,13 @@ export function setTutorialDone(puzzleKey = router.puzzleState.puzzleKey) {
   statsManager.saveStatsData();
 }
 
+export function sameCoord(coord1, coord2) {
+  return coord1[0] === coord2[0] && coord1[1] === coord2[1];
+}
+
 export function containsCoord(array, coord) {
   return array.some(val => {
-    return val[0] === coord[0] && val[1] === coord[1];
+    return sameCoord(val, coord);
   });
 }
 
@@ -533,7 +537,7 @@ export function removeCoord(array, coord) {
   for (let i = 0; i < array.length; i++) {
     let val = array[i];
 
-    if (val[0] === coord[0] && val[1] === coord[1]) {
+    if (sameCoord(val, coord)) {
       array.splice(i, 1);
       return;
     }

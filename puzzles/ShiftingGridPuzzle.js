@@ -6,8 +6,9 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, isUndoKey, onMiddleMouseDown, onMiddleMouseUp,
-  randomIndex, updateForTutorialRecommendation,
+  getPuzzleCanvas, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
+  isUndoKey, isUpDirKey, onMiddleMouseDown, onMiddleMouseUp,
+  randomIndex, sameCoord, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -339,6 +340,8 @@ let COLS;
 let CELL_SIZE;
 let NODE_SIZE;
 
+let cursorCoord;
+let isCursorGrabbing = false;
 let savedGrid;
 let gridHistory;
 let grid;
@@ -654,6 +657,7 @@ export function init() {
   }
 
   savedGrid = null;
+  cursorCoord = [0, 0];
 
   updateForTutorialState();
 
@@ -713,6 +717,31 @@ export function drawPuzzle() {
       context.fillStyle = "#000000";
       context.fillRect(coord[0] + TILE_BORDER, coord[1] + TILE_BORDER,
           CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
+
+      if (!solved && router.puzzleState.usingKeyboard && sameCoord([i, j], cursorCoord)) {
+        if (isCursorGrabbing) {
+          context.fillStyle = `${ALERT_COLOR}80`;
+          context.fillRect(coord[0] + TILE_BORDER, coord[1] + TILE_BORDER,
+              CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
+        }
+
+        context.fillStyle = ALERT_COLOR;
+
+        // The clear is necessary to prevent a thin, diagonal black line
+        // from showing through for some reason
+        context.clearRect(coord[0] + TILE_BORDER * 2, coord[1] + TILE_BORDER * 2,
+            CELL_SIZE - 4 * TILE_BORDER, CELL_SIZE - 4 * TILE_BORDER);
+        context.fillRect(coord[0] + TILE_BORDER * 2, coord[1] + TILE_BORDER * 2,
+            CELL_SIZE - 4 * TILE_BORDER, CELL_SIZE - 4 * TILE_BORDER);
+
+        context.fillStyle = "#000000";
+        context.fillRect(coord[0] + TILE_BORDER + CELL_SIZE * 0.3, coord[1] + TILE_BORDER,
+            CELL_SIZE - 2 * TILE_BORDER - CELL_SIZE * 0.6, CELL_SIZE - 2 * TILE_BORDER);
+        context.fillRect(coord[0] + TILE_BORDER, coord[1] + TILE_BORDER + CELL_SIZE * 0.3,
+            CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER - CELL_SIZE * 0.6);
+        context.fillRect(coord[0] + TILE_BORDER * 3, coord[1] + TILE_BORDER * 3,
+            CELL_SIZE - 6 * TILE_BORDER, CELL_SIZE - 6 * TILE_BORDER);
+      }
     }
   }
 
@@ -972,16 +1001,32 @@ function drawArrowDown(context, coord) {
 }
 
 function drawArrows(context) {
-  context.lineWidth = ARROW_THICKNESS;
   context.lineCap = "butt";
-  context.strokeStyle = ALERT_COLOR;
 
   for (let i = 0; i < COLS; i++) {
+    const fullArrow = !router.puzzleState.usingKeyboard || cursorCoord[0] === i;
+    context.lineWidth = fullArrow ? ARROW_THICKNESS : ARROW_THICKNESS * 0.5;
+    context.strokeStyle = fullArrow ? ALERT_COLOR : `${ALERT_COLOR}80`;
+
+    // Looks better with only the full arrows shown
+    if (!fullArrow) {
+      continue;
+    }
+
     drawArrowUp(context, getDrawCoord([i, -1], true));
     drawArrowDown(context, getDrawCoord([i, ROWS], true));
   }
 
   for (let i = 0; i < ROWS; i++) {
+    const fullArrow = !router.puzzleState.usingKeyboard || cursorCoord[1] === i;
+    context.lineWidth = fullArrow ? ARROW_THICKNESS : ARROW_THICKNESS * 0.5;
+    context.strokeStyle = fullArrow ? ALERT_COLOR : `${ALERT_COLOR}80`;
+
+    // Looks better with only the full arrows shown
+    if (!fullArrow) {
+      continue;
+    }
+
     drawArrowLeft(context, getDrawCoord([-1, i], true));
     drawArrowRight(context, getDrawCoord([COLS, i], true));
   }
@@ -1049,7 +1094,21 @@ export function onTouchStart(event) {
   }
 }
 
+export function onKeyUp(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
+  if (grabbingStateChanged && router.puzzleState.interactive) {
+    drawPuzzle();
+  }
+}
+
 export function onKeyDown(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
   if (router.puzzleState.interactive) {
     // Restart
     if (isRestartKey(event)) {
@@ -1076,6 +1135,55 @@ export function onKeyDown(event) {
       event.preventDefault();
       return;
     }
+
+    // Move Cursor
+    if (!event.altKey && !event.shiftKey) {
+      if (isLeftDirKey(event)) {
+        cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+
+        if (event.ctrlKey || event.metaKey) {
+          handleMove(DIRECTION.LEFT, cursorCoord[1]);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isRightDirKey(event)) {
+        cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+
+        if (event.ctrlKey || event.metaKey) {
+          handleMove(DIRECTION.RIGHT, cursorCoord[1]);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isUpDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+
+        if (event.ctrlKey || event.metaKey) {
+          handleMove(DIRECTION.UP, cursorCoord[0]);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isDownDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+
+        if (event.ctrlKey || event.metaKey) {
+          handleMove(DIRECTION.DOWN, cursorCoord[0]);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      }
+    }
+  }
+
+  if (grabbingStateChanged) {
+    drawPuzzle();
   }
 }
 
@@ -1163,18 +1271,22 @@ function handleLeftClickOrTap(coord) {
       }
     }
 
-    if (direction) {
-      if (gridHistory >= HISTORY_LIMIT) {
-        gridHistory.shift();
-      }
+    handleMove(direction, index);
+  }
+}
 
-      gridHistory.push(deepCopy(grid));
-
-      shiftAtIndex(index, direction);
-      queuedSounds.push(SHIFT_SOUND);
-
-      drawPuzzle();
+function handleMove(direction, index) {
+  if (direction && index >= 0) {
+    if (gridHistory >= HISTORY_LIMIT) {
+      gridHistory.shift();
     }
+
+    gridHistory.push(deepCopy(grid));
+
+    shiftAtIndex(index, direction);
+    queuedSounds.push(SHIFT_SOUND);
+
+    drawPuzzle();
   }
 }
 
