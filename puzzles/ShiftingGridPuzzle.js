@@ -1141,7 +1141,7 @@ export function onKeyDown(event) {
       if (isLeftDirKey(event)) {
         cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
 
-        if (event.ctrlKey || event.metaKey) {
+        if (isCursorGrabbing) {
           handleMove(DIRECTION.LEFT, cursorCoord[1]);
         } else {
           drawPuzzle();
@@ -1151,7 +1151,7 @@ export function onKeyDown(event) {
       } else if (isRightDirKey(event)) {
         cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
 
-        if (event.ctrlKey || event.metaKey) {
+        if (isCursorGrabbing) {
           handleMove(DIRECTION.RIGHT, cursorCoord[1]);
         } else {
           drawPuzzle();
@@ -1161,7 +1161,7 @@ export function onKeyDown(event) {
       } else if (isUpDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
 
-        if (event.ctrlKey || event.metaKey) {
+        if (isCursorGrabbing) {
           handleMove(DIRECTION.UP, cursorCoord[0]);
         } else {
           drawPuzzle();
@@ -1171,7 +1171,7 @@ export function onKeyDown(event) {
       } else if (isDownDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
 
-        if (event.ctrlKey || event.metaKey) {
+        if (isCursorGrabbing) {
           handleMove(DIRECTION.DOWN, cursorCoord[0]);
         } else {
           drawPuzzle();

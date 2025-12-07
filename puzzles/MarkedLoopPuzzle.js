@@ -6,8 +6,9 @@ import {
 import router from "../js/router.js";
 import {
   containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomEl,
-  removeCoord, updateForTutorialRecommendation, updateForTutorialState
+  getPuzzleCanvas, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
+  isUpDirKey, onMiddleMouseDown, onMiddleMouseUp, randomEl,
+  removeCoord, sameCoord, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
@@ -130,6 +131,8 @@ let LOOP_COLS;
 let CELL_SIZE;
 let NODE_SIZE;
 
+let cursorCoord;
+let isCursorApplying = false;
 let grid;
 let solution;
 let solutionLength;
@@ -719,6 +722,8 @@ export function init() {
     generateGrid();
   }
 
+  cursorCoord = [0, 0];
+
   updateForTutorialState();
 
   drawInstructions();
@@ -895,7 +900,6 @@ export function drawPuzzle() {
     for (let j = 0; j < ROWS; j++) {
       let tile = gridToDraw[i][j];
       let coord = getDrawCoord(tile.coord);
-      // let centerCoord = getDrawCoord(tile.coord, true);
 
       context.beginPath();
       context.lineWidth = TILE_BORDER;
@@ -905,6 +909,17 @@ export function drawPuzzle() {
           CELL_SIZE, CELL_SIZE);
       context.fill();
       context.stroke();
+
+      if (!solved && router.puzzleState.usingKeyboard && sameCoord([i, j], cursorCoord)) {
+        if (isCursorApplying) {
+          context.fillStyle = ALERT_COLOR;
+        } else {
+          context.fillStyle = `${ALERT_COLOR}80`;
+        }
+
+        context.fillRect(coord[0], coord[1], CELL_SIZE, CELL_SIZE);
+        context.stroke();
+      }
     }
   }
 
@@ -1059,11 +1074,15 @@ function areGridCoordsAdjacent(coord1, coord2) {
       && Math.abs(coord1[1] - coord2[1]) === 1;
 }
 
-function pathInteraction(mouseX, mouseY) {
+function pathInteractionForScreen(mouseX, mouseY) {
   let coord = convertToGridCoord(mouseX, mouseY);
+  pathInteraction(coord);
+}
 
+function pathInteraction(coord) {
   if (coord[0] >= 0 && coord[0] < COLS
       && coord[1] >= 0 && coord[1] < ROWS) {
+    cursorCoord = coord;
     let tile = grid[coord[0]][coord[1]];
 
     if (draggingTile && draggingTile !== tile) {
@@ -1076,6 +1095,8 @@ function pathInteraction(mouseX, mouseY) {
 
             queuedSounds.push(CLEAR_SOUND);
             drawPuzzle();
+          } else if (router.puzzleState.usingKeyboard && isCursorApplying) {
+            drawPuzzle();
           }
         } else {
           if (draggingValue !== true) {
@@ -1084,6 +1105,8 @@ function pathInteraction(mouseX, mouseY) {
             draggingTile.neighborPaths.push(tile.coord);
 
             queuedSounds.push(CLICK_SOUND);
+            drawPuzzle();
+          } else if (router.puzzleState.usingKeyboard && isCursorApplying) {
             drawPuzzle();
           }
         }
@@ -1110,12 +1133,93 @@ function restart() {
   }
 }
 
+export function onKeyUp(event) {
+  const newApplyingState = event.ctrlKey || event.metaKey;
+  const applyingStateChanged = newApplyingState !== isCursorApplying;
+  isCursorApplying = newApplyingState;
+
+  if (applyingStateChanged) {
+    if (!isCursorApplying) {
+      previousTouch = null;
+      draggingTile = null;
+      draggingValue = null;
+      dragging = false;
+    }
+
+    if (router.puzzleState.interactive) {
+      drawPuzzle();
+    }
+  }
+}
+
 export function onKeyDown(event) {
+  const newApplyingState = event.ctrlKey || event.metaKey;
+  const applyingStateChanged = newApplyingState !== isCursorApplying;
+  isCursorApplying = newApplyingState;
+
+  if (applyingStateChanged) {
+    if (isCursorApplying) {
+      dragging = true;
+      draggingTile = grid[cursorCoord[0]][cursorCoord[1]];
+      draggingValue = null;
+    }
+  }
+
   if (router.puzzleState.interactive) {
     // Restart
     if (isRestartKey(event)) {
       restart();
+      return;
     }
+
+    // Move Cursor
+    if (!event.altKey && !event.shiftKey) {
+      if (isLeftDirKey(event)) {
+        cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+
+        if (isCursorApplying) {
+          pathInteraction(cursorCoord);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isRightDirKey(event)) {
+        cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+
+        if (isCursorApplying) {
+          pathInteraction(cursorCoord);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isUpDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+
+        if (isCursorApplying) {
+          pathInteraction(cursorCoord);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      } else if (isDownDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+
+        if (isCursorApplying) {
+          pathInteraction(cursorCoord);
+        } else {
+          drawPuzzle();
+        }
+
+        return;
+      }
+    }
+  }
+
+  if (applyingStateChanged) {
+    drawPuzzle();
   }
 }
 
@@ -1133,7 +1237,7 @@ export function onMouseDown(event) {
       }
 
       dragging = true;
-      pathInteraction(mouseX, mouseY);
+      pathInteractionForScreen(mouseX, mouseY);
     }
 
   // Middle click
@@ -1156,7 +1260,7 @@ export function onTouchStart(event) {
 
     previousTouch = touch;
     dragging = true;
-    pathInteraction(touchX, touchY);
+    pathInteractionForScreen(touchX, touchY);
   }
 }
 
@@ -1166,7 +1270,7 @@ export function onMouseMove(event) {
     let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
     let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
-    pathInteraction(mouseX, mouseY);
+    pathInteractionForScreen(mouseX, mouseY);
   }
 }
 
@@ -1189,7 +1293,7 @@ export function onTouchMove(event) {
       let touchX = (movedTouch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
       let touchY = (movedTouch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
-      pathInteraction(touchX, touchY);
+      pathInteractionForScreen(touchX, touchY);
     }
   }
 }
