@@ -115,6 +115,13 @@ class Router {
       }
     });
 
+    // Detect focus leaving the browser tab
+    window.addEventListener('blur', () => {
+      if (typeof this.currentPuzzle?.onWindowBlur === 'function') {
+        this.currentPuzzle.onWindowBlur(event);
+      }
+    });
+
     // Handle canvas inputs
     let canvasContainer = document.getElementById('canvasContainer');
 

@@ -120,6 +120,12 @@ export function startButtonClick() {
   }
 }
 
+export function isDirKey(event) {
+  return isRightDirKey(event) || isLeftDirKey(event) || isUpDirKey(event) || isDownDirKey(event)
+      || isUpLeftDirKey(event) || isUpRightDirKey(event)
+      || isDownLeftDirKey(event) || isDownRightDirKey(event);
+}
+
 export function isRightDirKey(event) {
   return event.code === "ArrowRight" || event.code === "KeyD" || event.code === "Numpad6";
 }

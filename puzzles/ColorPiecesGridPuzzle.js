@@ -1288,6 +1288,14 @@ export function handleMiddleMouseDown() {
   }
 }
 
+export function onWindowBlur() {
+  if (dragging) {
+    snapToGrid(dragging);
+    dragging = null;
+    previousTouch = null;
+  }
+}
+
 export function onTouchStart(event) {
   // Single touch
   if (!dragging && event.changedTouches.length === 1) {

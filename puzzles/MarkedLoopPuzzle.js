@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
+  getPuzzleCanvas, isDirKey, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
   isUpDirKey, randomEl, removeCoord, sameCoord, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -133,7 +133,7 @@ let CELL_SIZE;
 let NODE_SIZE;
 
 let cursorCoord;
-let isCursorApplying = false;
+let isCursorGrabbing = false;
 let grid;
 let solution;
 let solutionLength;
@@ -906,22 +906,27 @@ export function drawPuzzle() {
       context.lineWidth = TILE_BORDER;
       context.fillStyle = "#ffffff";
       context.strokeStyle = "#000000";
-      context.rect(coord[0], coord[1],
-          CELL_SIZE, CELL_SIZE);
+      context.rect(coord[0], coord[1], CELL_SIZE, CELL_SIZE);
       context.fill();
       context.stroke();
 
+      // Cursor
       if (!solved && router.puzzleState.usingKeyboard && sameCoord([i, j], cursorCoord)) {
-        if (isCursorApplying) {
-          context.fillStyle = ALERT_COLOR;
-        } else {
-          context.fillStyle = `${ALERT_COLOR}80`;
-        }
-
+        context.fillStyle = `${ALERT_COLOR}80`;
         context.fillRect(coord[0], coord[1], CELL_SIZE, CELL_SIZE);
         context.stroke();
       }
     }
+  }
+
+  // Grabbing Cursor
+  if (!solved && router.puzzleState.usingKeyboard && isCursorGrabbing) {
+    const cursorDrawCoord = getDrawCoord(cursorCoord);
+    context.strokeStyle = ALERT_COLOR;
+    context.lineWidth = NODE_LINE_THICKNESS;
+    context.beginPath();
+    context.rect(cursorDrawCoord[0], cursorDrawCoord[1], CELL_SIZE, CELL_SIZE);
+    context.stroke();
   }
 
   context.strokeStyle = solved ? SUCCESS_COLOR : "#808080";
@@ -1096,7 +1101,7 @@ function pathInteraction(coord) {
 
             queuedSounds.push(CLEAR_SOUND);
             drawPuzzle();
-          } else if (router.puzzleState.usingKeyboard && isCursorApplying) {
+          } else if (router.puzzleState.usingKeyboard && isCursorGrabbing) {
             drawPuzzle();
           }
         } else {
@@ -1107,7 +1112,7 @@ function pathInteraction(coord) {
 
             queuedSounds.push(CLICK_SOUND);
             drawPuzzle();
-          } else if (router.puzzleState.usingKeyboard && isCursorApplying) {
+          } else if (router.puzzleState.usingKeyboard && isCursorGrabbing) {
             drawPuzzle();
           }
         }
@@ -1135,12 +1140,12 @@ function restart() {
 }
 
 export function onKeyUp(event) {
-  const newApplyingState = event.ctrlKey || event.metaKey;
-  const applyingStateChanged = newApplyingState !== isCursorApplying;
-  isCursorApplying = newApplyingState;
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
 
-  if (applyingStateChanged) {
-    if (!isCursorApplying) {
+  if (grabbingStateChanged) {
+    if (!isCursorGrabbing) {
       previousTouch = null;
       draggingTile = null;
       draggingValue = null;
@@ -1154,7 +1159,7 @@ export function onKeyUp(event) {
 }
 
 function handleCursorMove() {
-  if (isCursorApplying) {
+  if (isCursorGrabbing) {
     pathInteraction(cursorCoord);
   } else {
     audioManager.play(CLINK_SOUND, 0.3);
@@ -1163,12 +1168,12 @@ function handleCursorMove() {
 }
 
 export function onKeyDown(event) {
-  const newApplyingState = event.ctrlKey || event.metaKey;
-  const applyingStateChanged = newApplyingState !== isCursorApplying;
-  isCursorApplying = newApplyingState;
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
 
-  if (applyingStateChanged) {
-    if (isCursorApplying) {
+  if (grabbingStateChanged) {
+    if (isCursorGrabbing) {
       dragging = true;
       draggingTile = grid[cursorCoord[0]][cursorCoord[1]];
       draggingValue = null;
@@ -1184,27 +1189,56 @@ export function onKeyDown(event) {
 
     // Move Cursor
     if (!event.altKey && !event.shiftKey) {
+      if (isDirKey(event)) {
+        // Prevent use of numpad from switching browser tabs
+        event.preventDefault();
+      }
+
       if (isLeftDirKey(event)) {
-        cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+        if (isCursorGrabbing) {
+          // Don't wrap around if grabbing
+          cursorCoord = [cursorCoord[0] <= 0 ? 0 : cursorCoord[0] - 1, cursorCoord[1]];
+        } else {
+          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+        }
+
         handleCursorMove();
         return;
       } else if (isRightDirKey(event)) {
-        cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+        if (isCursorGrabbing) {
+          // Don't wrap around if grabbing
+          cursorCoord = [cursorCoord[0] >= COLS - 1 ? COLS - 1 : cursorCoord[0] + 1, cursorCoord[1]];
+        } else {
+          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+        }
+
         handleCursorMove();
         return;
       } else if (isUpDirKey(event)) {
-        cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+        if (isCursorGrabbing) {
+          // Don't wrap around if grabbing
+          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? 0 : cursorCoord[1] - 1];
+        } else {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+        }
+
         handleCursorMove();
         return;
       } else if (isDownDirKey(event)) {
-        cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+        if (isCursorGrabbing) {
+          // Don't wrap around if grabbing
+          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? ROWS - 1 : cursorCoord[1] + 1];
+        } else {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+        }
+
         handleCursorMove();
         return;
       }
     }
   }
 
-  if (applyingStateChanged) {
+  if (grabbingStateChanged) {
     drawPuzzle();
   }
 }
@@ -1229,6 +1263,15 @@ export function onMouseDown(event) {
 }
 
 export function handleMiddleMouseDown() {
+  if (dragging) {
+    dragging = null;
+    draggingValue = null;
+    draggingTile = null;
+    previousTouch = null;
+  }
+}
+
+export function onWindowBlur() {
   if (dragging) {
     dragging = null;
     draggingValue = null;

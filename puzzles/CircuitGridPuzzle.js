@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  hasModifierKeys, isActivationKey, isDownDirKey, isLeftDirKey,
+  hasModifierKeys, isActivationKey, isDirKey, isDownDirKey, isLeftDirKey,
   isRestartKey, isRightDirKey, isUpDirKey, randomIndex, sameCoord,
   updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
@@ -687,8 +687,9 @@ export function drawPuzzle() {
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
 
+    // Cursor
     if (router.puzzleState.usingKeyboard) {
-      let cursorTile = grid[cursorCoord[0]][cursorCoord[1]];
+      const cursorTile = gridToDraw[cursorCoord[0]][cursorCoord[1]];
 
       if (isCursorGrabbing) {
         context.strokeStyle = `${ALERT_COLOR}80`;
@@ -1095,6 +1096,11 @@ export function onKeyDown(event) {
 
     // Move Cursor
     if (!event.altKey && !event.shiftKey) {
+      if (isDirKey(event)) {
+        // Prevent use of numpad from switching browser tabs
+        event.preventDefault();
+      }
+
       if (isLeftDirKey(event)) {
         if (isCursorGrabbing) {
           handleCursorRotate(false);

@@ -6,7 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, hasModifierKeys, isDownDirKey, isDownLeftDirKey,
+  getPuzzleCanvas, hasModifierKeys, isActivationKey, isDownDirKey, isDownLeftDirKey,
   isDownRightDirKey, isLeftDirKey, isRestartKey,
   isRightDirKey, isUndoKey, isUpDirKey, isUpLeftDirKey, isUpRightDirKey,
   randomIndex, updateForTutorialRecommendation, updateForTutorialState
@@ -34,7 +34,7 @@ const DIRECTION = Object.freeze({
 });
 
 const TAP_SOUND = audioManager.SoundEffects.CLICK;
-const TAP_FAIL_SOUND = audioManager.SoundEffects.CLINK;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const MIRROR_SOUND = audioManager.SoundEffects.WHIR;
 const UNDO_SOUND = audioManager.SoundEffects.WARP;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
@@ -334,6 +334,8 @@ let DIFFICULTY;
 let MOVES;
 let MIN_MIRRORS;
 
+let cursorCoord;
+let isCursorGrabbing = false;
 let gridHistory;
 let grid;
 let solution;
@@ -797,6 +799,7 @@ export function init() {
   gridHistory = [];
   tapsHistory = [];
   mirrorsHistory = [];
+  cursorCoord = [0, 0];
 
   updateForTutorialState();
 
@@ -886,8 +889,26 @@ export function drawPuzzle() {
     } else {
       queuedSounds.forEach(sound => audioManager.play(sound));
 
+      // Cursor
+      if (router.puzzleState.usingKeyboard) {
+        const cursorDrawCoord = getDrawCoord(...cursorCoord);
+        context.lineWidth = LINE_THICKNESS;
+
+        context.strokeStyle = "#000";
+        context.beginPath();
+        context.rect(cursorDrawCoord[0], cursorDrawCoord[1], CELL_SIZE, CELL_SIZE);
+        context.stroke();
+
+        context.strokeStyle = isCursorGrabbing ? `${ALERT_COLOR}80` : ALERT_COLOR;
+        context.beginPath();
+        context.rect(cursorDrawCoord[0] - LINE_THICKNESS, cursorDrawCoord[1] - LINE_THICKNESS,
+            CELL_SIZE + 2 * LINE_THICKNESS, CELL_SIZE + 2 * LINE_THICKNESS);
+        context.stroke();
+      }
+
       if (gridHistory.length > 0) {
         if (availableMirrors > 0) {
+          // Mirror Arrows
           drawArrows(context);
         }
 
@@ -1060,8 +1081,9 @@ function drawArrowDownLeft(context, coord) {
 }
 
 function drawArrows(context) {
-  context.lineWidth = LINE_THICKNESS * 2;
-  context.strokeStyle = ALERT_COLOR;
+  const fullArrows = !router.puzzleState.usingKeyboard || isCursorGrabbing;
+  context.lineWidth = fullArrows ? LINE_THICKNESS * 2 : LINE_THICKNESS;
+  context.strokeStyle = fullArrows ? ALERT_COLOR : `${ALERT_COLOR}80`;
 
   let mirrorDirections = getAvailableMirrors();
 
@@ -1150,7 +1172,26 @@ export function onTouchStart(event) {
   }
 }
 
+export function onKeyUp(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
+  if (grabbingStateChanged && router.puzzleState.interactive) {
+    drawPuzzle();
+  }
+}
+
+function handleCursorMove() {
+  audioManager.play(CLINK_SOUND, 0.3);
+  drawPuzzle();
+}
+
 export function onKeyDown(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
   if (router.puzzleState.interactive) {
     // Restart
     if (isRestartKey(event)) {
@@ -1164,26 +1205,75 @@ export function onKeyDown(event) {
       return;
     }
 
-    // Move
-    if (availableMirrors > 0 && !hasModifierKeys(event)) {
-      if (isLeftDirKey(event)) {
-        handleLeftClickOrTap([-1, ROWS / 2], true);
-      } else if (isRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, ROWS / 2], true);
-      } else if (isUpDirKey(event)) {
-        handleLeftClickOrTap([COLS / 2, -1], true);
-      } else if (isDownDirKey(event)) {
-        handleLeftClickOrTap([COLS / 2, ROWS], true);
-      } else if (isUpLeftDirKey(event)) {
-        handleLeftClickOrTap([-1, -1], true);
-      } else if (isUpRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, -1], true);
-      } else if (isDownLeftDirKey(event)) {
-        handleLeftClickOrTap([-1, ROWS], true);
-      } else if (isDownRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, ROWS], true);
+    // Tap
+    if (!hasModifierKeys(event) && isActivationKey(event)) {
+      handleLeftClickOrTap(cursorCoord);
+      return;
+    }
+
+    if (!event.alkKey && !event.shiftKey) {
+      if (isCursorGrabbing) {
+        // Mirror
+        let mirrored = false;
+
+        if (isLeftDirKey(event)) {
+          handleLeftClickOrTap([-1, ROWS / 2], true);
+          mirrored = true;
+        } else if (isRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, ROWS / 2], true);
+          mirrored = true;
+        } else if (isUpDirKey(event)) {
+          handleLeftClickOrTap([COLS / 2, -1], true);
+          mirrored = true;
+        } else if (isDownDirKey(event)) {
+          handleLeftClickOrTap([COLS / 2, ROWS], true);
+          mirrored = true;
+        } else if (isUpLeftDirKey(event)) {
+          handleLeftClickOrTap([-1, -1], true);
+          mirrored = true;
+        } else if (isUpRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, -1], true);
+          mirrored = true;
+        } else if (isDownLeftDirKey(event)) {
+          // TODO - this conflicts with CTRL+Z for undo!
+          handleLeftClickOrTap([-1, ROWS], true);
+          mirrored = true;
+        } else if (isDownRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, ROWS], true);
+          mirrored = true;
+        }
+
+        if (mirrored) {
+          // Prevent use of numpad from switching browser tabs.
+          // TODO - Does not prevent CTRL+W from attempting to close the browser tab, though!
+          event.preventDefault();
+          return;
+        }
+      } else {
+        // Move Cursor
+        if (isLeftDirKey(event)) {
+          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+          handleCursorMove();
+          return;
+        } else if (isRightDirKey(event)) {
+          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+          handleCursorMove();
+          return;
+        } else if (isUpDirKey(event)) {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+          handleCursorMove();
+          return;
+        } else if (isDownDirKey(event)) {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+          handleCursorMove();
+          return;
+        }
       }
     }
+  }
+
+  if (grabbingStateChanged) {
+    drawPuzzle();
   }
 }
 
@@ -1245,13 +1335,16 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
         cell.filled = true;
         queuedSounds.push(TAP_SOUND);
 
+        cursorCoord = coord;
         drawPuzzle();
       } else {
-        audioManager.play(TAP_FAIL_SOUND);
+        audioManager.play(CLINK_SOUND);
       }
     } else {
-      audioManager.play(TAP_FAIL_SOUND);
+      audioManager.play(CLINK_SOUND);
     }
+
+    cursorCoord = coord;
   } else if (availableMirrors > 0) {
     let mirrorDirections = getAvailableMirrors();
     let direction = null;
@@ -1305,6 +1398,10 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
       queuedSounds.push(MIRROR_SOUND);
 
       drawPuzzle();
+    } else {
+      audioManager.play(CLINK_SOUND);
     }
+  } else {
+    audioManager.play(CLINK_SOUND);
   }
 }

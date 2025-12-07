@@ -1,21 +1,20 @@
-let CACHE_VERSION = 255;
+let CACHE_VERSION = 256;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
- * Add keyboard support for the Slider Path Puzzle with arrow keys, at least?
- * Tetromino Grid Puzzle and Color Pieces Puzzle would need a way to tab through each piece,
- * showing keyboard focus, move it with arrow keys, snapping to the grid, and rotating it with space?
- * Maybe use number keys for the Light Switches Puzzle?
- * Arithmetic Grid Puzzle could number the tiles 1-9, showing the labels only while :focus-visible is true?
- * Circuit Grid Puzzle could be similar, with left/right arrow keys for rotation
- * Shifting Grid Puzzle could select a tile just for keyboard controls using same coordinate system,
- * then shift tiles with arrow keys (but too many tiles at largest difficulty unless I use rapid succession...)
- * For the Tangled Graph Puzzle, could select a node with number keys
- * (rapid succession for two-digit numbers) and then move with arrow keys?
- * Marked Loop puzzle would need a cursor moved with arrow keys that marked/erased while holding down space?
- * Can make activation of the canvas while it has focus invoke the start button?
+ * Full keyboard controls still needed for:
+ * Tetromino Grid Puzzle
+ * Color Pieces Puzzle
+ * Emitters Grid Puzzle
+ * Logic Grid Puzzle
+ * Light Switches Puzzle
+ * Tangled Graph Puzzle
+ *
+ * Using CTRL/CMD as the "grabbing" modifier conflicts with
+ * CTRL+W for closing the tab, which can't be prevented,
+ * and CTRL/CMD+Z for undo!  Use Shift as the "grabbing" modifier instead?
  *
  * Present keyboard controls somewhere.
  * Make keyboard controls mappable?

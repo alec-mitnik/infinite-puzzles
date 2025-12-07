@@ -1078,6 +1078,14 @@ export function handleMiddleMouseDown() {
   }
 }
 
+export function onWindowBlur() {
+  if (dragging) {
+    releaseNode(dragging);
+    dragging = null;
+    previousTouch = null;
+  }
+}
+
 export function onTouchStart(event) {
   if (router.puzzleState.interactive && !dragging && event.changedTouches.length === 1) {
     let touch = event.changedTouches[0];
