@@ -6,8 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
-  updateForTutorialRecommendation, updateForTutorialState
+  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const ROTATIONS = false;
@@ -984,18 +983,16 @@ export function onMouseDown(event) {
   } else if (event.button === 2) {
     if (router.puzzleState.interactive && dragging && ROTATIONS) {
       rotateTile(dragging);
-
       drawPuzzle();
     }
+  }
+}
 
-  // Middle click
-  } else if (event.button === 1) {
-    if (dragging) {
-      snapToGrid(dragging);
-      dragging = null;
-    }
-
-    onMiddleMouseDown();
+export function handleMiddleMouseDown() {
+  if (dragging) {
+    snapToGrid(dragging);
+    dragging = null;
+    previousTouch = null;
   }
 }
 
@@ -1039,9 +1036,7 @@ export function onTouchStart(event) {
   } else if (dragging && event.touches.length === 2) {
     if (router.puzzleState.interactive && ROTATIONS) {
       event.preventDefault();
-
       rotateTile(dragging);
-
       drawPuzzle();
     }
   }
@@ -1124,10 +1119,6 @@ export function onMouseUp(event) {
     }
 
     dragging = null;
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
 

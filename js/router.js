@@ -3,7 +3,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONF
 import dailyChallengeManager from './daily-challenge-manager.js';
 import {
   generateSeed, getPuzzleCanvas, getSeededRandomFunction,
-  getTutorialDone, openDialogWithTransition,
+  getTutorialDone, onMiddleMouseDown, onMiddleMouseUp, openDialogWithTransition,
   startButtonClick, stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
 
@@ -117,6 +117,7 @@ class Router {
 
     // Handle canvas inputs
     let canvasContainer = document.getElementById('canvasContainer');
+
     canvasContainer?.addEventListener('touchstart', (event) => {
       this.puzzleState.usingKeyboard = false;
 
@@ -160,6 +161,24 @@ class Router {
     canvasContainer?.addEventListener('keyup', (event) => {
       if (typeof this.currentPuzzle?.onKeyUp === 'function') {
         this.currentPuzzle.onKeyUp(event);
+      }
+    });
+
+    // Allow solution peeking on the entire canvas container
+    canvasContainer?.addEventListener('mousedown', (event) => {
+      // Middle mouse button
+      if (this.currentPuzzle && event.button === 1) {
+        if (typeof this.currentPuzzle.handleMiddleMouseDown === 'function') {
+          this.currentPuzzle.handleMiddleMouseDown();
+        }
+
+        onMiddleMouseDown();
+      }
+    });
+    canvasContainer?.addEventListener('mouseup', (event) => {
+      // Middle mouse button
+      if (this.currentPuzzle && event.button === 1) {
+        onMiddleMouseUp();
       }
     });
 

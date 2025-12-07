@@ -163,6 +163,10 @@ export function isRestartKey(event) {
         && !event.altKey && !event.shiftKey;
 }
 
+export function isActivationKey(event) {
+  return event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter";
+}
+
 export function hasModifierKeys(event) {
   return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
 }

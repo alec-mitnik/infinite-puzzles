@@ -6,8 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
-  updateForTutorialRecommendation, updateForTutorialState
+  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
@@ -500,10 +499,6 @@ export function onMouseDown(event) {
         restart();
       }
     }
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
   }
 }
 
@@ -531,12 +526,5 @@ export function onTouchStart(event) {
     if (touchX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
       restart();
     }
-  }
-}
-
-export function onMouseUp(event) {
-  // Middle click
-  if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }

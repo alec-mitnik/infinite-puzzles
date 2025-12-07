@@ -7,8 +7,7 @@ import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
-  isUndoKey, isUpDirKey, onMiddleMouseDown, onMiddleMouseUp,
-  randomIndex, sameCoord, updateForTutorialRecommendation,
+  isUndoKey, isUpDirKey, randomIndex, sameCoord, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -31,6 +30,7 @@ const DIRECTION = Object.freeze({
 const SHIFT_SOUND = audioManager.SoundEffects.WHIR;
 const UNDO_SOUND = audioManager.SoundEffects.WARP;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const SAVE_SOUND = audioManager.SoundEffects.CLICK;
 const LOAD_SOUND = audioManager.SoundEffects.BOING;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
@@ -1073,10 +1073,6 @@ export function onMouseDown(event) {
       let coord = convertToGridCoord(mouseX, mouseY);
       handleLeftClickOrTap(coord);
     }
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
   }
 }
 
@@ -1100,6 +1096,15 @@ export function onKeyUp(event) {
   isCursorGrabbing = newGrabbingState;
 
   if (grabbingStateChanged && router.puzzleState.interactive) {
+    drawPuzzle();
+  }
+}
+
+function handleCursorMove(direction, index) {
+  if (isCursorGrabbing) {
+    handleMove(direction, index);
+  } else {
+    audioManager.play(CLINK_SOUND, 0.3);
     drawPuzzle();
   }
 }
@@ -1140,43 +1145,19 @@ export function onKeyDown(event) {
     if (!event.altKey && !event.shiftKey) {
       if (isLeftDirKey(event)) {
         cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
-
-        if (isCursorGrabbing) {
-          handleMove(DIRECTION.LEFT, cursorCoord[1]);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove(DIRECTION.LEFT, cursorCoord[1]);
         return;
       } else if (isRightDirKey(event)) {
         cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
-
-        if (isCursorGrabbing) {
-          handleMove(DIRECTION.RIGHT, cursorCoord[1]);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove(DIRECTION.RIGHT, cursorCoord[1]);
         return;
       } else if (isUpDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
-
-        if (isCursorGrabbing) {
-          handleMove(DIRECTION.UP, cursorCoord[0]);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove(DIRECTION.UP, cursorCoord[0]);
         return;
       } else if (isDownDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
-
-        if (isCursorGrabbing) {
-          handleMove(DIRECTION.DOWN, cursorCoord[0]);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove(DIRECTION.DOWN, cursorCoord[0]);
         return;
       }
     }
@@ -1287,12 +1268,5 @@ function handleMove(direction, index) {
     queuedSounds.push(SHIFT_SOUND);
 
     drawPuzzle();
-  }
-}
-
-export function onMouseUp(event) {
-  // Middle click
-  if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }

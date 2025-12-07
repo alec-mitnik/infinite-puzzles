@@ -6,8 +6,7 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
-  updateForTutorialRecommendation, updateForTutorialState
+  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const TILE_VISIBILITY_RATE = 1;
@@ -1278,15 +1277,14 @@ export function onMouseDown(event) {
 
       drawPuzzle();
     }
+  }
+}
 
-  // Middle click
-  } else if (event.button === 1) {
-    if (dragging) {
-      snapToGrid(dragging);
-      dragging = null;
-    }
-
-    onMiddleMouseDown();
+export function handleMiddleMouseDown() {
+  if (dragging) {
+    snapToGrid(dragging);
+    dragging = null;
+    previousTouch = null;
   }
 }
 
@@ -1415,10 +1413,6 @@ export function onMouseUp(event) {
     }
 
     dragging = null;
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
 

@@ -6,7 +6,8 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, onMiddleMouseDown, onMiddleMouseUp, randomIndex,
+  hasModifierKeys, isActivationKey, isDownDirKey, isLeftDirKey,
+  isRestartKey, isRightDirKey, isUpDirKey, randomIndex, sameCoord,
   updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -22,6 +23,7 @@ const SELECT_SOUND = audioManager.SoundEffects.CLICK;
 const SWAP_SOUND = audioManager.SoundEffects.WHIR;
 const ROTATE_SOUND = audioManager.SoundEffects.WARP;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const TUTORIAL_CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / 2;
@@ -283,6 +285,8 @@ let TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 let DIFFICULTY;
 let FIXED_TILES;
 
+let cursorCoord;
+let isCursorGrabbing = false;
 let grid;
 let solution;
 let originalState;
@@ -683,6 +687,62 @@ export function drawPuzzle() {
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
 
+    if (router.puzzleState.usingKeyboard) {
+      let cursorTile = grid[cursorCoord[0]][cursorCoord[1]];
+
+      if (isCursorGrabbing) {
+        context.strokeStyle = `${ALERT_COLOR}80`;
+        context.beginPath();
+
+        // Top-Left
+        context.moveTo(cursorTile.x - LINE_THICKNESS * 1.5, cursorTile.y - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25);
+        context.lineTo(cursorTile.x - LINE_THICKNESS * 1.5, cursorTile.y - LINE_THICKNESS * 1.5);
+        context.lineTo(cursorTile.x - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25, cursorTile.y - LINE_THICKNESS * 1.5);
+
+        // Top-Right
+        context.moveTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75, cursorTile.y - LINE_THICKNESS * 1.5);
+        context.lineTo(cursorTile.x + LINE_THICKNESS * 1.5 + CELL_SIZE, cursorTile.y - LINE_THICKNESS* 1.5);
+        context.lineTo(cursorTile.x + LINE_THICKNESS * 1.5 + CELL_SIZE, cursorTile.y - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25);
+
+        // Bottom-Right
+        context.moveTo(cursorTile.x + LINE_THICKNESS * 1.5 + CELL_SIZE, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75);
+        context.lineTo(cursorTile.x + LINE_THICKNESS * 1.5 + CELL_SIZE, cursorTile.y + LINE_THICKNESS * 1.5 + CELL_SIZE);
+        context.lineTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75, cursorTile.y + LINE_THICKNESS * 1.5 + CELL_SIZE);
+
+        // Bottom-Left
+        context.moveTo(cursorTile.x - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25, cursorTile.y + LINE_THICKNESS * 1.5 + CELL_SIZE);
+        context.lineTo(cursorTile.x - LINE_THICKNESS * 1.5, cursorTile.y + LINE_THICKNESS * 1.5 + CELL_SIZE);
+        context.lineTo(cursorTile.x - LINE_THICKNESS * 1.5, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75);
+
+        context.stroke();
+      }
+
+      context.strokeStyle = ALERT_COLOR;
+      context.beginPath();
+
+      // Top-Left
+      context.moveTo(cursorTile.x - LINE_THICKNESS * 0.5, cursorTile.y - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25);
+      context.lineTo(cursorTile.x - LINE_THICKNESS * 0.5, cursorTile.y - LINE_THICKNESS * 0.5);
+      context.lineTo(cursorTile.x - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25, cursorTile.y - LINE_THICKNESS * 0.5);
+
+      // Top-Right
+      context.moveTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75, cursorTile.y - LINE_THICKNESS * 0.5);
+      context.lineTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE, cursorTile.y - LINE_THICKNESS * 0.5);
+      context.lineTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE, cursorTile.y - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25);
+
+      // Bottom-Right
+      context.moveTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75);
+      context.lineTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE);
+      context.lineTo(cursorTile.x + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE);
+
+      // Bottom-Left
+      context.moveTo(cursorTile.x - LINE_THICKNESS * 0.5, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE * 0.75);
+      context.lineTo(cursorTile.x - LINE_THICKNESS * 0.5, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE);
+      context.lineTo(cursorTile.x - LINE_THICKNESS * 0.5 + CELL_SIZE * 0.25, cursorTile.y + LINE_THICKNESS * 0.5 + CELL_SIZE);
+
+      context.stroke();
+    }
+
     if (!atOriginalState()) {
       // Restart
       const ARROW_SIZE = OFFSET_SIZE * 4 / 5;
@@ -887,6 +947,7 @@ export function init() {
   }
 
   originalState = deepCopy(grid);
+  cursorCoord = [0, 0];
 
   updateForTutorialState();
 
@@ -946,12 +1007,136 @@ function restart() {
   }
 }
 
+export function onKeyUp(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
+  if (grabbingStateChanged && router.puzzleState.interactive) {
+    drawPuzzle();
+  }
+}
+
+function handleCursorMove() {
+  audioManager.play(CLINK_SOUND, 0.3);
+  drawPuzzle();
+}
+
+function handleCursorRotate(isClockwise) {
+  const tile = grid[cursorCoord[0]][cursorCoord[1]];
+
+  if (tile.fixed) {
+    audioManager.play(CLINK_SOUND);
+  } else {
+    if (isClockwise) {
+      rotateTile(tile);
+    } else {
+      // Rotate clockwise 3 times to rotate counterclockwise
+      rotateTile(tile, false);
+      rotateTile(tile, false);
+      rotateTile(tile);
+    }
+
+    drawPuzzle();
+  }
+}
+
 export function onKeyDown(event) {
+  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  isCursorGrabbing = newGrabbingState;
+
   if (router.puzzleState.interactive) {
     // Restart
     if (isRestartKey(event)) {
       restart();
+      return;
     }
+
+    // Selection
+    if (!hasModifierKeys(event) && isActivationKey(event)) {
+      const tile = grid[cursorCoord[0]][cursorCoord[1]];
+
+      if (tile.fixed) {
+        audioManager.play(CLINK_SOUND);
+        return;
+      }
+
+      if (selection) {
+        if (sameCoord(selection.gridCoords, cursorCoord)) {
+          audioManager.play(SELECT_SOUND);
+          selection = null;
+          drawPuzzle();
+        } else {
+          queuedSounds.push(SWAP_SOUND);
+          const coordinate = [selection.gridCoords, selection.x, selection.y];
+
+          selection.gridCoords = tile.gridCoords;
+          selection.x = tile.x;
+          selection.y = tile.y;
+          grid[tile.gridCoords[0]][tile.gridCoords[1]] = selection;
+
+          tile.gridCoords = coordinate[0];
+          tile.x = coordinate[1];
+          tile.y = coordinate[2];
+          grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
+
+          selection = null;
+          drawPuzzle();
+        }
+      } else {
+        audioManager.play(SELECT_SOUND);
+        selection = grid[cursorCoord[0]][cursorCoord[1]];
+        drawPuzzle();
+      }
+
+      return;
+    }
+
+    // Move Cursor
+    if (!event.altKey && !event.shiftKey) {
+      if (isLeftDirKey(event)) {
+        if (isCursorGrabbing) {
+          handleCursorRotate(false);
+        } else {
+          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+          handleCursorMove();
+        }
+
+        return;
+      } else if (isRightDirKey(event)) {
+        if (isCursorGrabbing) {
+          handleCursorRotate(true);
+        } else {
+          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+          handleCursorMove();
+        }
+
+        return;
+      } else if (isUpDirKey(event)) {
+        if (isCursorGrabbing) {
+          handleCursorRotate(false);
+        } else {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+          handleCursorMove();
+        }
+
+        return;
+      } else if (isDownDirKey(event)) {
+        if (isCursorGrabbing) {
+          handleCursorRotate(true);
+        } else {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+          handleCursorMove();
+        }
+
+        return;
+      }
+    }
+  }
+
+  if (grabbingStateChanged) {
+    drawPuzzle();
   }
 }
 
@@ -1001,6 +1186,7 @@ export function onMouseDown(event) {
             drawPuzzle();
           }
 
+          cursorCoord = tile.gridCoords;
           return;
         }
       }
@@ -1025,23 +1211,13 @@ export function onMouseDown(event) {
         if (!tile.fixed && mouseX > tile.x && mouseY > tile.y
             && mouseX - tile.x < CELL_SIZE && mouseY - tile.y < CELL_SIZE) {
           rotateTile(tile);
+          cursorCoord = tile.gridCoords;
 
           drawPuzzle();
           return;
         }
       }
     }
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
-  }
-}
-
-export function onMouseUp(event) {
-  // Middle click
-  if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
 
@@ -1085,6 +1261,7 @@ export function onTouchStart(event) {
       }
 
       if (touchedTile) {
+        cursorCoord = touchedTile.gridCoords;
         rotateTile(touchedTile);
         drawPuzzle();
       }
@@ -1143,6 +1320,7 @@ export function onTouchStart(event) {
             drawPuzzle();
           }
 
+          cursorCoord = tile.gridCoords;
           return;
         }
       }

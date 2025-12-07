@@ -6,8 +6,8 @@ import {
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, onMiddleMouseDown, onMiddleMouseUp,
-  randomEl, updateForTutorialRecommendation, updateForTutorialState
+  getPuzzleCanvas, isRestartKey, randomEl, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 const DIRECTION = Object.freeze({
@@ -1127,15 +1127,14 @@ export function onMouseDown(event) {
         restart();
       }
     }
+  }
+}
 
-  // Middle click
-  } else if (event.button === 1) {
-    if (dragging) {
-      releaseNode(dragging);
-      dragging = null;
-    }
-
-    onMiddleMouseDown();
+export function handleMiddleMouseDown() {
+  if (dragging) {
+    releaseNode(dragging);
+    dragging = null;
+    previousTouch = null;
   }
 }
 
@@ -1230,10 +1229,6 @@ export function onMouseUp(event) {
     }
 
     dragging = null;
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
 

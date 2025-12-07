@@ -7,9 +7,8 @@ import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, hasModifierKeys, isDownDirKey, isLeftDirKey, isRestartKey,
-  isRightDirKey, isUndoKey, isUpDirKey, onMiddleMouseDown, onMiddleMouseUp,
-  peek, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  isRightDirKey, isUndoKey, isUpDirKey, peek, randomIndex,
+  updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
@@ -790,10 +789,6 @@ export function onMouseDown(event) {
       let coord = convertToGridCoord(mouseX, mouseY);
       handleLeftClickOrTap(coord);
     }
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
   }
 }
 
@@ -994,12 +989,5 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
         moveUp(...neighborCoord);
       }
     }
-  }
-}
-
-export function onMouseUp(event) {
-  // Middle click
-  if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }

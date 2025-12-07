@@ -7,8 +7,8 @@ import router from "../js/router.js";
 import {
   containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
-  isUpDirKey, onMiddleMouseDown, onMiddleMouseUp, randomEl,
-  removeCoord, sameCoord, updateForTutorialRecommendation, updateForTutorialState
+  isUpDirKey, randomEl, removeCoord, sameCoord, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
@@ -20,6 +20,7 @@ const TILE_BORDER = 4;
 const CLEAR_SOUND = audioManager.SoundEffects.WARP;
 const CLICK_SOUND = audioManager.SoundEffects.CLICK;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -1152,6 +1153,15 @@ export function onKeyUp(event) {
   }
 }
 
+function handleCursorMove() {
+  if (isCursorApplying) {
+    pathInteraction(cursorCoord);
+  } else {
+    audioManager.play(CLINK_SOUND, 0.3);
+    drawPuzzle();
+  }
+}
+
 export function onKeyDown(event) {
   const newApplyingState = event.ctrlKey || event.metaKey;
   const applyingStateChanged = newApplyingState !== isCursorApplying;
@@ -1176,43 +1186,19 @@ export function onKeyDown(event) {
     if (!event.altKey && !event.shiftKey) {
       if (isLeftDirKey(event)) {
         cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
-
-        if (isCursorApplying) {
-          pathInteraction(cursorCoord);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove();
         return;
       } else if (isRightDirKey(event)) {
         cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
-
-        if (isCursorApplying) {
-          pathInteraction(cursorCoord);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove();
         return;
       } else if (isUpDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
-
-        if (isCursorApplying) {
-          pathInteraction(cursorCoord);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove();
         return;
       } else if (isDownDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
-
-        if (isCursorApplying) {
-          pathInteraction(cursorCoord);
-        } else {
-          drawPuzzle();
-        }
-
+        handleCursorMove();
         return;
       }
     }
@@ -1239,10 +1225,15 @@ export function onMouseDown(event) {
       dragging = true;
       pathInteractionForScreen(mouseX, mouseY);
     }
+  }
+}
 
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
+export function handleMiddleMouseDown() {
+  if (dragging) {
+    dragging = null;
+    draggingValue = null;
+    draggingTile = null;
+    previousTouch = null;
   }
 }
 
@@ -1304,10 +1295,6 @@ export function onMouseUp(event) {
     dragging = false;
     draggingValue = null;
     draggingTile = null;
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
 

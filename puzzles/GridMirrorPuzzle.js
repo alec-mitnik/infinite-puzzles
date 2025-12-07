@@ -9,9 +9,7 @@ import {
   getPuzzleCanvas, hasModifierKeys, isDownDirKey, isDownLeftDirKey,
   isDownRightDirKey, isLeftDirKey, isRestartKey,
   isRightDirKey, isUndoKey, isUpDirKey, isUpLeftDirKey, isUpRightDirKey,
-  onMiddleMouseDown, onMiddleMouseUp,
-  randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 // Can't feasibly change sizes, as the solution steps need to fit in the offset
@@ -1135,10 +1133,6 @@ export function onMouseDown(event) {
       let coord = convertToGridCoord(mouseX, mouseY);
       handleLeftClickOrTap(coord);
     }
-
-  // Middle click
-  } else if (event.button === 1) {
-    onMiddleMouseDown();
   }
 }
 
@@ -1312,12 +1306,5 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
 
       drawPuzzle();
     }
-  }
-}
-
-export function onMouseUp(event) {
-  // Middle click
-  if (event.button === 1) {
-    onMiddleMouseUp();
   }
 }
