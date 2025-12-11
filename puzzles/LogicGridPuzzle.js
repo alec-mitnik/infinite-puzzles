@@ -1697,6 +1697,8 @@ export function drawPuzzle() {
       let valueInGrid2 = isNodeInGrid(valueNode2);
       let showError = false;
 
+      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 2;
+
       if (nodeInGrid1 && nodeInGrid2
           && (!validAligned1 && !validAligned2 || validAligned1 && validAligned2)) {
         solved = false;
@@ -1711,18 +1713,18 @@ export function drawPuzzle() {
         context.font = RULES_FONT_DRAGGING;
       } else {
         context.font = RULES_FONT;
-      }
 
-      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 2;
+        if (showError) {
+          context.fillStyle = ALERT_COLOR;
 
-      if (showError) {
-        const ruleWidth = context.measureText(ruleText).width;
-        context.fillStyle = ALERT_COLOR;
-        context.strokeStyle = ALERT_COLOR;
-        context.beginPath();
-        context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.2);
-        context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.2);
-        context.stroke();
+          // Underline
+          const ruleWidth = context.measureText(ruleText).width;
+          context.strokeStyle = ALERT_COLOR;
+          context.beginPath();
+          context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.25);
+          context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.25);
+          context.stroke();
+        }
       }
 
       context.fillText(ruleText, xPos, yPos);
@@ -1754,6 +1756,8 @@ export function drawPuzzle() {
       let valueInGrid = isNodeInGrid(valueNode);
       let showError = false;
 
+      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 4 * (1 + 2 * (index % 2));
+
       if (!validAligned || nodeInGrid && !nodeAligned
           || valueInGrid && !valueAligned) {
         solved = false;
@@ -1775,18 +1779,18 @@ export function drawPuzzle() {
         context.font = RULES_FONT_DRAGGING;
       } else {
         context.font = RULES_FONT;
-      }
 
-      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 4 * (1 + 2 * (index % 2));
+        if (showError) {
+          context.fillStyle = ALERT_COLOR;
 
-      if (showError) {
-        const ruleWidth = context.measureText(ruleText).width;
-        context.fillStyle = ALERT_COLOR;
-        context.strokeStyle = ALERT_COLOR;
-        context.beginPath();
-        context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.2);
-        context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.2);
-        context.stroke();
+          // Underline
+          const ruleWidth = context.measureText(ruleText).width;
+          context.strokeStyle = ALERT_COLOR;
+          context.beginPath();
+          context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.25);
+          context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.25);
+          context.stroke();
+        }
       }
 
       context.fillText(ruleText, xPos, yPos);
@@ -1808,11 +1812,12 @@ export function drawPuzzle() {
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
 
     if (violated) {
+      // Underline
       const IdWidth = context.measureText(node.id).width;
       context.strokeStyle = ALERT_COLOR;
       context.beginPath();
-      context.moveTo(node.x - IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.2);
-      context.lineTo(node.x + IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.2);
+      context.moveTo(node.x - IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.25);
+      context.lineTo(node.x + IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.25);
       context.stroke();
     }
   });
