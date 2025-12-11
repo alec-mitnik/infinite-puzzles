@@ -7,7 +7,7 @@ import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, hasModifierKeys, isActivationKey, isDownDirKey, isDownLeftDirKey,
-  isDownRightDirKey, isLeftDirKey, isRestartKey,
+  isDownRightDirKey, isLeftDirKey, isOnlyGrabbingModifierActive, isRestartKey,
   isRightDirKey, isUndoKey, isUpDirKey, isUpLeftDirKey, isUpRightDirKey,
   randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
@@ -838,14 +838,36 @@ export function drawPuzzle() {
     }
   }
 
+  if (solved) {
+    context.fillStyle = SUCCESS_COLOR;
+    context.fillRect(OFFSET_SIZE - LINE_THICKNESS, OFFSET_SIZE - LINE_THICKNESS,
+        CELL_SIZE * COLS + 2 * LINE_THICKNESS, CELL_SIZE * ROWS + 2 * LINE_THICKNESS);
+  }
+
   for (let i = 0; i < COLS; i++) {
     for (let j = 0; j < ROWS; j++) {
       let cell = gridToDraw[i][j];
       let coord = getDrawCoord(i, j);
       let centerCoord = getDrawCoord(i, j, true);
 
-      context.fillStyle = cell.filled ? (solved ? SUCCESS_COLOR : (cell.inSolution ? "#808080" : ALERT_COLOR)) : "#000000";
+      context.fillStyle = cell.filled ? (solved ? SUCCESS_COLOR
+          : (cell.inSolution ? "#808080" : ALERT_COLOR)) : "#000000";
       context.fillRect(coord[0], coord[1], CELL_SIZE, CELL_SIZE);
+
+      if (cell.filled && !cell.inSolution) {
+        context.strokeStyle = "#000000c0";
+        context.lineCap = "round";
+
+        context.beginPath();
+        context.moveTo(coord[0], coord[1]);
+        context.lineTo(coord[0] + CELL_SIZE, coord[1] + CELL_SIZE);
+
+        context.moveTo(coord[0], coord[1] + CELL_SIZE);
+        context.lineTo(coord[0] + CELL_SIZE, coord[1]);
+        context.stroke();
+
+        context.lineCap = "butt";
+      }
 
       if (!cell.filled && cell.inSolution) {
         context.strokeStyle = solved ? SUCCESS_COLOR : "#808080";
@@ -1173,13 +1195,23 @@ export function onTouchStart(event) {
 }
 
 export function onKeyUp(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
+  const newGrabbingState = isOnlyGrabbingModifierActive(event);
   const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
   isCursorGrabbing = newGrabbingState;
 
   if (grabbingStateChanged && router.puzzleState.interactive) {
     drawPuzzle();
   }
+
+  // TODO
+  /* if (isCursorGrabbing && !event.shiftKey
+      && (event.code === "ShiftLeft" || event.code === "ShiftRight")) {
+    isCursorGrabbing = false;
+    drawPuzzle();
+  } else if (!isCursorGrabbing && (event.code === "ShiftLeft" || event.code === "ShiftRight")) {
+    isCursorGrabbing = true;
+    drawPuzzle();
+  } */
 }
 
 function handleCursorMove() {
@@ -1188,9 +1220,14 @@ function handleCursorMove() {
 }
 
 export function onKeyDown(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
+  const newGrabbingState = isOnlyGrabbingModifierActive(event);
+  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing && newGrabbingState;
   isCursorGrabbing = newGrabbingState;
+
+  // TODO
+  /* if (newGrabbingState) {
+    isCursorGrabbing = true;
+  } */
 
   if (router.puzzleState.interactive) {
     // Restart
@@ -1211,63 +1248,61 @@ export function onKeyDown(event) {
       return;
     }
 
-    if (!event.alkKey && !event.shiftKey) {
-      if (isCursorGrabbing) {
-        // Mirror
-        let mirrored = false;
+    if (isCursorGrabbing) {
+      // Mirror
+      let mirrored = false;
 
-        if (isLeftDirKey(event)) {
-          handleLeftClickOrTap([-1, ROWS / 2], true);
-          mirrored = true;
-        } else if (isRightDirKey(event)) {
-          handleLeftClickOrTap([COLS, ROWS / 2], true);
-          mirrored = true;
-        } else if (isUpDirKey(event)) {
-          handleLeftClickOrTap([COLS / 2, -1], true);
-          mirrored = true;
-        } else if (isDownDirKey(event)) {
-          handleLeftClickOrTap([COLS / 2, ROWS], true);
-          mirrored = true;
-        } else if (isUpLeftDirKey(event)) {
-          handleLeftClickOrTap([-1, -1], true);
-          mirrored = true;
-        } else if (isUpRightDirKey(event)) {
-          handleLeftClickOrTap([COLS, -1], true);
-          mirrored = true;
-        } else if (isDownLeftDirKey(event)) {
-          // TODO - this conflicts with CTRL+Z for undo!
-          handleLeftClickOrTap([-1, ROWS], true);
-          mirrored = true;
-        } else if (isDownRightDirKey(event)) {
-          handleLeftClickOrTap([COLS, ROWS], true);
-          mirrored = true;
-        }
+      if (isLeftDirKey(event)) {
+        handleLeftClickOrTap([-1, ROWS / 2], true);
+        mirrored = true;
+      } else if (isRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, ROWS / 2], true);
+        mirrored = true;
+      } else if (isUpDirKey(event)) {
+        handleLeftClickOrTap([COLS / 2, -1], true);
+        mirrored = true;
+      } else if (isDownDirKey(event)) {
+        handleLeftClickOrTap([COLS / 2, ROWS], true);
+        mirrored = true;
+      } else if (isUpLeftDirKey(event)) {
+        handleLeftClickOrTap([-1, -1], true);
+        mirrored = true;
+      } else if (isUpRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, -1], true);
+        mirrored = true;
+      } else if (isDownLeftDirKey(event)) {
+        // TODO - this conflicts with CTRL+Z for undo!
+        handleLeftClickOrTap([-1, ROWS], true);
+        mirrored = true;
+      } else if (isDownRightDirKey(event)) {
+        handleLeftClickOrTap([COLS, ROWS], true);
+        mirrored = true;
+      }
 
-        if (mirrored) {
-          // Prevent use of numpad from switching browser tabs.
-          // TODO - Does not prevent CTRL+W from attempting to close the browser tab, though!
-          event.preventDefault();
-          return;
-        }
-      } else {
-        // Move Cursor
-        if (isLeftDirKey(event)) {
-          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
-          handleCursorMove();
-          return;
-        } else if (isRightDirKey(event)) {
-          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
-          handleCursorMove();
-          return;
-        } else if (isUpDirKey(event)) {
-          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
-          handleCursorMove();
-          return;
-        } else if (isDownDirKey(event)) {
-          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
-          handleCursorMove();
-          return;
-        }
+      if (mirrored) {
+        // Prevent use of numpad from switching browser tabs.
+        // TODO - Does not prevent CTRL+W from attempting to close the browser tab, though!
+        event.preventDefault();
+        return;
+      }
+    } else if(!hasModifierKeys(event)) {
+      // Move Cursor
+      if (isLeftDirKey(event)) {
+        cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+        handleCursorMove();
+        return;
+      } else if (isRightDirKey(event)) {
+        cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+        handleCursorMove();
+        return;
+      } else if (isUpDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+        handleCursorMove();
+        return;
+      } else if (isDownDirKey(event)) {
+        cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+        handleCursorMove();
+        return;
       }
     }
   }

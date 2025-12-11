@@ -161,12 +161,12 @@ export function isDownRightDirKey(event) {
 
 export function isUndoKey(event) {
   return event.code === "KeyZ" && (event.ctrlKey || event.metaKey)
-        && !event.altKey && !event.shiftKey;
+        && !event.altKey && !event.shiftKey
+        || !hasModifierKeys(event) && event.code === "Backspace";
 }
 
 export function isRestartKey(event) {
-  return event.code === "KeyR" && !event.ctrlKey && !event.metaKey
-        && !event.altKey && !event.shiftKey;
+  return event.code === "KeyR" && !hasModifierKeys(event);
 }
 
 export function isActivationKey(event) {
@@ -175,6 +175,109 @@ export function isActivationKey(event) {
 
 export function hasModifierKeys(event) {
   return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
+}
+
+// TODO
+// Shift is no good because of tabbing backwards to/from the canvas (such as from the volume button).
+// CMD/CTRL is no good because of save and other shortcuts using it.
+// Alt is no good because it moves focus to the browser menu and can't be prevented.
+// Have to pick a standard letter key or something as a mode toggle...
+export function isOnlyGrabbingModifierActive(event) {
+  return (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey;
+}
+
+// Draws a line with the dash pattern centered between the points
+export function drawCenteredDashedLine(context, dashPatternArray, x1, y1, x2, y2) {
+  // Ensure lines are always drawn the the same direction to minimize mismatches for overlaps
+  if (x2 < x1 || y2 < y1) {
+    [x1, x2] = [x2, x1];
+    [y1, y2] = [y2, y1];
+  }
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+
+  // Round to avoid floating point errors
+  const distance = Math.round(Math.hypot(dx, dy));
+
+  if (dashPatternArray.length % 2 !== 0) {
+    dashPatternArray = [...dashPatternArray, ...dashPatternArray];
+  }
+
+  // Sum the dashes and gaps
+  const cycle = dashPatternArray.reduce((a, b) => a + b, 0);
+
+  // Sum all the gaps
+  let offset = dashPatternArray.reduce((a, b, i) => i % 2 === 0 ? a : a + b, 0);
+  offset += (distance - offset) % cycle / 2;
+
+  // Make the offset negative to add blank space to the start of the line
+  context.lineDashOffset = -offset;
+  context.setLineDash(dashPatternArray);
+  const oldLineCap = context.lineCap;
+  context.lineCap = "butt";
+
+  context.beginPath();
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+
+  context.lineCap = oldLineCap;
+  context.lineDashOffset = 0;
+  context.setLineDash([]);
+}
+
+// Draws a square with the dash pattern centered between the corners
+export function drawCenteredDashedSquare(context, dashPatternArray, x, y, size) {
+  if (dashPatternArray.length % 2 !== 0) {
+    dashPatternArray = [...dashPatternArray, ...dashPatternArray];
+  }
+
+  // Sum the dashes and gaps
+  const cycle = dashPatternArray.reduce((a, b) => a + b, 0);
+
+  // // Sum all the gaps
+  let offset = dashPatternArray.reduce((a, b, i) => i % 2 === 0 ? a : a + b, 0);
+  offset += (size - offset) % cycle / 2;
+
+  context.beginPath();
+  context.rect(x, y, size, size);
+  context.fill();
+
+  drawCenteredDashedLine(context, dashPatternArray, x, y, x + size, y);
+  drawCenteredDashedLine(context, dashPatternArray, x + size, y, x + size, y + size);
+  drawCenteredDashedLine(context, dashPatternArray, x + size, y + size, x, y + size);
+  drawCenteredDashedLine(context, dashPatternArray, x, y + size, x, y);
+
+  // Stroke the corners
+  const oldLineCap = context.lineCap;
+  context.lineCap = "square";
+
+  context.beginPath();
+  context.moveTo(x, y + offset);
+  context.lineTo(x, y);
+  context.lineTo(x + offset, y);
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(x + size - offset, y);
+  context.lineTo(x + size, y);
+  context.lineTo(x + size, y + offset);
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(x + size, y + size - offset);
+  context.lineTo(x + size, y + size);
+  context.lineTo(x + size - offset, y + size);
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(x + offset, y + size);
+  context.lineTo(x, y + size);
+  context.lineTo(x, y + size - offset);
+  context.stroke();
+
+  context.lineCap = oldLineCap;
 }
 
 function showSolution() {

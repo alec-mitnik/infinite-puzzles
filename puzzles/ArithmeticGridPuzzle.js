@@ -5,7 +5,7 @@ import {
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  deepCopy, drawCenteredDashedSquare, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, hasModifierKeys, isActivationKey, isDownDirKey,
   isLeftDirKey, isRestartKey, isRightDirKey, isUpDirKey, randomIndex,
   sameCoord, updateForTutorialRecommendation, updateForTutorialState
@@ -538,11 +538,20 @@ export function drawPuzzle() {
   const tileSize = CELL_SIZE * TILE_PROPORTION;
   let puzzleSolved = true;
 
+  // Totals
   [...rowTotals, ...colTotals].forEach(tile => {
     if (tile) {
       let solvedResult = isSolved(tile, gridToDraw);
       puzzleSolved = puzzleSolved && solvedResult;
       let tileColor = solvedResult ? SUCCESS_COLOR : "#808080";
+
+      if (solvedResult) {
+        context.strokeStyle = `${tileColor}80`;
+        context.beginPath();
+        context.rect(tile.x - LINE_THICKNESS, tile.y - LINE_THICKNESS,
+            tileSize + LINE_THICKNESS * 2, tileSize + LINE_THICKNESS * 2);
+        context.stroke();
+      }
 
       context.fillStyle = "#ffffff";
       context.strokeStyle = tileColor;
@@ -627,15 +636,29 @@ export function drawPuzzle() {
 
   queuedSounds = [];
 
+  // Number Tiles
   gridToDraw.flat().forEach(tile => {
     let tileColor = puzzleSolved ? SUCCESS_COLOR : (tile === selection ? ALERT_COLOR : "#808080");
-
     context.fillStyle = tile.fixed ? "#ffffff" : "#000000";
-    context.strokeStyle = tileColor;
-    context.beginPath();
-    context.rect(tile.x, tile.y, tileSize, tileSize);
-    context.fill();
-    context.stroke();
+
+    if (puzzleSolved) {
+      context.strokeStyle = `${tileColor}80`;
+      context.beginPath();
+      context.rect(tile.x - LINE_THICKNESS, tile.y - LINE_THICKNESS,
+          tileSize + LINE_THICKNESS * 2, tileSize + LINE_THICKNESS * 2);
+      context.stroke();
+    } else if (tile === selection) {
+      context.strokeStyle = tileColor;
+      drawCenteredDashedSquare(context, [15, 5], tile.x, tile.y, tileSize);
+    }
+
+    if (puzzleSolved || tile !== selection) {
+      context.strokeStyle = tileColor;
+      context.beginPath();
+      context.rect(tile.x, tile.y, tileSize, tileSize);
+      context.fill();
+      context.stroke();
+    }
 
     context.fillStyle = tileColor;
     context.font = "bold " + (CELL_SIZE * TILE_PROPORTION / 2) + `px ${FONT_FAMILY}`;

@@ -1554,6 +1554,9 @@ export function drawPuzzle() {
   let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
 
+  const RULES_FONT = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
+  const RULES_FONT_DRAGGING = "bold " + (RULES_SIZE * 1.2) + `px ${FONT_FAMILY}`;
+
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1646,7 +1649,6 @@ export function drawPuzzle() {
   }
 
   // Draw rules
-  context.font = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
   let yPos = CELL_SIZE * 0.35 + NODE_SIZE * 2 / 3;
   let index = 0;
@@ -1693,23 +1695,37 @@ export function drawPuzzle() {
 
       let nodeInGrid2 = isNodeInGrid(node2);
       let valueInGrid2 = isNodeInGrid(valueNode2);
+      let showError = false;
 
       if (nodeInGrid1 && nodeInGrid2
           && (!validAligned1 && !validAligned2 || validAligned1 && validAligned2)) {
         solved = false;
 
-        if ((valueInGrid1 || nodeAtPos1 !== null)
-            && (valueInGrid2 || nodeAtPos2 !== null)) {
-          context.fillStyle = ALERT_COLOR;
-        }
+        showError = (valueInGrid1 || nodeAtPos1 !== null)
+            && (valueInGrid2 || nodeAtPos2 !== null);
       }
 
       if (node1 === dragging || node2 === dragging
           || valueNode1 === dragging || valueNode2 === dragging) {
         context.fillStyle = SUCCESS_COLOR;
+        context.font = RULES_FONT_DRAGGING;
+      } else {
+        context.font = RULES_FONT;
       }
 
-      context.fillText(ruleText, GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 2, yPos);
+      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 2;
+
+      if (showError) {
+        const ruleWidth = context.measureText(ruleText).width;
+        context.fillStyle = ALERT_COLOR;
+        context.strokeStyle = ALERT_COLOR;
+        context.beginPath();
+        context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.2);
+        context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.2);
+        context.stroke();
+      }
+
+      context.fillText(ruleText, xPos, yPos);
       yPos += RULES_SIZE * 1.5;
 
     // Simple rule
@@ -1736,11 +1752,11 @@ export function drawPuzzle() {
       let valueAtPos = getNodeAlignedAtRow(node, SYMBOL_SETS.indexOf(valueNode.row), rule.offset, nodesToDraw);
       let nodeInGrid = isNodeInGrid(node);
       let valueInGrid = isNodeInGrid(valueNode);
+      let showError = false;
 
       if (!validAligned || nodeInGrid && !nodeAligned
           || valueInGrid && !valueAligned) {
         solved = false;
-        let showError = false;
 
         if (rule.negation) {
           if (nodeInGrid && nodeAligned && valueInGrid && valueAligned) {
@@ -1752,51 +1768,85 @@ export function drawPuzzle() {
             && ((valueInGrid && valueAligned) || valueAtPos !== null)) {
           showError = true;
         }
-
-        if (showError) {
-          context.fillStyle = ALERT_COLOR;
-        }
       }
 
       if (node === dragging || valueNode === dragging) {
         context.fillStyle = SUCCESS_COLOR;
+        context.font = RULES_FONT_DRAGGING;
+      } else {
+        context.font = RULES_FONT;
       }
 
-      context.fillText(ruleText, GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 4 * (1 + 2 * (index % 2)), yPos);
+      const xPos = GRID_WIDTH + (CANVAS_WIDTH - GRID_WIDTH) / 4 * (1 + 2 * (index % 2));
+
+      if (showError) {
+        const ruleWidth = context.measureText(ruleText).width;
+        context.fillStyle = ALERT_COLOR;
+        context.strokeStyle = ALERT_COLOR;
+        context.beginPath();
+        context.moveTo(xPos - ruleWidth / 2, yPos + RULES_SIZE * 0.2);
+        context.lineTo(xPos + ruleWidth / 2, yPos + RULES_SIZE * 0.2);
+        context.stroke();
+      }
+
+      context.fillText(ruleText, xPos, yPos);
       yPos += (index % 2) * RULES_SIZE * 1.5;
       index++;
     }
   });
 
   // Draw all the fixed nodes first so they show behind the rest
-  let fixedNodes = nodesToDraw.filter(node => node.fixed);
+  const fixedNodes = nodesToDraw.filter(node => node.fixed);
 
   fixedNodes.forEach(node => {
-    let nodeColor = solved ? SUCCESS_COLOR
-        : (rowIncorrectness[SYMBOL_SETS.indexOf(node.row)] === false ? ALERT_COLOR : "#808080");
+    const violated = rowIncorrectness[SYMBOL_SETS.indexOf(node.row)] === false;
+    const nodeColor = solved ? SUCCESS_COLOR : (violated ? ALERT_COLOR : "#808080");
 
     context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+
+    if (violated) {
+      const IdWidth = context.measureText(node.id).width;
+      context.strokeStyle = ALERT_COLOR;
+      context.beginPath();
+      context.moveTo(node.x - IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.2);
+      context.lineTo(node.x + IdWidth / 2, node.y + NODE_SIZE / 2 + RULES_SIZE * 0.2);
+      context.stroke();
+    }
   });
 
-  let moveableNodes = nodesToDraw.filter(node => !node.fixed);
+  const moveableNodes = nodesToDraw.filter(node => !node.fixed);
 
   moveableNodes.forEach(node => {
-    let nodeColor = solved ? SUCCESS_COLOR : (isOverlapping(node, nodesToDraw) ? ALERT_COLOR : "#808080");
+    const nodeColor = solved ? SUCCESS_COLOR
+        : (isOverlapping(node, nodesToDraw) ? ALERT_COLOR : "#808080");
 
+    context.lineWidth = solved ? LINE_THICKNESS * 2 : LINE_THICKNESS;
     context.beginPath();
     context.strokeStyle = nodeColor;
     context.fillStyle = "#000000";
     context.arc(node.x, node.y, NODE_SIZE, 0, 2 * Math.PI, false);
     context.fill();
     context.stroke();
+    context.lineWidth = LINE_THICKNESS;
 
     context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+
+    if (!solved && isNodeInGrid(node) && !isNodeAlignedWithRow(node)) {
+      context.strokeStyle = ALERT_COLOR;
+      context.beginPath();
+      context.moveTo(node.x - NODE_SIZE, node.y - NODE_SIZE);
+      context.lineTo(node.x + NODE_SIZE, node.y + NODE_SIZE);
+
+      context.moveTo(node.x - NODE_SIZE, node.y + NODE_SIZE);
+      context.lineTo(node.x + NODE_SIZE, node.y - NODE_SIZE);
+      context.stroke();
+    }
   });
 
   if (solved && router.puzzleState.interactive) {

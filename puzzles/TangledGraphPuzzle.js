@@ -5,7 +5,7 @@ import {
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, isRestartKey, randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -765,20 +765,29 @@ export function drawPuzzle() {
   }
 
   let solved = !dragging;
-
   let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
+  context.lineWidth = LINE_THICKNESS;
 
   nodesToDraw.forEach(node => {
     node.neighbors.forEach(neighbor => {
+      if (node.id <= neighbor.id) {
+        // Avoid drawing the same edge twice
+        return;
+      }
+
       let isOverlapping = pathIsOverlapping(node, neighbor, nodesToDraw);
       solved = solved && !isOverlapping;
 
       context.strokeStyle = isOverlapping ? ALERT_COLOR : "#808080";
-      context.beginPath();
-      context.lineWidth = LINE_THICKNESS;
-      context.moveTo(node.x, node.y);
-      context.lineTo(neighbor.x, neighbor.y);
-      context.stroke();
+
+      if (isOverlapping) {
+        drawCenteredDashedLine(context, [15, 5], node.x, node.y, neighbor.x, neighbor.y);
+      } else {
+        context.beginPath();
+        context.moveTo(node.x, node.y);
+        context.lineTo(neighbor.x, neighbor.y);
+        context.stroke();
+      }
     });
   });
 
@@ -801,9 +810,14 @@ export function drawPuzzle() {
 
     nodesToDraw.forEach(node => {
       node.neighbors.forEach(neighbor => {
+        if (node.id <= neighbor.id) {
+          // Avoid drawing the same edge twice
+          return;
+        }
+
         context.strokeStyle = SUCCESS_COLOR;
-        context.beginPath();
         context.lineWidth = LINE_THICKNESS;
+        context.beginPath();
         context.moveTo(node.x, node.y);
         context.lineTo(neighbor.x, neighbor.y);
         context.stroke();
@@ -811,8 +825,13 @@ export function drawPuzzle() {
     });
 
     nodesToDraw.forEach(node => {
+      context.strokeStyle = `${SUCCESS_COLOR}80`;
       context.beginPath();
+      context.arc(node.x, node.y, NODE_SIZE / 4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
+      context.stroke();
+
       context.strokeStyle = SUCCESS_COLOR;
+      context.beginPath();
       context.fillStyle = node.fixed? "#ffffff" : "#000000";
       context.arc(node.x, node.y, NODE_SIZE / 4, 0, 2 * Math.PI, false);
       context.fill();

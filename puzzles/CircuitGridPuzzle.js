@@ -614,14 +614,19 @@ export function drawPuzzle() {
   context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   context.lineWidth = LINE_THICKNESS;
+  context.strokeStyle = "#808080";
 
   let gridToDraw = router.puzzleState.showingSolution ? solution : grid;
   gridToDraw.flat().forEach(tile => {
-    context.fillStyle = tile.fixed ? BACKGROUND_COLOR : (tile === selection ? ALERT_COLOR : "#000000");
-    context.strokeStyle = "#808080";
-    context.beginPath();
-    context.rect(tile.x + TILE_BORDER, tile.y + TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
-    context.fill();
+    context.fillStyle = tile.fixed ? BACKGROUND_COLOR : "#000000";
+    context.fillRect(tile.x + TILE_BORDER, tile.y + TILE_BORDER,
+        CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
+
+    if (tile === selection) {
+      context.fillStyle = `${ALERT_COLOR}80`;
+      context.fillRect(tile.x + TILE_BORDER, tile.y + TILE_BORDER,
+          CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
+    }
 
     tile.circuitPaths.forEach(path => {
       let coord1 = path[0];
@@ -798,6 +803,13 @@ function drawCircuitEnd(context, coord, connected) {
     endX = startX;
     startY = OFFSET_SIZE + CELL_SIZE * ROWS;
     endY = startY + offset;
+  }
+
+  if (connected) {
+    context.fillStyle = `${SUCCESS_COLOR}80`;
+    context.beginPath();
+    context.arc(endX, endY, 1.5 * LINE_THICKNESS, 0, 2 * Math.PI, false);
+    context.fill();
   }
 
   context.strokeStyle = connected ? SUCCESS_COLOR : "#808080";

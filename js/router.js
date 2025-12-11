@@ -93,25 +93,37 @@ class Router {
     document.addEventListener('keydown', () => {
       if (!this.puzzleState.usingKeyboard) {
         this.puzzleState.usingKeyboard = true;
-        this.currentPuzzle?.drawPuzzle();
+
+        if (this.puzzleState.interactive) {
+          this.currentPuzzle?.drawPuzzle();
+        }
       }
     });
     document.addEventListener('mousemove', () => {
       if (this.puzzleState.usingKeyboard) {
         this.puzzleState.usingKeyboard = false;
-        this.currentPuzzle?.drawPuzzle();
+
+        if (this.puzzleState.interactive) {
+          this.currentPuzzle?.drawPuzzle();
+        }
       }
     });
     document.addEventListener('mousedown', () => {
       if (this.puzzleState.usingKeyboard) {
         this.puzzleState.usingKeyboard = false;
-        this.currentPuzzle?.drawPuzzle();
+
+        if (this.puzzleState.interactive) {
+          this.currentPuzzle?.drawPuzzle();
+        }
       }
     });
     document.addEventListener('touchstart', () => {
       if (this.puzzleState.usingKeyboard) {
         this.puzzleState.usingKeyboard = false;
-        this.currentPuzzle?.drawPuzzle();
+
+        if (this.puzzleState.interactive) {
+          this.currentPuzzle?.drawPuzzle();
+        }
       }
     });
 

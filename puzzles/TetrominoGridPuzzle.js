@@ -5,8 +5,9 @@ import {
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
+  deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, isRestartKey, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 const ROTATIONS = false;
@@ -779,13 +780,23 @@ export function drawPuzzle() {
     context.strokeStyle = tileColor;
     context.lineWidth = CELL_CONNECTION_THICKNESS;
 
-    tile.cells.forEach(cell => {
-      tile.cells.forEach(otherCell => {
-        if (Math.round(Math.abs(cell.x - otherCell.x) + Math.abs(cell.y - otherCell.y)) === Math.round(CELL_SIZE)) {
-          context.beginPath();
-          context.moveTo(cell.x, cell.y);
-          context.lineTo(otherCell.x, otherCell.y);
-          context.stroke();
+    tile.cells.forEach((cell, i) => {
+      tile.cells.forEach((otherCell, j) => {
+        if (j <= i) {
+          // Avoid drawing the same edge twice
+          return;
+        }
+
+        if (Math.round(Math.abs(cell.x - otherCell.x) + Math.abs(cell.y - otherCell.y))
+            === Math.round(CELL_SIZE)) {
+          if (isOverlapping) {
+            drawCenteredDashedLine(context, [15, 5], cell.x, cell.y, otherCell.x, otherCell.y);
+          } else {
+            context.beginPath();
+            context.moveTo(cell.x, cell.y);
+            context.lineTo(otherCell.x, otherCell.y);
+            context.stroke();
+          }
         }
       });
     });
@@ -799,6 +810,13 @@ export function drawPuzzle() {
       context.arc(cell.x, cell.y, CELL_SIZE/4, 0, 2 * Math.PI, false);
       context.fill();
       context.stroke();
+
+      if (!isOverlapping && validPlacement) {
+        context.strokeStyle = `${tileColor}80`;
+        context.beginPath();
+        context.arc(cell.x, cell.y, CELL_SIZE/4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
+        context.stroke();
+      }
     });
   });
 }

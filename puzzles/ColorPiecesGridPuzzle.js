@@ -5,8 +5,9 @@ import {
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
+  deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, isRestartKey, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 const TILE_VISIBILITY_RATE = 1;
@@ -1006,16 +1007,30 @@ export function drawPuzzle() {
     let isOverlapping = tileIsOverlapping(tile, tilesToDraw);
     let validPlacement = tileHasValidPlacement(tile);
     let tileColor = isOverlapping ? ALERT_COLOR : (validPlacement ? SUCCESS_COLOR : "#808080");
-
-    context.beginPath();
     context.strokeStyle = tileColor;
     context.lineWidth = CELL_CONNECTION_THICKNESS;
 
-    tile.cells.forEach(cell => {
-      context.lineTo(cell.x, cell.y);
+    tile.cells.forEach((cell, i) => {
+      tile.cells.forEach((otherCell, j) => {
+        if (j <= i) {
+          // Avoid drawing the same edge twice
+          return;
+        }
+
+        if (Math.round(Math.abs(cell.x - otherCell.x) + Math.abs(cell.y - otherCell.y))
+            === Math.round(CELL_SIZE)) {
+          if (isOverlapping) {
+            drawCenteredDashedLine(context, [15, 5], cell.x, cell.y, otherCell.x, otherCell.y);
+          } else {
+            context.beginPath();
+            context.moveTo(cell.x, cell.y);
+            context.lineTo(otherCell.x, otherCell.y);
+            context.stroke();
+          }
+        }
+      });
     });
 
-    context.stroke();
     context.lineWidth = LINE_THICKNESS;
 
     tile.cells.forEach(cell => {
@@ -1025,6 +1040,13 @@ export function drawPuzzle() {
       context.arc(cell.x, cell.y, CELL_SIZE/4, 0, 2 * Math.PI, false);
       context.fill();
       context.stroke();
+
+      if (!isOverlapping && validPlacement) {
+        context.strokeStyle = `${tileColor}80`;
+        context.beginPath();
+        context.arc(cell.x, cell.y, CELL_SIZE/4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
+        context.stroke();
+      }
     });
   });
 }

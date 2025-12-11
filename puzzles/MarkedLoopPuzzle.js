@@ -5,14 +5,13 @@ import {
 } from "../js/config.js";
 import router from "../js/router.js";
 import {
-  containsCoord, deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  containsCoord, deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
   getPuzzleCanvas, isDirKey, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
   isUpDirKey, randomEl, removeCoord, sameCoord, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
-const NODE_LINE_THICKNESS = 12;
 const TEXT_SIZE = OFFSET_SIZE / 3;
 const LINE_THICKNESS = 18;
 const TILE_BORDER = 4;
@@ -131,6 +130,7 @@ let LOOP_COLS;
 
 let CELL_SIZE;
 let NODE_SIZE;
+let NODE_LINE_THICKNESS;
 
 let cursorCoord;
 let isCursorGrabbing = false;
@@ -669,6 +669,7 @@ export function init() {
 
   CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
   NODE_SIZE = CELL_SIZE / 4;
+  NODE_LINE_THICKNESS = DIFFICULTY >= 3 ? 9 : 12;
 
   draggingValue = null;
   dragging = false;
@@ -686,6 +687,7 @@ export function init() {
 
     CELL_SIZE = (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) - 2 * OFFSET_SIZE) / Math.max(ROWS, COLS);
     NODE_SIZE = CELL_SIZE / 4;
+    NODE_LINE_THICKNESS = 12;
 
     loopGrid = tutorial.loopGrid;
 
@@ -749,76 +751,146 @@ function areAllPathsLoops(gridToDraw) {
   });
 }
 
-function getAllLoops(gridToDraw) {
-  let paths = [];
-  let loops = [];
-
-  for (let i = 0; i < COLS; i++) {
-    for (let j = 0; j < ROWS; j++) {
-      let tile = gridToDraw[i][j];
-
-      if (!tile.neighborPaths.length) {
-        continue;
-      }
-
-      let tilePath;
-
-      for (let k = 0; k < paths.length; k++) {
-        let path = paths[k];
-
-        if (containsCoord(path, tile.coord)) {
-          tilePath = path;
-          break;
-        }
-      }
-
-      if (tilePath) {
-        continue;
-      } else {
-        tilePath = [tile.coord];
-        paths.push(tilePath);
-      }
-
-      let pathEnded = false;
-      let prevTile = null;
-
-      while (!pathEnded) {
-        let neighborCoords;
-
-        if (prevTile) {
-          neighborCoords = tile.neighborPaths.filter(coord => {
-            return coord[0] !== prevTile.coord[0]
-                || coord[1] !== prevTile.coord[1];
-          });
-        } else {
-          neighborCoords = tile.neighborPaths;
-        }
-
-        if (!neighborCoords.length) {
-          pathEnded = true;
-        } else {
-          let neighborCoord = neighborCoords[0];
-          prevTile = tile;
-          tile = gridToDraw[neighborCoord[0]][neighborCoord[1]];
-
-          if (!containsCoord(tilePath, tile.coord)) {
-            tilePath.push(tile.coord);
-          } else {
-            pathEnded = true;
-            loops.push(tilePath);
-          }
-        }
-      }
-    }
-  }
-
-  return loops;
-}
-
 function getBiggestLoop(loops) {
   return loops.reduce((loop, biggest) => {
     return loop.length > biggest.length ? loop : biggest;
   }, []);
+}
+
+function getAllLoops(gridToDraw) {
+  const allCycles = [];
+
+  // Collect all edges in the graph
+  const edges = new Set();
+
+  for (let i = 0; i < COLS; i++) {
+    for (let j = 0; j < ROWS; j++) {
+      const tile = gridToDraw[i][j];
+
+      for (const neighborCoord of tile.neighborPaths) {
+        edges.add(normalizeEdge([i, j], neighborCoord));
+      }
+    }
+  }
+
+  // Find all cycles by trying each edge as a starting point
+  const processedCycles = new Set();
+
+  for (const edge of edges) {
+    const [coord1, coord2] = parseEdge(edge);
+
+    // Try to find a cycle starting with this edge
+    const cycle = findCycleFromEdge(gridToDraw, coord1, coord2);
+
+    if (cycle) {
+      const normalized = normalizeCycle(cycle);
+
+      if (!processedCycles.has(normalized)) {
+        processedCycles.add(normalized);
+        allCycles.push(cycle);
+      }
+    }
+  }
+
+  return allCycles;
+}
+
+function findCycleFromEdge(gridToDraw, startCoord, secondCoord) {
+  // Try to find a path from secondCoord back to startCoord
+  // without using the edge we just came from
+  const visited = new Set();
+  const path = [startCoord, secondCoord];
+  visited.add(coordToKey(secondCoord));
+
+  const result = dfsFindPath(gridToDraw, secondCoord,
+      startCoord, startCoord, visited, path);
+
+  // Validate the cycle
+  if (result && result.length >= 3) {
+    // Check for duplicate edges
+    const edgeSet = new Set(result);
+
+    if (edgeSet.size === result.length) {
+      return result;
+    }
+  }
+
+  return null;
+}
+
+// Depth-first search
+function dfsFindPath(gridToDraw, currentCoord,
+    targetCoord, forbiddenCoord, visited, path) {
+  const tile = gridToDraw[currentCoord[0]][currentCoord[1]];
+
+  for (const neighborCoord of tile.neighborPaths) {
+    // Check if we've reached the target
+    if (neighborCoord[0] === targetCoord[0] && neighborCoord[1] === targetCoord[1]) {
+      // Found a cycle, so convert path to edges
+      const edges = [];
+
+      for (let i = 0; i < path.length - 1; i++) {
+        edges.push(normalizeEdge(path[i], path[i + 1]));
+      }
+
+      // Close the loop
+      edges.push(normalizeEdge(path[path.length - 1], targetCoord));
+      return edges;
+    }
+
+    // Don't go back through the forbidden coord (the start point, except as the target)
+    if (neighborCoord[0] === forbiddenCoord[0] && neighborCoord[1] === forbiddenCoord[1]) {
+      continue;
+    }
+
+    const neighborKey = coordToKey(neighborCoord);
+
+    if (!visited.has(neighborKey)) {
+      visited.add(neighborKey);
+      path.push(neighborCoord);
+
+      const result = dfsFindPath(gridToDraw, neighborCoord,
+          targetCoord, forbiddenCoord, visited, path);
+
+      if (result) {
+        return result;
+      }
+
+      path.pop();
+      visited.delete(neighborKey);
+    }
+  }
+
+  return null;
+}
+
+function normalizeEdge(coord1, coord2) {
+  if (coord1[0] < coord2[0] || (coord1[0] === coord2[0] && coord1[1] < coord2[1])) {
+    return `${coord1[0]},${coord1[1]}-${coord2[0]},${coord2[1]}`;
+  } else {
+    return `${coord2[0]},${coord2[1]}-${coord1[0]},${coord1[1]}`;
+  }
+}
+
+function parseEdge(edgeStr) {
+  const parts = edgeStr.split('-');
+  const coord1 = parts[0].split(',').map(Number);
+  const coord2 = parts[1].split(',').map(Number);
+  return [coord1, coord2];
+}
+
+function coordToKey(coord) {
+  return `${coord[0]},${coord[1]}`;
+}
+
+function normalizeCycle(edges) {
+  // Sort edges to create a canonical representation
+  return edges.slice().sort().join(';');
+}
+
+function isEdgeInLoop(coord1, coord2, loopEdges) {
+  let edge = normalizeEdge(coord1, coord2);
+  return loopEdges.includes(edge);
 }
 
 function isPathCorner(gridCoord, gridToDraw) {
@@ -933,6 +1005,7 @@ export function drawPuzzle() {
   context.lineCap = "square"
   context.lineWidth = LINE_THICKNESS;
 
+  // Path
   for (let i = 0; i < COLS; i++) {
     for (let j = 0; j < ROWS; j++) {
       let tile = gridToDraw[i][j];
@@ -952,31 +1025,48 @@ export function drawPuzzle() {
     }
   }
 
-  if (!allPathsLoops || loops.length > 1) {
-    context.strokeStyle = ALERT_COLOR;
+  // Invalid Paths
+  for (let i = 0; i < COLS; i++) {
+    for (let j = 0; j < ROWS; j++) {
+      let tile = gridToDraw[i][j];
 
-    for (let i = 0; i < COLS; i++) {
-      for (let j = 0; j < ROWS; j++) {
-        let tile = gridToDraw[i][j];
-
-        if (tile.neighborPaths.length > 2
-            || (loops.length > 0
-                && !containsCoord(biggestLoop, tile.coord))) {
-          let centerCoord = getDrawCoord(tile.coord, true);
-
-          context.beginPath();
-
-          tile.neighborPaths.forEach(neighbor => {
-            context.moveTo(...centerCoord);
-            context.lineTo(...getDrawCoord(neighbor, true));
-          });
-
-          context.stroke();
-        }
+      if (!biggestLoop.length && tile.neighborPaths.length <= 2
+          || biggestLoop.length && !tile.neighborPaths.length) {
+        continue;
       }
+
+      let centerCoord = getDrawCoord(tile.coord, true);
+
+      tile.neighborPaths.forEach(neighbor => {
+        const valid = biggestLoop.length && isEdgeInLoop(tile.coord, neighbor, biggestLoop);
+
+        if (valid) {
+          return;
+        }
+
+        context.strokeStyle = "#000";
+        context.beginPath();
+        context.moveTo(...centerCoord);
+        context.lineTo(...getDrawCoord(neighbor, true));
+        context.stroke();
+
+        context.strokeStyle = ALERT_COLOR;
+        const drawCoord = getDrawCoord(neighbor, true);
+        drawCenteredDashedLine(context, [15, 5], centerCoord[0], centerCoord[1],
+            drawCoord[0], drawCoord[1]);
+
+        // Cover the ends of invalid paths
+        const neighborCenterCoord = getDrawCoord(neighbor, true);
+        context.fillStyle = ALERT_COLOR;
+        context.fillRect(centerCoord[0] - LINE_THICKNESS * 0.75,
+            centerCoord[1] - LINE_THICKNESS * 0.75, LINE_THICKNESS * 1.5, LINE_THICKNESS * 1.5);
+        context.fillRect(neighborCenterCoord[0] - LINE_THICKNESS * 0.75,
+            neighborCenterCoord[1] - LINE_THICKNESS * 0.75, LINE_THICKNESS * 1.5, LINE_THICKNESS * 1.5);
+      });
     }
   }
 
+  // Tile Markers
   context.lineWidth = NODE_LINE_THICKNESS;
 
   for (let i = 0; i < COLS; i++) {
@@ -990,19 +1080,38 @@ export function drawPuzzle() {
       if (tile.marked || !markerMatchesPath) {
         let centerCoord = getDrawCoord(tile.coord, true);
         context.fillStyle = tile.marked ? "#000000" : ALERT_COLOR;
-        context.strokeStyle = solved ? SUCCESS_COLOR
-            : (!markerOnCorner && (((!allPathsLoops || loops.length !== 1) && tile.marked) || markerMatchesPath) ?
-                "#808080" : ALERT_COLOR);
+        const valid = solved || (!markerOnCorner
+            && ((!biggestLoop.length && tile.marked) || markerMatchesPath));
+        const strokeColor = solved ? SUCCESS_COLOR : valid ? "#808080" : ALERT_COLOR;
         context.lineCap = "round";
+
+        if (solved) {
+          context.strokeStyle = `${SUCCESS_COLOR}80`;
+          context.beginPath();
+          context.arc(...centerCoord, NODE_SIZE + NODE_LINE_THICKNESS, 0, 2 * Math.PI, false);
+          context.stroke();
+        }
+
+        context.strokeStyle = strokeColor;
         context.beginPath();
         context.arc(...centerCoord, NODE_SIZE, 0, 2 * Math.PI, false);
         context.fill();
+
+        if (!valid) {
+          context.fillStyle = `${ALERT_COLOR}80`;
+          context.beginPath();
+          context.arc(...centerCoord, NODE_SIZE, 0, 2 * Math.PI, false);
+          context.fill();
+        }
+
         context.stroke();
+
         context.lineCap = "square";
       }
     }
   }
 
+  // Path Length
   context.font = "bold " + TEXT_SIZE + `px ${FONT_FAMILY}`;
   context.fillStyle = allPathsLoops && loops.length === 1
       && pathLength !== solutionLength ? ALERT_COLOR : "#ffffff";

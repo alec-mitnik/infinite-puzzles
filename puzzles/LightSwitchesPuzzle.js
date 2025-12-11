@@ -251,6 +251,13 @@ export function drawPuzzle() {
     context.arc(coord[0], coord[1], SWITCH_SIZE / 4, 0, 2 * Math.PI, false);
     context.fill();
     context.stroke();
+
+    if (puzzleSolved && lightSwitch.toggled) {
+      context.strokeStyle = `${tileColor}80`;
+      context.beginPath();
+      context.arc(coord[0], coord[1], SWITCH_SIZE / 4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
+      context.stroke();
+    }
   }
 }
 

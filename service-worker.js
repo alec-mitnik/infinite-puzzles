@@ -1,8 +1,11 @@
-let CACHE_VERSION = 256;
+let CACHE_VERSION = 257;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
+ *
+ * Change background color to work around iOS no longer honoring theme color?
+ * Might be fixed by iOS 26.2?
  *
  * Full keyboard controls still needed for:
  * Tetromino Grid Puzzle
@@ -12,14 +15,23 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  * Light Switches Puzzle
  * Tangled Graph Puzzle
  *
+ * Need to switch to a mode toggle rather than a modifier key: tilde, /, numpad 0 as defaults
+ * Use diagonal directions for rotate, rather than a mode toggle?
+ *
+ * Toggle sound with M?
+ * Screen reader announcement for sound or mode toggle...
+ *
  * Using CTRL/CMD as the "grabbing" modifier conflicts with
  * CTRL+W for closing the tab, which can't be prevented,
  * and CTRL/CMD+Z for undo!  Use Shift as the "grabbing" modifier instead?
+ * Or make CTRL/CMD work as a mode toggle rather than a modifier?
  *
- * Present keyboard controls somewhere.
- * Make keyboard controls mappable?
- *
- * Improve color-blindness accessibility.
+ * Present keyboard controls somewhere.  Add a dialog with ⌨️ icon.
+ * Can fit in home screen beside daily challenge button (won't be centered anymore, but oh well)
+ * and give keyboard command for toggling it even on a puzzle screen (show this in puzzle instructions).
+ * Include accessibility statement about how "puzzles rely heavily on
+ * visual-spatial cues and are not fully compatible with screen readers."
+ * Make keyboard controls remappable?
  *
  * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
  * Keep the mp3 as a fallback?  Can convert with Audacity.
@@ -27,11 +39,22 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  *
  * Ideas:
  *
- * Make logic grid puzzle clearer regarding rows needing to match symbol sets.
- * Show a message like "Numbers go in this row, etc." for the first tutorial?
- *
  * Might be nice to store each puzzle move, so that it could be
  * played back to you or even shared (as a gif?)
+ *
+ * Pattern fill:
+const patternCanvas = document.createElement("canvas");
+patternCanvas.width = patternCanvas.height = 6;
+
+const pContext = patternCanvas.getContext("2d");
+pContext.fillStyle = "#ccc";
+pContext.fillRect(0,0,6,6);
+pContext.fillStyle = "#999";
+pContext.fillRect(0,0,3,3);
+
+const pattern = ctx.createPattern(patternCanvas, "repeat");
+ctx.fillStyle = pattern;
+ctx.fillRect(...);
  */
 
 // List of files to cache for offline use

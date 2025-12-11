@@ -749,6 +749,7 @@ export function drawPuzzle() {
     context.stroke();
   }
 
+  // Can't pass in solved state before it's fully resolved by the receiver logic
   drawEmissions(context);
   context.lineWidth = LINE_THICKNESS;
 
@@ -758,17 +759,15 @@ export function drawPuzzle() {
     switch(node.type) {
       case NODE_TYPE.RECEIVER:
         context.fillStyle = "#808080";
-        //context.beginPath();
-        //context.arc(...node.canvasCoord, NODE_SIZE, 0, 2 * Math.PI, false);
-        //context.fill();
-        context.fillRect(node.canvasCoord[0] - CELL_SIZE / 2, node.canvasCoord[1] - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+        context.fillRect(node.canvasCoord[0] - CELL_SIZE / 2,
+            node.canvasCoord[1] - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
 
         DIRECTIONS.forEach(direction => {
-          let active = node.directions.includes(direction);
-          let receiving = isCoordReceivingFromDirection(node.coord, direction);
-          let strokeColor = ((!active || allEmittersInGrid) && active !== receiving)
-              ? ALERT_COLOR
-              : (active && active === receiving ? SUCCESS_COLOR : "#808080");
+          const active = node.directions.includes(direction);
+          const receiving = isCoordReceivingFromDirection(node.coord, direction);
+          const invalid = (!active || allEmittersInGrid) && active !== receiving;
+          let strokeColor = invalid ? ALERT_COLOR
+              : (active && receiving ? SUCCESS_COLOR : "#808080");
 
           if (active !== receiving) {
             solved = false;
@@ -798,9 +797,19 @@ export function drawPuzzle() {
               return;
           }
 
-          context.arc(dirCoord[0], dirCoord[1], CELL_SIZE * 3 / 16 - LINE_THICKNESS / 2, 0, 2 * Math.PI, false);
+          context.arc(dirCoord[0], dirCoord[1], CELL_SIZE * 3 / 16 - LINE_THICKNESS / 2,
+              0, 2 * Math.PI, false);
           context.fill();
           context.stroke();
+
+          if (invalid) {
+            context.fillStyle = active ? ALERT_COLOR : `${strokeColor}80`;
+            context.strokeStyle = active ? "#808080" : strokeColor;
+            context.arc(dirCoord[0], dirCoord[1], CELL_SIZE * 3 / 16 - LINE_THICKNESS / 2,
+                0, 2 * Math.PI, false);
+            context.fill();
+            context.stroke();
+          }
         });
 
         break;
@@ -834,8 +843,6 @@ export function drawPuzzle() {
   });
 
   if (solved) {
-    //drawEmissions(context, true);
-
     nodesToDraw.filter(node => node.type === NODE_TYPE.EMITTER).forEach(node => {
       drawEmitter(node, context, false, true);
     });
@@ -861,8 +868,9 @@ export function drawPuzzle() {
 }
 
 function drawEmissions(context, solved = false) {
-  context.strokeStyle = solved ? SUCCESS_COLOR : "#ffffff40";
+  context.strokeStyle = solved ? `${SUCCESS_COLOR}80` : "#ffffff40";
   context.lineWidth = LINE_THICKNESS * 2;
+  context.lineCap = "butt";
 
   let nodesToDraw = router.puzzleState.showingSolution ? solution : nodes;
 
@@ -953,12 +961,42 @@ function drawEmitter(node, context, invalid, solved = false) {
   context.beginPath();
   context.arc(...node.canvasCoord, LINE_THICKNESS * 2, 0, 2 * Math.PI, false);
   context.fill();
+
+  if (invalid) {
+    context.strokeStyle = "#000000c0";
+    context.lineCap = "round";
+
+    context.beginPath();
+    context.moveTo(node.canvasCoord[0] - NODE_SIZE / 2, node.canvasCoord[1] - NODE_SIZE / 2);
+    context.lineTo(node.canvasCoord[0] + NODE_SIZE / 2, node.canvasCoord[1] + NODE_SIZE / 2);
+
+    context.moveTo(node.canvasCoord[0] + NODE_SIZE / 2, node.canvasCoord[1] - NODE_SIZE / 2);
+    context.lineTo(node.canvasCoord[0] - NODE_SIZE / 2, node.canvasCoord[1] + NODE_SIZE / 2);
+    context.stroke();
+
+    context.lineCap = "butt";
+  }
 }
 
 function drawBlock(node, context, invalid, solved = false) {
   context.fillStyle = solved ? SUCCESS_COLOR : (invalid ? ALERT_COLOR : "#808080");
   context.fillRect(node.canvasCoord[0] - NODE_SIZE * 3 / 4,
       node.canvasCoord[1] - NODE_SIZE * 3 / 4, NODE_SIZE * 3 / 2, NODE_SIZE * 3 / 2);
+
+  if (invalid) {
+    context.strokeStyle = "#000000c0";
+    context.lineCap = "round";
+
+    context.beginPath();
+    context.moveTo(node.canvasCoord[0] - NODE_SIZE * 3 / 4, node.canvasCoord[1] - NODE_SIZE * 3 / 4);
+    context.lineTo(node.canvasCoord[0] + NODE_SIZE * 3 / 4, node.canvasCoord[1] + NODE_SIZE * 3 / 4);
+
+    context.moveTo(node.canvasCoord[0] + NODE_SIZE * 3 / 4, node.canvasCoord[1] - NODE_SIZE * 3 / 4);
+    context.lineTo(node.canvasCoord[0] - NODE_SIZE * 3 / 4, node.canvasCoord[1] + NODE_SIZE * 3 / 4);
+    context.stroke();
+
+    context.lineCap = "butt";
+  }
 }
 
 function isNodeInGrid(node) {

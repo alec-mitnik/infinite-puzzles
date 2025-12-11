@@ -748,18 +748,18 @@ export function drawPuzzle() {
 
   for (let i = 0; i < COLS; i++) {
     for (let j = 0; j < ROWS; j++) {
-      let tile = gridToDraw[i][j];
-      let coord = getDrawCoord(tile.coord);
-      let centerCoord = getDrawCoord(tile.coord, true);
+      const tile = gridToDraw[i][j];
+      const coord = getDrawCoord(tile.coord);
+      const centerCoord = getDrawCoord(tile.coord, true);
+      const connected = connectedTiles.includes(tile);
 
-      context.strokeStyle = connectedTiles.includes(tile) ?
-          SUCCESS_COLOR : "#808080";
+      context.strokeStyle = connected ? SUCCESS_COLOR : "#808080";
       context.beginPath();
 
       tile.connections.forEach(dir => {
         context.moveTo(...centerCoord);
+        const endCoord = [...centerCoord];
 
-        let endCoord = [...centerCoord];
         switch (dir) {
           case DIRECTION.UP:
             endCoord[1] = coord[1];
@@ -783,16 +783,31 @@ export function drawPuzzle() {
       context.stroke();
 
       if (stationToDraw === tile) {
-        context.fillStyle = solved ? SUCCESS_COLOR : "#ffffff"
-        context.strokeStyle = SUCCESS_COLOR;
         context.lineCap = "round";
+
+        context.strokeStyle = `${SUCCESS_COLOR}80`;
+        context.beginPath();
+        context.arc(...centerCoord, NODE_SIZE + LINE_THICKNESS, 0, 2 * Math.PI, false);
+        context.stroke();
+
+        context.fillStyle = solved ? SUCCESS_COLOR : "#ffffff";
+        context.strokeStyle = SUCCESS_COLOR;
         context.beginPath();
         context.arc(...centerCoord, NODE_SIZE, 0, 2 * Math.PI, false);
         context.fill();
         context.stroke();
+
         context.lineCap = "square";
-      } else if (tile.connections.length === 1) {
-        context.fillStyle = context.strokeStyle;
+      // Do for all tiles to show connectedness without relying solely on color
+      } else /* if (tile.connections.length === 1) */ {
+        if (connected) {
+          context.fillStyle = `${SUCCESS_COLOR}80`;
+          context.beginPath();
+          context.arc(...centerCoord, 2 * LINE_THICKNESS, 0, 2 * Math.PI, false);
+          context.fill();
+        }
+
+        context.fillStyle = connected ? SUCCESS_COLOR : "#808080";
         context.beginPath();
         context.arc(...centerCoord, LINE_THICKNESS, 0, 2 * Math.PI, false);
         context.fill();
