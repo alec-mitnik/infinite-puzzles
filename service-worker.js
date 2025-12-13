@@ -1,11 +1,11 @@
-let CACHE_VERSION = 258;
+let CACHE_VERSION = 259;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
  * Change background color to work around iOS no longer honoring theme color?
- * Might be fixed by iOS 26.2?
+ * Might be fixed by iOS 26.2?  No...
  *
  * Full keyboard controls still needed for:
  * Tetromino Grid Puzzle

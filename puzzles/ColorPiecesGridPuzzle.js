@@ -1166,9 +1166,11 @@ export function init() {
     }
 
     let moveableTiles = [...tiles];
+    let fixedTiles = [];
 
     for (let i = 0; i < FIXED_TILES; i++) {
       let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
+      fixedTiles.push(fixedTile);
       fixedTile.fixed = true;
 
       fixedTile.cells.forEach(cell => {
@@ -1176,6 +1178,9 @@ export function init() {
         grid[coord[0]][coord[1]].show = false;
       });
     }
+
+    // Ensure fixed tiles are always behind movable tiles
+    tiles = [...fixedTiles, ...moveableTiles]
   }
 
   solution = deepCopy(tiles);
