@@ -117,73 +117,14 @@ export function startButtonClick() {
 
       updateForTutorialRecommendation();
     }
+
+    // In case this is the first interaction since load
+    if (audioManager.initialized) {
+      audioManager.play(audioManager.SoundEffects.PUZZLE_START);
+    } else {
+      setTimeout(() => audioManager.play(audioManager.SoundEffects.PUZZLE_START), 100);
+    }
   }
-}
-
-export function isDirKey(event) {
-  return isRightDirKey(event) || isLeftDirKey(event) || isUpDirKey(event) || isDownDirKey(event)
-      || isUpLeftDirKey(event) || isUpRightDirKey(event)
-      || isDownLeftDirKey(event) || isDownRightDirKey(event);
-}
-
-export function isRightDirKey(event) {
-  return event.code === "ArrowRight" || event.code === "KeyD" || event.code === "Numpad6";
-}
-
-export function isLeftDirKey(event) {
-  return event.code === "ArrowLeft" || event.code === "KeyA" || event.code === "Numpad4";
-}
-
-export function isUpDirKey(event) {
-  return event.code === "ArrowUp" || event.code === "KeyW" || event.code === "Numpad8";
-}
-
-export function isDownDirKey(event) {
-  return event.code === "ArrowDown" || event.code === "KeyS" || event.code === "Numpad5"
-      || event.code === "KeyX" || event.code === "Numpad2";
-}
-
-export function isUpLeftDirKey(event) {
-  return event.code === "Numpad7" || event.code === "KeyQ";
-}
-
-export function isUpRightDirKey(event) {
-  return event.code === "Numpad9" || event.code === "KeyE";
-}
-
-export function isDownLeftDirKey(event) {
-  return event.code === "Numpad1" || event.code === "KeyZ";
-}
-
-export function isDownRightDirKey(event) {
-  return event.code === "Numpad3" || event.code === "KeyC";
-}
-
-export function isUndoKey(event) {
-  return event.code === "KeyZ" && (event.ctrlKey || event.metaKey)
-        && !event.altKey && !event.shiftKey
-        || !hasModifierKeys(event) && event.code === "Backspace";
-}
-
-export function isRestartKey(event) {
-  return event.code === "KeyR" && !hasModifierKeys(event);
-}
-
-export function isActivationKey(event) {
-  return event.code === "Space" || event.code === "Enter" || event.code === "NumpadEnter";
-}
-
-export function hasModifierKeys(event) {
-  return event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
-}
-
-// TODO
-// Shift is no good because of tabbing backwards to/from the canvas (such as from the volume button).
-// CMD/CTRL is no good because of save and other shortcuts using it.
-// Alt is no good because it moves focus to the browser menu and can't be prevented.
-// Have to pick a standard letter key or something as a mode toggle...
-export function isOnlyGrabbingModifierActive(event) {
-  return (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey;
 }
 
 // Draws a line with the dash pattern centered between the points
@@ -304,11 +245,12 @@ function hideSolution() {
   solutionButton.querySelector("span").ariaLabel = newLabel;
   router.puzzleState.showingSolution = false;
 
-  router.currentPuzzle.drawPuzzle();
-
   if (!router.puzzleState.ended) {
     router.puzzleState.interactive = true;
   }
+
+  // Do this last so that it reflects the latest puzzle state
+  router.currentPuzzle.drawPuzzle();
 }
 
 export async function solutionToggle() {

@@ -3,11 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawCenteredDashedSquare, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, hasModifierKeys, isActivationKey, isDownDirKey,
-  isLeftDirKey, isRestartKey, isRightDirKey, isUpDirKey, randomIndex,
+  deepCopy, drawCenteredDashedSquare, drawInstructionsHelper, endPuzzle,
+  finishedLoading, getPuzzleCanvas, randomIndex,
   sameCoord, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -768,8 +768,8 @@ function atOriginalState() {
   });
 }
 
-function restart() {
-  if (!atOriginalState()) {
+async function restart() {
+  if (!atOriginalState() && await router.getConfirmation('', "Reset Puzzle?")) {
     grid = deepCopy(originalState);
     selection = null;
     audioManager.play(RESTART_SOUND);
@@ -785,13 +785,15 @@ function handleCursorMove() {
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
       return;
     }
 
     // Selection
-    if (!hasModifierKeys(event) && isActivationKey(event)) {
+    if (keyboardManager.isActivationKey(event)) {
+      event.preventDefault();
       const tile = grid[cursorCoord[0]][cursorCoord[1]];
 
       if (tile.fixed) {
@@ -802,8 +804,6 @@ export function onKeyDown(event) {
       if (selection) {
         if (sameCoord(selection.gridCoords, cursorCoord)) {
           audioManager.play(SELECT_SOUND);
-          selection = null;
-          drawPuzzle();
         } else {
           queuedSounds.push(SWAP_SOUND);
           const coordinate = [selection.gridCoords, selection.x, selection.y];
@@ -817,37 +817,36 @@ export function onKeyDown(event) {
           tile.x = coordinate[1];
           tile.y = coordinate[2];
           grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
-
-          selection = null;
-          drawPuzzle();
         }
+
+        selection = null;
       } else {
         audioManager.play(SELECT_SOUND);
         selection = grid[cursorCoord[0]][cursorCoord[1]];
-        drawPuzzle();
       }
 
+      drawPuzzle();
       return;
     }
 
     // Move Cursor
-    if (!hasModifierKeys(event)) {
-      if (isLeftDirKey(event)) {
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isLeftDirKey(event)) {
         cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
         handleCursorMove();
-        return;
-      } else if (isRightDirKey(event)) {
+        event.preventDefault();
+      } else if (keyboardManager.isRightDirKey(event)) {
         cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
         handleCursorMove();
-        return;
-      } else if (isUpDirKey(event)) {
+        event.preventDefault();
+      } else if (keyboardManager.isUpDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
         handleCursorMove();
-        return;
-      } else if (isDownDirKey(event)) {
+        event.preventDefault();
+      } else if (keyboardManager.isDownDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
         handleCursorMove();
-        return;
+        event.preventDefault();
       }
     }
   }
@@ -922,7 +921,7 @@ export function onMouseDown(event) {
 
       // Restart
       if (mouseX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
-        restart();
+        void restart();
       }
     }
   }
@@ -998,7 +997,7 @@ export function onTouchStart(event) {
 
     // Restart
     if (touchX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
-      restart();
+      void restart();
     }
   }
 }

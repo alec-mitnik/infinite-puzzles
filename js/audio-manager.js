@@ -11,8 +11,11 @@ class AudioManager {
     CLICK: 'click',
     WARP: 'warp',
     WHIR: 'whir',
+    TOGGLE: 'toggle',
+    TOGGLE_OFF: 'toggle-off',
     GRADUATION: 'graduation',
     GAME_START: 'game-start',
+    PUZZLE_START: 'puzzle-start',
   };
 
   loadedSounds;
@@ -38,8 +41,11 @@ class AudioManager {
       [this.SoundEffects.CLICK]: 'sounds/Click.mp3',
       [this.SoundEffects.WARP]: 'sounds/Rollover_electronic_warp_BLASTWAVEFX_06209.mp3',
       [this.SoundEffects.WHIR]: 'sounds/space_beep_3.mp3',
+      [this.SoundEffects.TOGGLE]: '/sounds/game-sounds-toggle.mp3',
+      [this.SoundEffects.TOGGLE_OFF]: '/sounds/game-sounds-toggle-off.mp3',
       [this.SoundEffects.GRADUATION]: 'sounds/Graduation.mp3',
       [this.SoundEffects.GAME_START]: 'sounds/game-start-6104.mp3',
+      [this.SoundEffects.PUZZLE_START]: '/sounds/click-buttons-ui-menu-sounds-effects-button-12-205395.mp3',
     };
 
     // Set up initialization handlers for different browsers

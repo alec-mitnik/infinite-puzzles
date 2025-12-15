@@ -3,12 +3,10 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, hasModifierKeys, isActivationKey, isDownDirKey, isDownLeftDirKey,
-  isDownRightDirKey, isLeftDirKey, isOnlyGrabbingModifierActive, isRestartKey,
-  isRightDirKey, isUndoKey, isUpDirKey, isUpLeftDirKey, isUpRightDirKey,
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
   randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -38,6 +36,8 @@ const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const MIRROR_SOUND = audioManager.SoundEffects.WHIR;
 const UNDO_SOUND = audioManager.SoundEffects.WARP;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -335,7 +335,7 @@ let MOVES;
 let MIN_MIRRORS;
 
 let cursorCoord;
-let isCursorGrabbing = false;
+let isCursorGrabbing;
 let gridHistory;
 let grid;
 let solution;
@@ -800,6 +800,7 @@ export function init() {
   tapsHistory = [];
   mirrorsHistory = [];
   cursorCoord = [0, 0];
+  isCursorGrabbing = false;
 
   updateForTutorialState();
 
@@ -911,7 +912,7 @@ export function drawPuzzle() {
     } else {
       queuedSounds.forEach(sound => audioManager.play(sound));
 
-      // Cursor
+      // Draw Cursor
       if (router.puzzleState.usingKeyboard) {
         const cursorDrawCoord = getDrawCoord(...cursorCoord);
         context.lineWidth = LINE_THICKNESS;
@@ -1194,25 +1195,15 @@ export function onTouchStart(event) {
   }
 }
 
-export function onKeyUp(event) {
-  const newGrabbingState = isOnlyGrabbingModifierActive(event);
+/* export function onKeyUp(event) {
+  const newGrabbingState = keyboardManager.isOnlyGrabbingModifierActive(event);
   const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
   isCursorGrabbing = newGrabbingState;
 
   if (grabbingStateChanged && router.puzzleState.interactive) {
     drawPuzzle();
   }
-
-  // TODO
-  /* if (isCursorGrabbing && !event.shiftKey
-      && (event.code === "ShiftLeft" || event.code === "ShiftRight")) {
-    isCursorGrabbing = false;
-    drawPuzzle();
-  } else if (!isCursorGrabbing && (event.code === "ShiftLeft" || event.code === "ShiftRight")) {
-    isCursorGrabbing = true;
-    drawPuzzle();
-  } */
-}
+} */
 
 function handleCursorMove() {
   audioManager.play(CLINK_SOUND, 0.3);
@@ -1220,112 +1211,114 @@ function handleCursorMove() {
 }
 
 export function onKeyDown(event) {
-  const newGrabbingState = isOnlyGrabbingModifierActive(event);
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing && newGrabbingState;
-  isCursorGrabbing = newGrabbingState;
-
-  // TODO
-  /* if (newGrabbingState) {
-    isCursorGrabbing = true;
-  } */
-
   if (router.puzzleState.interactive) {
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
+      return;
+    }
+
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
       return;
     }
 
     // Undo
-    if (isUndoKey(event)) {
+    if (keyboardManager.isUndoKey(event)) {
       undo();
+      event.preventDefault();
       return;
     }
 
     // Tap
-    if (!hasModifierKeys(event) && isActivationKey(event)) {
+    if (keyboardManager.isActivationKey(event)) {
       handleLeftClickOrTap(cursorCoord);
+      event.preventDefault();
       return;
     }
 
-    if (isCursorGrabbing) {
-      // Mirror
-      let mirrored = false;
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (isCursorGrabbing) {
+        // Mirror
+        let mirrored = false;
 
-      if (isLeftDirKey(event)) {
-        handleLeftClickOrTap([-1, ROWS / 2], true);
-        mirrored = true;
-      } else if (isRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, ROWS / 2], true);
-        mirrored = true;
-      } else if (isUpDirKey(event)) {
-        handleLeftClickOrTap([COLS / 2, -1], true);
-        mirrored = true;
-      } else if (isDownDirKey(event)) {
-        handleLeftClickOrTap([COLS / 2, ROWS], true);
-        mirrored = true;
-      } else if (isUpLeftDirKey(event)) {
-        handleLeftClickOrTap([-1, -1], true);
-        mirrored = true;
-      } else if (isUpRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, -1], true);
-        mirrored = true;
-      } else if (isDownLeftDirKey(event)) {
-        // TODO - this conflicts with CTRL+Z for undo!
-        handleLeftClickOrTap([-1, ROWS], true);
-        mirrored = true;
-      } else if (isDownRightDirKey(event)) {
-        handleLeftClickOrTap([COLS, ROWS], true);
-        mirrored = true;
-      }
+        if (keyboardManager.isLeftDirKey(event)) {
+          handleLeftClickOrTap([-1, ROWS / 2], true);
+          mirrored = true;
+        } else if (keyboardManager.isRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, ROWS / 2], true);
+          mirrored = true;
+        } else if (keyboardManager.isUpDirKey(event)) {
+          handleLeftClickOrTap([COLS / 2, -1], true);
+          mirrored = true;
+        } else if (keyboardManager.isDownDirKey(event)) {
+          handleLeftClickOrTap([COLS / 2, ROWS], true);
+          mirrored = true;
+        } else if (keyboardManager.isUpLeftDirKey(event)) {
+          handleLeftClickOrTap([-1, -1], true);
+          mirrored = true;
+        } else if (keyboardManager.isUpRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, -1], true);
+          mirrored = true;
+        } else if (keyboardManager.isDownLeftDirKey(event)) {
+          // TODO - this conflicts with CTRL+Z for undo!
+          handleLeftClickOrTap([-1, ROWS], true);
+          mirrored = true;
+        } else if (keyboardManager.isDownRightDirKey(event)) {
+          handleLeftClickOrTap([COLS, ROWS], true);
+          mirrored = true;
+        }
 
-      if (mirrored) {
-        // Prevent use of numpad from switching browser tabs.
-        // TODO - Does not prevent CTRL+W from attempting to close the browser tab, though!
-        event.preventDefault();
-        return;
-      }
-    } else if(!hasModifierKeys(event)) {
-      // Move Cursor
-      if (isLeftDirKey(event)) {
-        cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
-        handleCursorMove();
-        return;
-      } else if (isRightDirKey(event)) {
-        cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
-        handleCursorMove();
-        return;
-      } else if (isUpDirKey(event)) {
-        cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
-        handleCursorMove();
-        return;
-      } else if (isDownDirKey(event)) {
-        cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
-        handleCursorMove();
-        return;
+        if (mirrored) {
+          event.preventDefault();
+        }
+      } else {
+        // Move Cursor
+        if (keyboardManager.isLeftDirKey(event)) {
+          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+          handleCursorMove();
+          event.preventDefault();
+        } else if (keyboardManager.isRightDirKey(event)) {
+          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+          handleCursorMove();
+          event.preventDefault();
+        } else if (keyboardManager.isUpDirKey(event)) {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+          handleCursorMove();
+          event.preventDefault();
+        } else if (keyboardManager.isDownDirKey(event)) {
+          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+          handleCursorMove();
+          event.preventDefault();
+        }
       }
     }
   }
-
-  if (grabbingStateChanged) {
-    drawPuzzle();
-  }
 }
 
-function restart() {
-  if (!gridHistory.length) {
-    return;
+async function restart() {
+  if (gridHistory.length && await router.getConfirmation('', "Reset Puzzle?")) {
+    gridHistory = [];
+    tapsHistory = [];
+    availableTaps = allowedTaps;
+    mirrorsHistory = [];
+    availableMirrors = allowedMirrors;
+
+    grid = deepCopy(solution);
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
   }
-
-  gridHistory = [];
-  tapsHistory = [];
-  availableTaps = allowedTaps;
-  mirrorsHistory = [];
-  availableMirrors = allowedMirrors;
-
-  grid = deepCopy(solution);
-  audioManager.play(RESTART_SOUND);
-  drawPuzzle();
 }
 
 function undo() {
@@ -1346,7 +1339,7 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
       return;
     }
 
-    restart();
+    void restart();
 
   // Undo
   } else if ((coord[0] >= 1 && coord[0] <= 2) && coord[1] === -1) {

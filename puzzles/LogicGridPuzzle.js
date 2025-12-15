@@ -3,11 +3,12 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, randomIndex,
-  updateForTutorialRecommendation, updateForTutorialState
+  getPuzzleCanvas, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 const GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 3 / 5;
@@ -25,6 +26,8 @@ const SYMBOL_SETS = [DIGITS, LETTERS, SHAPE_SYMBOLS, CHESS_SYMBOLS, GREEK_LETTER
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const SNAP_SOUND = audioManager.SoundEffects.CLICK;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -793,10 +796,12 @@ let GRID_WIDTH;
 let GRID_HEIGHT;
 let NODE_SIZE;
 
+let cursorTileIndex;
+let isCursorGrabbing;
 let solution;
 let originalState;
 let atOriginalState = true;
-let dragging = null;
+let dragging;
 let previousTouch = null;
 let displayedRules = [];
 let nodes = [];
@@ -1707,7 +1712,11 @@ export function drawPuzzle() {
             && (valueInGrid2 || nodeAtPos2 !== null);
       }
 
-      if (node1 === dragging || node2 === dragging
+      // Solved value not fully resolved yet
+      if (router.puzzleState.interactive && router.puzzleState.usingKeyboard && isCursorGrabbing
+          && (node1 === nodes[cursorTileIndex] || valueNode1 === nodes[cursorTileIndex]
+              || node2 === nodes[cursorTileIndex] || valueNode2 === nodes[cursorTileIndex])
+          || node1 === dragging || node2 === dragging
           || valueNode1 === dragging || valueNode2 === dragging) {
         context.fillStyle = SUCCESS_COLOR;
         context.font = RULES_FONT_DRAGGING;
@@ -1774,7 +1783,10 @@ export function drawPuzzle() {
         }
       }
 
-      if (node === dragging || valueNode === dragging) {
+      // Solved value not fully resolved yet
+      if (router.puzzleState.interactive && router.puzzleState.usingKeyboard && isCursorGrabbing
+          && (node === nodes[cursorTileIndex] || valueNode === nodes[cursorTileIndex])
+          || node === dragging || valueNode === dragging) {
         context.fillStyle = SUCCESS_COLOR;
         context.font = RULES_FONT_DRAGGING;
       } else {
@@ -1842,6 +1854,7 @@ export function drawPuzzle() {
     context.fillStyle = nodeColor;
     context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
 
+    // Cross out nodes with invalid placements
     if (!solved && isNodeInGrid(node) && !isNodeAlignedWithRow(node)) {
       context.strokeStyle = ALERT_COLOR;
       context.beginPath();
@@ -1857,8 +1870,42 @@ export function drawPuzzle() {
   if (solved && router.puzzleState.interactive) {
     endPuzzle(router.puzzleState.tutorialStage === tutorials.length);
     audioManager.play(CHIME_SOUND);
+
+    // Re-draw the puzzle to update any rules highlighted for the grabbed cursor node
+    queuedSounds = [];
+    drawPuzzle();
+    return;
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
+  }
+
+  // Draw Cursor
+  if (!solved && router.puzzleState.usingKeyboard) {
+    const node = nodesToDraw[cursorTileIndex];
+
+    if (isCursorGrabbing) {
+      context.lineWidth = LINE_THICKNESS * 4;
+      context.strokeStyle = `${ALERT_COLOR}80`;
+      context.beginPath();
+      context.strokeRect(node.x - CELL_SIZE * 0.5,
+          node.y - CELL_SIZE * 0.5,
+          CELL_SIZE, CELL_SIZE);
+    }
+
+    context.lineWidth = LINE_THICKNESS;
+    context.strokeStyle = "#000";
+    context.beginPath();
+    context.strokeRect(node.x - CELL_SIZE * 0.5 + LINE_THICKNESS * 1.5,
+        node.y - CELL_SIZE * 0.5 + LINE_THICKNESS * 1.5,
+        CELL_SIZE - LINE_THICKNESS * 3,
+        CELL_SIZE - LINE_THICKNESS * 3);
+
+    context.strokeStyle = ALERT_COLOR;
+    context.beginPath();
+    context.strokeRect(node.x - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.5,
+        node.y - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.5,
+        CELL_SIZE - LINE_THICKNESS,
+        CELL_SIZE - LINE_THICKNESS);
   }
 
   queuedSounds = [];
@@ -2030,6 +2077,15 @@ function finishInit() {
 
   originalState = deepCopy(nodes);
   atOriginalState = true;
+  isCursorGrabbing = false;
+
+  const sortedTiles = getTilesSortedByHorizontalPosition();
+  let sortedTileIndex = -1;
+
+  do {
+    sortedTileIndex++;
+    cursorTileIndex = nodes.indexOf(sortedTiles[sortedTileIndex]);
+  } while (nodes[cursorTileIndex].fixed);
 
   drawInstructions();
 
@@ -2038,8 +2094,8 @@ function finishInit() {
   finishedLoading();
 }
 
-function restart() {
-  if (!atOriginalState) {
+async function restart() {
+  if (!atOriginalState && await router.getConfirmation('', "Reset Puzzle?")) {
     nodes = deepCopy(originalState);
     dragging = null;
     previousTouch = null;
@@ -2049,11 +2105,134 @@ function restart() {
   }
 }
 
+function getTilesSortedByHorizontalPosition() {
+  return [...nodes].sort((a, b) => {
+    if (a.x === b.x) {
+      return a.y - b.y;
+    } else {
+      return a.x - b.x;
+    }
+  });
+}
+
+function getTilesSortedByVerticalPosition() {
+  return [...nodes].sort((a, b) => {
+    if (a.y === b.y) {
+      return a.x - b.x;
+    } else {
+      return a.y - b.y;
+    }
+  });
+}
+
+export function onKeyUp(event) {
+  if (router.puzzleState.interactive) {
+    if (isCursorGrabbing && dragging && keyboardManager.isOrthogonalDirKey(event)) {
+      releaseNode(dragging);
+      dragging = null;
+      drawPuzzle();
+    }
+  }
+}
+
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        dragging = null;
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
+      return;
+    }
+
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
+      return;
+    }
+
+    // Move/Drag
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
+        event.preventDefault();
+
+        if (isCursorGrabbing && !dragging) {
+          dragging = nodes[cursorTileIndex];
+        }
+
+        if (keyboardManager.isLeftDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.x -= CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isRightDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.x += CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isUpDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.y -= CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isDownDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.y += CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        }
+
+        drawPuzzle();
+      }
     }
   }
 }
@@ -2074,6 +2253,7 @@ export function onMouseDown(event) {
         if (Math.sqrt(Math.pow(mouseX - node.x, 2)
             + Math.pow(mouseY - node.y, 2)) < NODE_SIZE + LINE_THICKNESS) {
           dragging = node;
+          cursorTileIndex = nodes.indexOf(node);
           return;
         }
       }
@@ -2082,7 +2262,7 @@ export function onMouseDown(event) {
 
       if (mouseX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.12
           && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.8) {
-        restart();
+        void restart();
       }
     }
   }
@@ -2120,6 +2300,7 @@ export function onTouchStart(event) {
           + Math.pow(touchY - node.y, 2)) < NODE_SIZE * 1.5) {
         previousTouch = touch;
         dragging = node;
+        cursorTileIndex = nodes.indexOf(node);
         return;
       }
     }
@@ -2128,7 +2309,7 @@ export function onTouchStart(event) {
 
     if (touchX >= GRID_SIZE + (CANVAS_WIDTH - GRID_SIZE) * restartOffsetFactor * 0.12
         && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.8) {
-      restart();
+      void restart();
     }
   }
 }
@@ -2141,6 +2322,12 @@ export function onMouseMove(event) {
   mouseCoords = {x: event.clientX, y: event.clientY};
 
   if (router.puzzleState.interactive && dragging) {
+    // If not holding down the left button, stop dragging the tile
+    if (event.buttons !== 1 && event.buttons !== 3) {
+      dragging = null;
+      return;
+    }
+
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,

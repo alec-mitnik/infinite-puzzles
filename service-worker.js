@@ -1,34 +1,29 @@
-let CACHE_VERSION = 259;
+let CACHE_VERSION = 260;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
  *
+ * Prune redundant logic grid puzzle rules...
+ * If B => square, then A => !square is redundant
+ *
  * Change background color to work around iOS no longer honoring theme color?
  * Might be fixed by iOS 26.2?  No...
  *
- * Full keyboard controls still needed for:
- * Tetromino Grid Puzzle
- * Color Pieces Puzzle
- * Emitters Grid Puzzle
- * Logic Grid Puzzle
- * Light Switches Puzzle
- * Tangled Graph Puzzle
- *
- * Need to switch to a mode toggle rather than a modifier key: tilde, /, numpad 0 as defaults
- * Use diagonal directions for rotate, rather than a mode toggle?
- *
  * Toggle sound with M?
  * Screen reader announcement for sound or mode toggle...
+ * Shortcuts for puzzle control buttons?
+ * T for tutorial
+ * I for instructions
+ * H/Esc for home
+ * P for peek at solution
+ * N for new/next puzzle
+ * L for puzzle sharing (link)?
  *
- * Using CTRL/CMD as the "grabbing" modifier conflicts with
- * CTRL+W for closing the tab, which can't be prevented,
- * and CTRL/CMD+Z for undo!  Use Shift as the "grabbing" modifier instead?
- * Or make CTRL/CMD work as a mode toggle rather than a modifier?
+ * Present keyboard controls somewhere.  Add a dialog (with ⌨️ icon button?)
+ * and give keyboard command (K) for toggling it on any screen
+ * (show this in puzzle instructions - so may not need an icon button).
  *
- * Present keyboard controls somewhere.  Add a dialog with ⌨️ icon.
- * Can fit in home screen beside daily challenge button (won't be centered anymore, but oh well)
- * and give keyboard command for toggling it even on a puzzle screen (show this in puzzle instructions).
  * Include accessibility statement about how "puzzles rely heavily on
  * visual-spatial cues and are not fully compatible with screen readers."
  * Make keyboard controls remappable?
@@ -64,10 +59,14 @@ const FILES_TO_CACHE = [
   '/styles.css',
   '/manifest.json',
   // JavaScript files
+  '/js/main.js',
   '/js/config.js',
   '/js/utils.js',
   '/js/router.js',
   '/js/audio-manager.js',
+  '/js/daily-challenge-manager.js',
+  '/js/stats-manager.js',
+  '/js/keyboard-manager.js',
   // Puzzle pages
   '/puzzles/CircuitGridPuzzle.js',
   '/puzzles/ArithmeticGridPuzzle.js',
@@ -90,6 +89,9 @@ const FILES_TO_CACHE = [
   '/sounds/space_beep_3.mp3',
   '/sounds/Graduation.mp3',
   '/sounds/game-start-6104.mp3',
+  '/sounds/game-sounds-toggle.mp3',
+  '/sounds/game-sounds-toggle-off.mp3',
+  '/sounds/click-buttons-ui-menu-sounds-effects-button-12-205395.mp3',
   // Image files
   '/images/PXL_Avatar_1B.jpg',
 ];

@@ -3,10 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, randomEl, updateForTutorialRecommendation,
+  getPuzzleCanvas, randomEl, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -27,6 +28,8 @@ const NODE_TYPE = Object.freeze({
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const SNAP_SOUND = audioManager.SoundEffects.CLICK;
 const RESET_SOUND = audioManager.SoundEffects.BOING;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -51,6 +54,7 @@ const tutorials = [
     nodes: [
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [0, 0],
         // GRID_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * Math.max(ROWS, COLS) / (Math.max(ROWS, COLS) + 1.5);
         // CELL_SIZE = GRID_SIZE / Math.max(ROWS, COLS);
@@ -62,24 +66,28 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [1, 1],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [0, 1],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [1, 0],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (2 + 1.5))],
       },
       // {
       //   type: NODE_TYPE.RECEIVER,
+        // fixed: true,
       //   coord: [i, receiverY],
       //   canvasCoord: gridToCanvasCoord([i, receiverY], true),
       //   directions: [DIRECTION.UP],
@@ -121,36 +129,42 @@ const tutorials = [
     nodes: [
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [0, 0],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [1, 1],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [2, 2],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [1, 0],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [2, 1],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [0, 2],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
@@ -192,6 +206,7 @@ const tutorials = [
     nodes: [
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [0, 1],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
@@ -199,6 +214,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [1, 2],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
@@ -206,6 +222,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [2, 0],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
@@ -213,36 +230,42 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [0, 0],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [1, 1],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [2, 2],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [1, 0],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [2, 1],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [0, 2],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (3 + 1.5))],
@@ -293,6 +316,7 @@ const tutorials = [
     nodes: [
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [0, 1],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -300,6 +324,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [1, 2],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -307,6 +332,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [2, 3],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -314,6 +340,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [3, 3],
         canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -321,6 +348,7 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [3, 0],
         canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -328,48 +356,56 @@ const tutorials = [
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [1, 0],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [2, 1],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [3, 2],
         canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [0, 3],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [0, 0],
         canvasCoord: [0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             0.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [1, 3],
         canvasCoord: [1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [2, 2],
         canvasCoord: [2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             2.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
       },
       {
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [3, 1],
         canvasCoord: [3.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5)),
             1.5 * (Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (4 + 1.5))],
@@ -386,12 +422,14 @@ let CELL_SIZE;
 let NODE_SIZE;
 let LINE_THICKNESS;
 
+let cursorTileIndex;
+let isCursorGrabbing;
 let grid;
 let nodes;
 let originalState;
 let atOriginalState = true;
 let solution;
-let dragging = null;
+let dragging;
 let previousTouch = null;
 let queuedSounds = [];
 
@@ -452,18 +490,21 @@ function generateGrid() {
 
       nodes.push({
         type: NODE_TYPE.EMITTER,
+        fixed: false,
         coord: [i, emitterY],
         canvasCoord: gridToCanvasCoord([i, emitterY], true),
       });
 
       nodes.push({
         type: NODE_TYPE.BLOCK,
+        fixed: false,
         coord: [i, blockY],
         canvasCoord: gridToCanvasCoord([i, blockY], true),
       });
 
       nodes.push({
         type: NODE_TYPE.RECEIVER,
+        fixed: true,
         coord: [i, receiverY],
         canvasCoord: gridToCanvasCoord([i, receiverY], true),
         directions: [],
@@ -586,6 +627,7 @@ function generateGrid() {
     nodes.push({
       directions: [],
       type: NODE_TYPE.RECEIVER,
+      fixed: true,
       coord: [...cell.coord],
       canvasCoord: gridToCanvasCoord([...cell.coord], true)
     });
@@ -601,8 +643,8 @@ function generateGrid() {
 
   // Shuffle the data order so the draw order won't reveal the solution.
   // Fixed elements (receivers) should come first so they always show behind.
-  let shuffledNodes = nodes.filter(node => node.type === NODE_TYPE.RECEIVER);
-  let remainingNodes = nodes.filter(node => node.type !== NODE_TYPE.RECEIVER);
+  let shuffledNodes = nodes.filter(node => node.fixed);
+  let remainingNodes = nodes.filter(node => !node.fixed);
   while (remainingNodes.length > 0) {
     shuffledNodes.push(randomEl(remainingNodes, true));
   }
@@ -726,6 +768,46 @@ export function drawPuzzle() {
       && !rowsWithSharedEmitters.length && !rowsWithSharedBlocks.length
       && !columnsWithSharedEmitters.length && !columnsWithSharedBlocks.length;
 
+  nodesToDraw.forEach(node => {
+    let invalid;
+
+    switch(node.type) {
+      case NODE_TYPE.RECEIVER:
+        DIRECTIONS.forEach(direction => {
+          const active = node.directions.includes(direction);
+          const receiving = isCoordReceivingFromDirection(node.coord, direction);
+
+          if (active !== receiving) {
+            solved = false;
+          }
+        });
+
+        break;
+      case NODE_TYPE.EMITTER:
+        invalid = isOverlapping(node) || (isNodeInGrid(node)
+            && (rowsWithSharedEmitters.includes(node.coord[1])
+            || columnsWithSharedEmitters.includes(node.coord[0])));
+
+        if (invalid) {
+          solved = false;
+        }
+
+        break;
+      case NODE_TYPE.BLOCK:
+        invalid = isOverlapping(node) || (isNodeInGrid(node)
+            && (rowsWithSharedBlocks.includes(node.coord[1])
+            || columnsWithSharedBlocks.includes(node.coord[0])));
+
+        if (invalid) {
+          solved = false;
+        }
+
+        break;
+      default:
+        console.error("Unrecognized node type:", node.type);
+    }
+  });
+
   if (!solved && !atOriginalState) {
     // Restart
     context.font = "bold " + (CELL_SIZE / 5) + `px ${FONT_FAMILY}`;
@@ -749,8 +831,7 @@ export function drawPuzzle() {
     context.stroke();
   }
 
-  // Can't pass in solved state before it's fully resolved by the receiver logic
-  drawEmissions(context);
+  drawEmissions(context, solved);
   context.lineWidth = LINE_THICKNESS;
 
   nodesToDraw.forEach(node => {
@@ -768,10 +849,6 @@ export function drawPuzzle() {
           const invalid = (!active || allEmittersInGrid) && active !== receiving;
           let strokeColor = invalid ? ALERT_COLOR
               : (active && receiving ? SUCCESS_COLOR : "#808080");
-
-          if (active !== receiving) {
-            solved = false;
-          }
 
           context.beginPath();
           context.strokeStyle = strokeColor;
@@ -817,25 +894,13 @@ export function drawPuzzle() {
         invalid = isOverlapping(node) || (isNodeInGrid(node)
             && (rowsWithSharedEmitters.includes(node.coord[1])
             || columnsWithSharedEmitters.includes(node.coord[0])));
-
-        if (invalid) {
-          solved = false;
-        }
-
         drawEmitter(node, context, invalid);
-
         break;
       case NODE_TYPE.BLOCK:
         invalid = isOverlapping(node) || (isNodeInGrid(node)
             && (rowsWithSharedBlocks.includes(node.coord[1])
             || columnsWithSharedBlocks.includes(node.coord[0])));
-
-        if (invalid) {
-          solved = false;
-        }
-
         drawBlock(node, context, invalid);
-
         break;
       default:
         console.error("Unrecognized node type:", node.type);
@@ -862,6 +927,35 @@ export function drawPuzzle() {
     }
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
+
+    // Draw Cursor
+    if (router.puzzleState.usingKeyboard) {
+      const node = nodesToDraw[cursorTileIndex];
+
+      if (isCursorGrabbing) {
+        context.lineWidth = LINE_THICKNESS * 4;
+        context.strokeStyle = `${ALERT_COLOR}80`;
+        context.beginPath();
+        context.strokeRect(node.canvasCoord[0] - CELL_SIZE * 0.5,
+            node.canvasCoord[1] - CELL_SIZE * 0.5,
+            CELL_SIZE, CELL_SIZE);
+      }
+
+      context.lineWidth = LINE_THICKNESS;
+      context.strokeStyle = "#000";
+      context.beginPath();
+      context.strokeRect(node.canvasCoord[0] - CELL_SIZE * 0.5 + LINE_THICKNESS * 1.5,
+          node.canvasCoord[1] - CELL_SIZE * 0.5 + LINE_THICKNESS * 1.5,
+          CELL_SIZE - LINE_THICKNESS * 3,
+          CELL_SIZE - LINE_THICKNESS * 3);
+
+      context.strokeStyle = ALERT_COLOR;
+      context.beginPath();
+      context.strokeRect(node.canvasCoord[0] - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.5,
+          node.canvasCoord[1] - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.5,
+          CELL_SIZE - LINE_THICKNESS,
+          CELL_SIZE - LINE_THICKNESS);
+    }
   }
 
   queuedSounds = [];
@@ -1111,6 +1205,15 @@ function finishInit() {
 
   originalState = deepCopy(nodes);
   atOriginalState = true;
+  isCursorGrabbing = false;
+
+  const sortedTiles = getTilesSortedByHorizontalPosition();
+  let sortedTileIndex = -1;
+
+  do {
+    sortedTileIndex++;
+    cursorTileIndex = nodes.indexOf(sortedTiles[sortedTileIndex]);
+  } while (nodes[cursorTileIndex].fixed);
 
   updateForTutorialState();
 
@@ -1119,8 +1222,8 @@ function finishInit() {
   finishedLoading();
 }
 
-function restart() {
-  if (!atOriginalState) {
+async function restart() {
+  if (!atOriginalState && await router.getConfirmation('', "Reset Puzzle?")) {
     nodes = deepCopy(originalState);
     atOriginalState = true;
     dragging = null;
@@ -1130,11 +1233,134 @@ function restart() {
   }
 }
 
+function getTilesSortedByHorizontalPosition() {
+  return [...nodes].sort((a, b) => {
+    if (a.canvasCoord[0] === b.canvasCoord[0]) {
+      return a.canvasCoord[1] - b.canvasCoord[1];
+    } else {
+      return a.canvasCoord[0] - b.canvasCoord[0];
+    }
+  });
+}
+
+function getTilesSortedByVerticalPosition() {
+  return [...nodes].sort((a, b) => {
+    if (a.canvasCoord[1] === b.canvasCoord[1]) {
+      return a.canvasCoord[0] - b.canvasCoord[0];
+    } else {
+      return a.canvasCoord[1] - b.canvasCoord[1];
+    }
+  });
+}
+
+export function onKeyUp(event) {
+  if (router.puzzleState.interactive) {
+    if (isCursorGrabbing && dragging && keyboardManager.isOrthogonalDirKey(event)) {
+      releaseNode(dragging);
+      dragging = null;
+      drawPuzzle();
+    }
+  }
+}
+
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        dragging = null;
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
+      return;
+    }
+
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
+      return;
+    }
+
+    // Move/Drag
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
+        event.preventDefault();
+
+        if (isCursorGrabbing && !dragging) {
+          dragging = nodes[cursorTileIndex];
+        }
+
+        if (keyboardManager.isLeftDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.canvasCoord[0] -= CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isRightDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.canvasCoord[0] += CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isUpDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.canvasCoord[1] -= CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isDownDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.canvasCoord[1] += CELL_SIZE;
+            releaseNode(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(nodes[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = nodes.indexOf(sortedTiles[sortedIndex]);
+            } while (nodes[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        }
+
+        drawPuzzle();
+      }
     }
   }
 }
@@ -1149,7 +1375,7 @@ export function onMouseDown(event) {
       let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
-      let moveableNodes = nodes.filter(node => node.type !== NODE_TYPE.RECEIVER);
+      let moveableNodes = nodes.filter(node => !node.fixed);
 
       for (let i = moveableNodes.length - 1; i >= 0; i--) {
         let node = moveableNodes[i];
@@ -1157,12 +1383,13 @@ export function onMouseDown(event) {
         if (Math.sqrt(Math.pow(mouseX - node.canvasCoord[0], 2)
             + Math.pow(mouseY - node.canvasCoord[1], 2)) < CELL_SIZE * 3 / 8) {
           dragging = node;
+          cursorTileIndex = nodes.indexOf(node);
           return;
         }
       }
 
       if (mouseX > CANVAS_WIDTH - CELL_SIZE && mouseY > CANVAS_HEIGHT - CELL_SIZE) {
-        restart();
+        void restart();
       }
     }
   }
@@ -1194,7 +1421,7 @@ export function onTouchStart(event) {
     let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
-    let moveableNodes = nodes.filter(node => node.type !== NODE_TYPE.RECEIVER);
+    let moveableNodes = nodes.filter(node => !node.fixed);
 
     for (let i = moveableNodes.length - 1; i >= 0; i--) {
       let node = moveableNodes[i];
@@ -1203,12 +1430,13 @@ export function onTouchStart(event) {
           + Math.pow(touchY - node.canvasCoord[1], 2)) < CELL_SIZE / 2) {
         previousTouch = touch;
         dragging = node;
+        cursorTileIndex = nodes.indexOf(node);
         return;
       }
     }
 
     if (touchX > CANVAS_WIDTH - CELL_SIZE && touchY > CANVAS_HEIGHT - CELL_SIZE) {
-      restart();
+      void restart();
     }
   }
 }
@@ -1221,6 +1449,12 @@ export function onMouseMove(event) {
   mouseCoords = {x: event.clientX, y: event.clientY};
 
   if (router.puzzleState.interactive && dragging) {
+    // If not holding down the left button, stop dragging the tile
+    if (event.buttons !== 1 && event.buttons !== 3) {
+      dragging = null;
+      return;
+    }
+
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,

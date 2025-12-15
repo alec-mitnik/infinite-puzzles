@@ -3,12 +3,12 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
-  containsCoord, deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isDirKey, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
-  isUpDirKey, randomEl, removeCoord, sameCoord, updateForTutorialRecommendation,
-  updateForTutorialState
+  containsCoord, deepCopy, drawCenteredDashedLine, drawInstructionsHelper,
+  endPuzzle, finishedLoading, getPuzzleCanvas, randomEl, removeCoord,
+  sameCoord, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const OFFSET_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 10;
@@ -20,6 +20,8 @@ const CLEAR_SOUND = audioManager.SoundEffects.WARP;
 const CLICK_SOUND = audioManager.SoundEffects.CLICK;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -133,15 +135,14 @@ let NODE_SIZE;
 let NODE_LINE_THICKNESS;
 
 let cursorCoord;
-let isCursorGrabbing = false;
+let isCursorGrabbing;
 let grid;
 let solution;
 let solutionLength;
 let loopGrid;
 
-let draggingValue = null;
-let dragging = false;
-let draggingTile;
+let draggingValue;
+let dragging;
 let previousTouch;
 let queuedSounds = [];
 
@@ -672,8 +673,7 @@ export function init() {
   NODE_LINE_THICKNESS = DIFFICULTY >= 3 ? 9 : 12;
 
   draggingValue = null;
-  dragging = false;
-  draggingTile = null;
+  dragging = null;
   previousTouch = null;
   queuedSounds = [];
 
@@ -726,6 +726,9 @@ export function init() {
   }
 
   cursorCoord = [0, 0];
+  draggingValue = null;
+  dragging = null;
+  isCursorGrabbing = false;
 
   updateForTutorialState();
 
@@ -982,7 +985,7 @@ export function drawPuzzle() {
       context.fill();
       context.stroke();
 
-      // Cursor
+      // Draw Cursor
       if (!solved && router.puzzleState.usingKeyboard && sameCoord([i, j], cursorCoord)) {
         context.fillStyle = `${ALERT_COLOR}80`;
         context.fillRect(coord[0], coord[1], CELL_SIZE, CELL_SIZE);
@@ -991,7 +994,7 @@ export function drawPuzzle() {
     }
   }
 
-  // Grabbing Cursor
+  // Draw Grabbing Cursor
   if (!solved && router.puzzleState.usingKeyboard && isCursorGrabbing) {
     const cursorDrawCoord = getDrawCoord(cursorCoord);
     context.strokeStyle = ALERT_COLOR;
@@ -1197,16 +1200,17 @@ function pathInteractionForScreen(mouseX, mouseY) {
 function pathInteraction(coord) {
   if (coord[0] >= 0 && coord[0] < COLS
       && coord[1] >= 0 && coord[1] < ROWS) {
+    // Move the cursor to wherever the mouse interacts
     cursorCoord = coord;
     let tile = grid[coord[0]][coord[1]];
 
-    if (draggingTile && draggingTile !== tile) {
-      if (areGridCoordsAdjacent(tile.coord, draggingTile.coord)) {
-        if (containsCoord(tile.neighborPaths, draggingTile.coord)) {
+    if (dragging && dragging !== tile) {
+      if (areGridCoordsAdjacent(tile.coord, dragging.coord)) {
+        if (containsCoord(tile.neighborPaths, dragging.coord)) {
           if (draggingValue !== false) {
             draggingValue = true;
-            removeCoord(tile.neighborPaths, draggingTile.coord);
-            removeCoord(draggingTile.neighborPaths, tile.coord);
+            removeCoord(tile.neighborPaths, dragging.coord);
+            removeCoord(dragging.neighborPaths, tile.coord);
 
             queuedSounds.push(CLEAR_SOUND);
             drawPuzzle();
@@ -1216,8 +1220,8 @@ function pathInteraction(coord) {
         } else {
           if (draggingValue !== true) {
             draggingValue = false;
-            tile.neighborPaths.push(draggingTile.coord);
-            draggingTile.neighborPaths.push(tile.coord);
+            tile.neighborPaths.push(dragging.coord);
+            dragging.neighborPaths.push(tile.coord);
 
             queuedSounds.push(CLICK_SOUND);
             drawPuzzle();
@@ -1228,7 +1232,7 @@ function pathInteraction(coord) {
       }
     }
 
-    draggingTile = tile;
+    dragging = tile;
   }
 }
 
@@ -1236,34 +1240,14 @@ function atOriginalState() {
   return grid.every(row => row.every(tile => tile.neighborPaths.length === 0));
 }
 
-function restart() {
-  if (!atOriginalState()) {
+async function restart() {
+  if (!atOriginalState() && await router.getConfirmation('', "Reset Puzzle?")) {
     grid.forEach(row => row.forEach(tile => tile.neighborPaths = []));
     previousTouch = null;
-    draggingTile = null;
+    dragging = null;
     draggingValue = null;
-    dragging = false;
     audioManager.play(RESTART_SOUND);
     drawPuzzle();
-  }
-}
-
-export function onKeyUp(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
-  if (grabbingStateChanged) {
-    if (!isCursorGrabbing) {
-      previousTouch = null;
-      draggingTile = null;
-      draggingValue = null;
-      dragging = false;
-    }
-
-    if (router.puzzleState.interactive) {
-      drawPuzzle();
-    }
   }
 }
 
@@ -1277,78 +1261,74 @@ function handleCursorMove() {
 }
 
 export function onKeyDown(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
-  if (grabbingStateChanged) {
-    if (isCursorGrabbing) {
-      dragging = true;
-      draggingTile = grid[cursorCoord[0]][cursorCoord[1]];
-      draggingValue = null;
-    }
-  }
-
   if (router.puzzleState.interactive) {
-    // Restart
-    if (isRestartKey(event)) {
-      restart();
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        dragging = null;
+        draggingValue = null;
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
       return;
     }
 
-    // Move Cursor
-    if (!event.altKey && !event.shiftKey) {
-      if (isDirKey(event)) {
-        // Prevent use of numpad from switching browser tabs
+    // Restart
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
+      return;
+    }
+
+    // Move/Draw/Erase
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
         event.preventDefault();
-      }
 
-      if (isLeftDirKey(event)) {
-        if (isCursorGrabbing) {
-          // Don't wrap around if grabbing
-          cursorCoord = [cursorCoord[0] <= 0 ? 0 : cursorCoord[0] - 1, cursorCoord[1]];
-        } else {
-          cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+        if (isCursorGrabbing && !dragging) {
+          dragging = grid[cursorCoord[0]][cursorCoord[1]];
+          draggingValue = null;
+        }
+
+        if (keyboardManager.isLeftDirKey(event)) {
+          if (isCursorGrabbing) {
+            // Don't wrap around if grabbing
+            cursorCoord = [cursorCoord[0] <= 0 ? 0 : cursorCoord[0] - 1, cursorCoord[1]];
+          } else {
+            cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
+          }
+        } else if (keyboardManager.isRightDirKey(event)) {
+          if (isCursorGrabbing) {
+            // Don't wrap around if grabbing
+            cursorCoord = [cursorCoord[0] >= COLS - 1 ? COLS - 1 : cursorCoord[0] + 1, cursorCoord[1]];
+          } else {
+            cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
+          }
+        } else if (keyboardManager.isUpDirKey(event)) {
+          if (isCursorGrabbing) {
+            // Don't wrap around if grabbing
+            cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? 0 : cursorCoord[1] - 1];
+          } else {
+            cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
+          }
+        } else if (keyboardManager.isDownDirKey(event)) {
+          if (isCursorGrabbing) {
+            // Don't wrap around if grabbing
+            cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? ROWS - 1 : cursorCoord[1] + 1];
+          } else {
+            cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
+          }
         }
 
         handleCursorMove();
-        return;
-      } else if (isRightDirKey(event)) {
-        if (isCursorGrabbing) {
-          // Don't wrap around if grabbing
-          cursorCoord = [cursorCoord[0] >= COLS - 1 ? COLS - 1 : cursorCoord[0] + 1, cursorCoord[1]];
-        } else {
-          cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
-        }
-
-        handleCursorMove();
-        return;
-      } else if (isUpDirKey(event)) {
-        if (isCursorGrabbing) {
-          // Don't wrap around if grabbing
-          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? 0 : cursorCoord[1] - 1];
-        } else {
-          cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
-        }
-
-        handleCursorMove();
-        return;
-      } else if (isDownDirKey(event)) {
-        if (isCursorGrabbing) {
-          // Don't wrap around if grabbing
-          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? ROWS - 1 : cursorCoord[1] + 1];
-        } else {
-          cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
-        }
-
-        handleCursorMove();
-        return;
       }
     }
-  }
-
-  if (grabbingStateChanged) {
-    drawPuzzle();
   }
 }
 
@@ -1361,11 +1341,10 @@ export function onMouseDown(event) {
       let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
       if (mouseX >= COLS * CELL_SIZE && mouseY <= OFFSET_SIZE * 0.9) {
-        restart();
+        void restart();
         return;
       }
 
-      dragging = true;
       pathInteractionForScreen(mouseX, mouseY);
     }
   }
@@ -1373,18 +1352,16 @@ export function onMouseDown(event) {
 
 export function handleMiddleMouseDown() {
   if (dragging) {
-    dragging = null;
     draggingValue = null;
-    draggingTile = null;
+    dragging = null;
     previousTouch = null;
   }
 }
 
 export function onWindowBlur() {
   if (dragging) {
-    dragging = null;
     draggingValue = null;
-    draggingTile = null;
+    dragging = null;
     previousTouch = null;
   }
 }
@@ -1397,18 +1374,24 @@ export function onTouchStart(event) {
     let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
     if (touchX >= COLS * CELL_SIZE && touchY <= OFFSET_SIZE * 0.9) {
-      restart();
+      void restart();
       return;
     }
 
     previousTouch = touch;
-    dragging = true;
     pathInteractionForScreen(touchX, touchY);
   }
 }
 
 export function onMouseMove(event) {
   if (router.puzzleState.interactive && dragging) {
+    // If not holding down the left button, stop dragging the tile
+    if (event.buttons !== 1 && event.buttons !== 3) {
+      draggingValue = null;
+      dragging = null;
+      return;
+    }
+
     let canvasRect = getPuzzleCanvas().getBoundingClientRect();
     let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
     let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
@@ -1444,9 +1427,8 @@ export function onTouchMove(event) {
 export function onMouseUp(event) {
   // Left click
   if (event.button === 0) {
-    dragging = false;
+    dragging = null;
     draggingValue = null;
-    draggingTile = null;
   }
 }
 
@@ -1457,9 +1439,8 @@ export function onTouchEnd(event) {
     for (let i = 0; i < changedTouches.length; i++) {
       if (changedTouches[i].identifier === previousTouch.identifier) {
         previousTouch = null;
-        dragging = false;
+        dragging = null;
         draggingValue = null;
-        draggingTile = null;
         return;
       }
     }
@@ -1467,6 +1448,6 @@ export function onTouchEnd(event) {
 }
 
 export function onMouseOut() {
-  dragging = false;
+  dragging = null;
   draggingValue = null;
 }

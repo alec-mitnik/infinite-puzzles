@@ -3,11 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  hasModifierKeys, isActivationKey, isDirKey, isDownDirKey, isLeftDirKey,
-  isRestartKey, isRightDirKey, isUpDirKey, randomIndex, sameCoord,
+  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  getPuzzleCanvas, randomIndex, sameCoord,
   updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
@@ -285,8 +285,9 @@ let TILE_CELL_SIZE = CELL_SIZE / (TILE_SIZE + 2);
 let DIFFICULTY;
 let FIXED_TILES;
 
-let cursorCoord;
+// Grabbing state wound up as unused, with rotation handled by its own dedicated keys
 let isCursorGrabbing = false;
+let cursorCoord;
 let grid;
 let solution;
 let originalState;
@@ -692,7 +693,7 @@ export function drawPuzzle() {
   } else {
     queuedSounds.forEach(sound => audioManager.play(sound));
 
-    // Cursor
+    // Draw Cursor
     if (router.puzzleState.usingKeyboard) {
       const cursorTile = gridToDraw[cursorCoord[0]][cursorCoord[1]];
 
@@ -1011,21 +1012,11 @@ function atOriginalState() {
   });
 }
 
-function restart() {
-  if (!atOriginalState()) {
+async function restart() {
+  if (!atOriginalState() && await router.getConfirmation('', "Reset Puzzle?")) {
     grid = deepCopy(originalState);
     selection = null;
     audioManager.play(RESTART_SOUND);
-    drawPuzzle();
-  }
-}
-
-export function onKeyUp(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
-  if (grabbingStateChanged && router.puzzleState.interactive) {
     drawPuzzle();
   }
 }
@@ -1055,19 +1046,17 @@ function handleCursorRotate(isClockwise) {
 }
 
 export function onKeyDown(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
   if (router.puzzleState.interactive) {
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
       return;
     }
 
     // Selection
-    if (!hasModifierKeys(event) && isActivationKey(event)) {
+    if (keyboardManager.isActivationKey(event)) {
+      event.preventDefault();
       const tile = grid[cursorCoord[0]][cursorCoord[1]];
 
       if (tile.fixed) {
@@ -1078,8 +1067,6 @@ export function onKeyDown(event) {
       if (selection) {
         if (sameCoord(selection.gridCoords, cursorCoord)) {
           audioManager.play(SELECT_SOUND);
-          selection = null;
-          drawPuzzle();
         } else {
           queuedSounds.push(SWAP_SOUND);
           const coordinate = [selection.gridCoords, selection.x, selection.y];
@@ -1093,68 +1080,50 @@ export function onKeyDown(event) {
           tile.x = coordinate[1];
           tile.y = coordinate[2];
           grid[tile.gridCoords[0]][tile.gridCoords[1]] = tile;
-
-          selection = null;
-          drawPuzzle();
         }
+
+        selection = null;
       } else {
         audioManager.play(SELECT_SOUND);
         selection = grid[cursorCoord[0]][cursorCoord[1]];
-        drawPuzzle();
       }
 
+      drawPuzzle();
+      return;
+    }
+
+    // Rotate
+    if (keyboardManager.isRotateClockwiseKey(event)) {
+      event.preventDefault();
+      handleCursorRotate(true);
+      return;
+    }
+    if (keyboardManager.isRotateCounterClockwiseKey(event)) {
+      event.preventDefault();
+      handleCursorRotate(false);
       return;
     }
 
     // Move Cursor
-    if (!event.altKey && !event.shiftKey) {
-      if (isDirKey(event)) {
-        // Prevent use of numpad from switching browser tabs
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
         event.preventDefault();
-      }
 
-      if (isLeftDirKey(event)) {
-        if (isCursorGrabbing) {
-          handleCursorRotate(false);
-        } else {
+        if (keyboardManager.isLeftDirKey(event)) {
           cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
           handleCursorMove();
-        }
-
-        return;
-      } else if (isRightDirKey(event)) {
-        if (isCursorGrabbing) {
-          handleCursorRotate(true);
-        } else {
+        } else if (keyboardManager.isRightDirKey(event)) {
           cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
           handleCursorMove();
-        }
-
-        return;
-      } else if (isUpDirKey(event)) {
-        if (isCursorGrabbing) {
-          handleCursorRotate(false);
-        } else {
+        } else if (keyboardManager.isUpDirKey(event)) {
           cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
           handleCursorMove();
-        }
-
-        return;
-      } else if (isDownDirKey(event)) {
-        if (isCursorGrabbing) {
-          handleCursorRotate(true);
-        } else {
+        } else if (keyboardManager.isDownDirKey(event)) {
           cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
           handleCursorMove();
         }
-
-        return;
       }
     }
-  }
-
-  if (grabbingStateChanged) {
-    drawPuzzle();
   }
 }
 
@@ -1210,7 +1179,7 @@ export function onMouseDown(event) {
       }
 
       if (mouseX >= CANVAS_WIDTH - OFFSET_SIZE && mouseY <= OFFSET_SIZE * 1.1) {
-        restart();
+        void restart();
       }
     }
 
@@ -1228,8 +1197,8 @@ export function onMouseDown(event) {
 
         if (!tile.fixed && mouseX > tile.x && mouseY > tile.y
             && mouseX - tile.x < CELL_SIZE && mouseY - tile.y < CELL_SIZE) {
-          rotateTile(tile);
           cursorCoord = tile.gridCoords;
+          rotateTile(tile);
 
           drawPuzzle();
           return;
@@ -1344,7 +1313,7 @@ export function onTouchStart(event) {
       }
 
       if (touchX >= CANVAS_WIDTH - OFFSET_SIZE && touchY <= OFFSET_SIZE) {
-        restart();
+        void restart();
       }
     }
   }

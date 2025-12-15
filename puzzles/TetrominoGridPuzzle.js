@@ -3,11 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawCenteredDashedLine, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isRestartKey, randomIndex, updateForTutorialRecommendation,
-  updateForTutorialState
+  getPuzzleCanvas, randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const ROTATIONS = false;
@@ -17,6 +17,9 @@ const LINE_THICKNESS = 12;
 const SNAP_SOUND = audioManager.SoundEffects.CLICK;
 const ROTATE_SOUND = audioManager.SoundEffects.WARP;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -533,11 +536,13 @@ let TILES;
 let CELL_SIZE;
 let CELL_CONNECTION_THICKNESS;
 
+let cursorTileIndex;
+let isCursorGrabbing;
 let grid;
 let solution;
 let originalState;
 let atOriginalState = true;
-let dragging = null;
+let dragging;
 let previousTouch = null;
 let tiles = [];
 let queuedSounds = [];
@@ -819,6 +824,36 @@ export function drawPuzzle() {
       }
     });
   });
+
+  // Draw Cursor
+  if (!solved && !router.puzzleState.showingSolution && router.puzzleState.usingKeyboard) {
+    const tile = tilesToDraw[cursorTileIndex];
+    const tileBounds = getTileBoundingBox(tile);
+
+    if (isCursorGrabbing) {
+      context.lineWidth = LINE_THICKNESS * 2;
+      context.strokeStyle = `${ALERT_COLOR}80`;
+      context.beginPath();
+      context.strokeRect(tileBounds.left - CELL_SIZE * 0.5, tileBounds.top - CELL_SIZE * 0.5,
+          tileBounds.right - tileBounds.left + CELL_SIZE,
+          tileBounds.bottom - tileBounds.top + CELL_SIZE);
+    }
+
+    context.lineWidth = LINE_THICKNESS * 0.5;
+    context.strokeStyle = "#000";
+    context.beginPath();
+    context.strokeRect(tileBounds.left - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.75,
+        tileBounds.top - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.75,
+        tileBounds.right - tileBounds.left + CELL_SIZE - LINE_THICKNESS * 1.5,
+        tileBounds.bottom - tileBounds.top + CELL_SIZE - LINE_THICKNESS * 1.5);
+
+    context.strokeStyle = ALERT_COLOR;
+    context.beginPath();
+    context.strokeRect(tileBounds.left - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.25,
+        tileBounds.top - CELL_SIZE * 0.5 + LINE_THICKNESS * 0.25,
+        tileBounds.right - tileBounds.left + CELL_SIZE - LINE_THICKNESS * 0.5,
+        tileBounds.bottom - tileBounds.top + CELL_SIZE - LINE_THICKNESS * 0.5);
+  }
 }
 
 function tileIsOverlapping(tileToCheck, tilesList) {
@@ -937,6 +972,15 @@ export function init() {
 
   originalState = deepCopy(tiles);
   atOriginalState = true;
+  isCursorGrabbing = false;
+
+  const sortedTiles = getTilesSortedByHorizontalPosition();
+  let sortedTileIndex = -1;
+
+  do {
+    sortedTileIndex++;
+    cursorTileIndex = tiles.indexOf(sortedTiles[sortedTileIndex]);
+  } while (tiles[cursorTileIndex].fixed);
 
   updateForTutorialState();
 
@@ -945,8 +989,8 @@ export function init() {
   finishedLoading();
 }
 
-function restart() {
-  if (!atOriginalState) {
+async function restart() {
+  if (!atOriginalState && await router.getConfirmation('', "Reset Puzzle?")) {
     dragging = null;
     previousTouch = null;
     tiles = deepCopy(originalState);
@@ -956,11 +1000,159 @@ function restart() {
   }
 }
 
+function getTileBoundingBox(tile) {
+  return {
+    left: Math.round(Math.min(...tile.cells.map(cell => cell.x))),
+    top: Math.round(Math.min(...tile.cells.map(cell => cell.y))),
+    right: Math.round(Math.max(...tile.cells.map(cell => cell.x))),
+    bottom: Math.round(Math.max(...tile.cells.map(cell => cell.y))),
+  };
+}
+
+function getTilesSortedByHorizontalPosition() {
+  return [...tiles].sort((a, b) => {
+    const aBounds = getTileBoundingBox(a);
+    const bBounds = getTileBoundingBox(b);
+
+    if (aBounds.left === bBounds.left) {
+      return aBounds.top - bBounds.top;
+    } else {
+      return aBounds.left - bBounds.left;
+    }
+  });
+}
+
+function getTilesSortedByVerticalPosition() {
+  return [...tiles].sort((a, b) => {
+    const aBounds = getTileBoundingBox(a);
+    const bBounds = getTileBoundingBox(b);
+
+    if (aBounds.top === bBounds.top) {
+      return aBounds.left - bBounds.left;
+    } else {
+      return aBounds.top - bBounds.top;
+    }
+  });
+}
+
+export function onKeyUp(event) {
+  if (router.puzzleState.interactive) {
+    if (isCursorGrabbing && dragging && keyboardManager.isOrthogonalDirKey(event)) {
+      snapToGrid(dragging);
+      dragging = null;
+      drawPuzzle();
+    }
+  }
+}
+
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        dragging = null;
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
+      return;
+    }
+
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+    }
+
+    // Move/Drag
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
+        event.preventDefault();
+
+        if (isCursorGrabbing && !dragging) {
+          dragging = tiles[cursorTileIndex];
+        }
+
+        if (keyboardManager.isLeftDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.cells.forEach(cell => {
+              cell.x -= CELL_SIZE;
+            });
+
+            snapToGrid(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(tiles[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = tiles.indexOf(sortedTiles[sortedIndex]);
+            } while (tiles[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isRightDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.cells.forEach(cell => {
+              cell.x += CELL_SIZE;
+            });
+
+            snapToGrid(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByHorizontalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(tiles[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = tiles.indexOf(sortedTiles[sortedIndex]);
+            } while (tiles[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isUpDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.cells.forEach(cell => {
+              cell.y -= CELL_SIZE;
+            });
+
+            snapToGrid(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(tiles[cursorTileIndex]);
+              sortedIndex = sortedIndex <= 0 ? sortedTiles.length - 1 : sortedIndex - 1;
+              cursorTileIndex = tiles.indexOf(sortedTiles[sortedIndex]);
+            } while (tiles[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        } else if (keyboardManager.isDownDirKey(event)) {
+          if (isCursorGrabbing) {
+            dragging.cells.forEach(cell => {
+              cell.y += CELL_SIZE;
+            });
+
+            snapToGrid(dragging, false);
+          } else {
+            const sortedTiles = getTilesSortedByVerticalPosition();
+
+            do {
+              let sortedIndex = sortedTiles.indexOf(tiles[cursorTileIndex]);
+              sortedIndex = sortedIndex >= sortedTiles.length - 1 ? 0 : sortedIndex + 1;
+              cursorTileIndex = tiles.indexOf(sortedTiles[sortedIndex]);
+            } while (tiles[cursorTileIndex].fixed);
+
+            audioManager.play(CLINK_SOUND, 0.3);
+          }
+        }
+
+        drawPuzzle();
+      }
     }
   }
 }
@@ -985,6 +1177,7 @@ export function onMouseDown(event) {
             if (Math.abs(mouseX - cell.x) < CELL_SIZE / 2
                 && Math.abs(mouseY - cell.y) < CELL_SIZE / 2) {
               dragging = tile;
+              cursorTileIndex = i;
               return;
             }
           }
@@ -993,7 +1186,7 @@ export function onMouseDown(event) {
 
       // Restart
       if (mouseX >= CANVAS_WIDTH - 1.8 * CELL_SIZE && mouseY <= CELL_SIZE * 0.8) {
-        restart();
+        void restart();
       }
     }
 
@@ -1046,6 +1239,7 @@ export function onTouchStart(event) {
                 && Math.abs(touchY - cell.y) < CELL_SIZE / 2) {
               previousTouch = touch;
               dragging = tile;
+              cursorTileIndex = i;
               return;
             }
           }
@@ -1054,7 +1248,7 @@ export function onTouchStart(event) {
 
       // Restart
       if (touchX >= CANVAS_WIDTH - 1.8 * CELL_SIZE && touchY <= CELL_SIZE * 0.8) {
-        restart();
+        void restart();
       }
     }
 
@@ -1076,6 +1270,12 @@ export function onMouseMove(event) {
   mouseCoords = {x: event.clientX, y: event.clientY};
 
   if (router.puzzleState.interactive && dragging) {
+    // If not holding down the left button, stop dragging the tile
+    if (event.buttons !== 1 && event.buttons !== 3) {
+      dragging = null;
+      return;
+    }
+
     const mouseDelta = {
       x: isNaN(prevMouseCoords.x) ? 0 : mouseCoords.x - prevMouseCoords.x,
       y: isNaN(prevMouseCoords.y) ? 0 : mouseCoords.y - prevMouseCoords.y,

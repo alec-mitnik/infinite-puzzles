@@ -3,10 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading, getPuzzleCanvas,
-  isRestartKey, randomIndex, updateForTutorialRecommendation, updateForTutorialState
+  randomIndex, updateForTutorialRecommendation, updateForTutorialState
 } from "../js/utils.js";
 
 const SWITCH_RATE = 1/3;
@@ -16,6 +17,7 @@ const SWITCH_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 
 const SWITCH_SOUND = audioManager.SoundEffects.CLICK;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
+const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -159,6 +161,7 @@ let ROWS;
 let COLS;
 let CELL_SIZE;
 
+let cursorSwitchIndex;
 let grid;
 let lightSwitches;
 let originalGrid;
@@ -187,6 +190,7 @@ export function drawPuzzle() {
 
   let puzzleSolved = true;
 
+  // Draw Grid
   for (let i = 0; i < COLS; i++) {
     for (let j = 0; j < ROWS; j++) {
       let light = gridToDraw[i][j];
@@ -196,6 +200,49 @@ export function drawPuzzle() {
       context.fillStyle = light ? SUCCESS_COLOR : "#808080";
       context.fillRect(i * CELL_SIZE + LIGHT_BORDER, j * CELL_SIZE + LIGHT_BORDER,
           CELL_SIZE - (2 * LIGHT_BORDER), CELL_SIZE - (2 * LIGHT_BORDER));
+    }
+  }
+
+  // Draw Switches
+  for (let i = 0; i < switchesToDraw.length; i++) {
+    let lightSwitch = switchesToDraw[i];
+    let coord = getSwitchCoord(lightSwitch, switchesToDraw);
+
+    let switchColor = lightSwitch.toggled ? (puzzleSolved ? SUCCESS_COLOR : ALERT_COLOR) : "#000000";
+
+    context.lineWidth = LINE_THICKNESS;
+    context.fillStyle = switchColor;
+    context.strokeStyle = "#808080";
+    context.beginPath();
+    context.arc(coord[0], coord[1], SWITCH_SIZE / 4, 0, 2 * Math.PI, false);
+    context.fill();
+    context.stroke();
+
+    if (puzzleSolved) {
+      if (lightSwitch.toggled) {
+        context.strokeStyle = `${switchColor}80`;
+        context.beginPath();
+        context.arc(coord[0], coord[1], SWITCH_SIZE / 4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
+        context.stroke();
+      }
+    } else {
+      // Draw Cursor
+      if (router.puzzleState.usingKeyboard && i === cursorSwitchIndex) {
+        context.lineWidth = LINE_THICKNESS * 0.5;
+        context.strokeStyle = "#000";
+        context.beginPath();
+        context.strokeRect(coord[0] - SWITCH_SIZE * 0.5 + LINE_THICKNESS * 0.75,
+            coord[1] - SWITCH_SIZE * 0.5 + LINE_THICKNESS * 0.75,
+            SWITCH_SIZE - LINE_THICKNESS * 1.5,
+            SWITCH_SIZE - LINE_THICKNESS * 1.5);
+
+        context.strokeStyle = ALERT_COLOR;
+        context.beginPath();
+        context.strokeRect(coord[0] - SWITCH_SIZE * 0.5 + LINE_THICKNESS * 0.25,
+            coord[1] - SWITCH_SIZE * 0.5 + LINE_THICKNESS * 0.25,
+            SWITCH_SIZE - LINE_THICKNESS * 0.5,
+            SWITCH_SIZE - LINE_THICKNESS * 0.5);
+      }
     }
   }
 
@@ -236,29 +283,6 @@ export function drawPuzzle() {
   }
 
   queuedSounds = [];
-
-  context.lineWidth = LINE_THICKNESS;
-
-  for (let i = 0; i < switchesToDraw.length; i++) {
-    let lightSwitch = switchesToDraw[i];
-    let coord = getSwitchCoord(lightSwitch, switchesToDraw);
-
-    let tileColor = lightSwitch.toggled ? (puzzleSolved ? SUCCESS_COLOR : ALERT_COLOR) : "#000000";
-
-    context.fillStyle = tileColor;
-    context.strokeStyle = "#808080";
-    context.beginPath();
-    context.arc(coord[0], coord[1], SWITCH_SIZE / 4, 0, 2 * Math.PI, false);
-    context.fill();
-    context.stroke();
-
-    if (puzzleSolved && lightSwitch.toggled) {
-      context.strokeStyle = `${tileColor}80`;
-      context.beginPath();
-      context.arc(coord[0], coord[1], SWITCH_SIZE / 4 + LINE_THICKNESS, 0, 2 * Math.PI, false);
-      context.stroke();
-    }
-  }
 }
 
 function getSwitchCoord(lightSwitch, switchesToCheck = lightSwitches) {
@@ -449,6 +473,7 @@ export function init() {
 
   originalGrid = deepCopy(grid);
   originalSwitches = deepCopy(lightSwitches);
+  cursorSwitchIndex = lightSwitches.length - 1;
 
   updateForTutorialState();
 
@@ -462,8 +487,8 @@ function atOriginalState() {
   return lightSwitches.every(lightSwitch => !lightSwitch.toggled);
 }
 
-function restart() {
-  if (!atOriginalState()) {
+async function restart() {
+  if (!atOriginalState() && await router.getConfirmation('', "Reset Puzzle?")) {
     lightSwitches = deepCopy(originalSwitches);
     grid = deepCopy(originalGrid);
     audioManager.play(RESTART_SOUND);
@@ -474,8 +499,43 @@ function restart() {
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
+      return;
+    }
+
+    // Toggle Switch
+    if (keyboardManager.isActivationKey(event)) {
+      event.preventDefault();
+      const lightSwitch = lightSwitches[cursorSwitchIndex];
+      queuedSounds.push(SWITCH_SOUND);
+      toggle(lightSwitch);
+      drawPuzzle();
+      return;
+    }
+
+    // Move Cursor
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
+        event.preventDefault();
+
+        if (keyboardManager.isLeftDirKey(event)) {
+          cursorSwitchIndex = cursorSwitchIndex >= lightSwitches.length - 1 ? 0 : cursorSwitchIndex + 1;
+          audioManager.play(CLINK_SOUND, 0.3);
+        } else if (keyboardManager.isRightDirKey(event)) {
+          cursorSwitchIndex = cursorSwitchIndex <= 0 ? lightSwitches.length - 1 : cursorSwitchIndex - 1;
+          audioManager.play(CLINK_SOUND, 0.3);
+        } else if (keyboardManager.isUpDirKey(event)) {
+          cursorSwitchIndex = cursorSwitchIndex <= 0 ? lightSwitches.length - 1 : cursorSwitchIndex - 1;
+          audioManager.play(CLINK_SOUND, 0.3);
+        } else if (keyboardManager.isDownDirKey(event)) {
+          cursorSwitchIndex = cursorSwitchIndex >= lightSwitches.length - 1 ? 0 : cursorSwitchIndex + 1;
+          audioManager.play(CLINK_SOUND, 0.3);
+        }
+
+        drawPuzzle();
+      }
     }
   }
 }
@@ -484,26 +544,27 @@ export function onMouseDown(event) {
   // Left click
   if (event.button === 0) {
     if (router.puzzleState.interactive) {
-      let canvasRect = getPuzzleCanvas().getBoundingClientRect();
-      let mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
-      let mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
+      const canvasRect = getPuzzleCanvas().getBoundingClientRect();
+      const mouseX = event.offsetX * CANVAS_WIDTH / canvasRect.width;
+      const mouseY = event.offsetY * CANVAS_HEIGHT / canvasRect.height;
 
       // For-each loops cannot be broken out of!
       for (let i = 0; i < lightSwitches.length; i++) {
-        let lightSwitch = lightSwitches[i];
-        let coord = getSwitchCoord(lightSwitch);
+        const lightSwitch = lightSwitches[i];
+        const coord = getSwitchCoord(lightSwitch);
 
         if (Math.sqrt(Math.pow(mouseX - coord[0], 2)
             + Math.pow(mouseY - coord[1], 2)) < SWITCH_SIZE / 3) {
           queuedSounds.push(SWITCH_SOUND);
           toggle(lightSwitch);
+          cursorSwitchIndex = i;
           drawPuzzle();
           return;
         }
       }
 
       if (mouseX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && mouseY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
-        restart();
+        void restart();
       }
     }
   }
@@ -511,27 +572,28 @@ export function onMouseDown(event) {
 
 export function onTouchStart(event) {
   if (router.puzzleState.interactive && event.changedTouches.length === 1) {
-    let touch = event.changedTouches[0];
-    let canvasRect = getPuzzleCanvas().getBoundingClientRect();
-    let touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
-    let touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
+    const touch = event.changedTouches[0];
+    const canvasRect = getPuzzleCanvas().getBoundingClientRect();
+    const touchX = (touch.clientX - canvasRect.left) * CANVAS_WIDTH / canvasRect.width;
+    const touchY = (touch.clientY - canvasRect.top) * CANVAS_HEIGHT / canvasRect.height;
 
     // For-each loops cannot be broken out of!
     for (let i = 0; i < lightSwitches.length; i++) {
-      let lightSwitch = lightSwitches[i];
-      let coord = getSwitchCoord(lightSwitch);
+      const lightSwitch = lightSwitches[i];
+      const coord = getSwitchCoord(lightSwitch);
 
       if (Math.sqrt(Math.pow(touchX - coord[0], 2)
           + Math.pow(touchY - coord[1], 2)) < SWITCH_SIZE / 3) {
         queuedSounds.push(SWITCH_SOUND);
         toggle(lightSwitch);
+        cursorSwitchIndex = i;
         drawPuzzle();
         return;
       }
     }
 
     if (touchX >= CANVAS_WIDTH - CELL_SIZE * 0.8 && touchY >= CANVAS_HEIGHT - CELL_SIZE * 0.9) {
-      restart();
+      void restart();
     }
   }
 }

@@ -3,11 +3,11 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, isDirKey, isDownDirKey, isLeftDirKey, isRestartKey, isRightDirKey,
-  isUndoKey, isUpDirKey, randomIndex, sameCoord, updateForTutorialRecommendation,
+  getPuzzleCanvas, randomIndex, sameCoord, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
 
@@ -33,6 +33,8 @@ const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
 const SAVE_SOUND = audioManager.SoundEffects.CLICK;
 const LOAD_SOUND = audioManager.SoundEffects.BOING;
+const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
+const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
 const CHIME_SOUND = audioManager.SoundEffects.CHIME;
 
 const tutorials = [
@@ -341,7 +343,7 @@ let CELL_SIZE;
 let NODE_SIZE;
 
 let cursorCoord;
-let isCursorGrabbing = false;
+let isCursorGrabbing;
 let savedGrid;
 let gridHistory;
 let grid;
@@ -658,6 +660,7 @@ export function init() {
 
   savedGrid = null;
   cursorCoord = [0, 0];
+  isCursorGrabbing = false;
 
   updateForTutorialState();
 
@@ -718,7 +721,7 @@ export function drawPuzzle() {
       context.fillRect(coord[0] + TILE_BORDER, coord[1] + TILE_BORDER,
           CELL_SIZE - 2 * TILE_BORDER, CELL_SIZE - 2 * TILE_BORDER);
 
-      // Cursor
+      // Draw Cursor
       if (!solved && router.puzzleState.usingKeyboard && sameCoord([i, j], cursorCoord)) {
         if (isCursorGrabbing) {
           context.fillStyle = `${ALERT_COLOR}80`;
@@ -1106,16 +1109,6 @@ export function onTouchStart(event) {
   }
 }
 
-export function onKeyUp(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
-  if (grabbingStateChanged && router.puzzleState.interactive) {
-    drawPuzzle();
-  }
-}
-
 function handleCursorMove(direction, index) {
   if (isCursorGrabbing) {
     handleMove(direction, index);
@@ -1126,71 +1119,75 @@ function handleCursorMove(direction, index) {
 }
 
 export function onKeyDown(event) {
-  const newGrabbingState = event.ctrlKey || event.metaKey;
-  const grabbingStateChanged = newGrabbingState !== isCursorGrabbing;
-  isCursorGrabbing = newGrabbingState;
-
   if (router.puzzleState.interactive) {
+    // Toggle Input Mode
+    if (keyboardManager.isModeToggleKey(event)) {
+      isCursorGrabbing = !isCursorGrabbing;
+
+      if (!isCursorGrabbing) {
+        audioManager.play(TOGGLE_OFF_SOUND);
+      } else {
+        audioManager.play(TOGGLE_SOUND);
+      }
+
+      drawPuzzle();
+      event.preventDefault();
+      return;
+    }
+
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
       return;
     }
 
     // Undo
-    if (isUndoKey(event)) {
+    if (keyboardManager.isUndoKey(event)) {
       undo();
+      event.preventDefault();
       return;
     }
 
     // Save
-    if (event.code === "KeyS" && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+    if (keyboardManager.isSaveStateKey(event)) {
       save();
       event.preventDefault();
       return;
     }
 
     // Load
-    if (event.code === "KeyL" && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+    if (keyboardManager.isLoadStateKey(event)) {
       load();
       event.preventDefault();
       return;
     }
 
-    // Move Cursor
-    if (!event.altKey && !event.shiftKey) {
-      if (isDirKey(event)) {
-        // Prevent use of numpad from switching browser tabs
+    // Move/Shift
+    if (!keyboardManager.hasModifierKeys(event)) {
+      if (keyboardManager.isOrthogonalDirKey(event)) {
         event.preventDefault();
       }
 
-      if (isLeftDirKey(event)) {
+      if (keyboardManager.isLeftDirKey(event)) {
         cursorCoord = [cursorCoord[0] <= 0 ? COLS - 1 : cursorCoord[0] - 1, cursorCoord[1]];
         handleCursorMove(DIRECTION.LEFT, cursorCoord[1]);
-        return;
-      } else if (isRightDirKey(event)) {
+      } else if (keyboardManager.isRightDirKey(event)) {
         cursorCoord = [cursorCoord[0] >= COLS - 1 ? 0 : cursorCoord[0] + 1, cursorCoord[1]];
         handleCursorMove(DIRECTION.RIGHT, cursorCoord[1]);
-        return;
-      } else if (isUpDirKey(event)) {
+      } else if (keyboardManager.isUpDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] <= 0 ? ROWS - 1 : cursorCoord[1] - 1];
         handleCursorMove(DIRECTION.UP, cursorCoord[0]);
-        return;
-      } else if (isDownDirKey(event)) {
+      } else if (keyboardManager.isDownDirKey(event)) {
         cursorCoord = [cursorCoord[0], cursorCoord[1] >= ROWS - 1 ? 0 : cursorCoord[1] + 1];
         handleCursorMove(DIRECTION.DOWN, cursorCoord[0]);
-        return;
       }
     }
   }
-
-  if (grabbingStateChanged) {
-    drawPuzzle();
-  }
 }
 
-function restart() {
-  if (gridHistory.length > 0) {
+async function restart() {
+  if (gridHistory.length && await router.getConfirmation('', "Reset Puzzle?")) {
     grid = gridHistory[0];
     startingTile = getStartingTileForGrid(grid);
     gridHistory = [];
@@ -1234,7 +1231,7 @@ function load() {
 function handleLeftClickOrTap(coord) {
   // Restart
   if (coord[0] >= COLS && coord[1] < 0) {
-    restart();
+    void restart();
 
   // Undo
   } else if (coord[0] < 0 && coord[1] < 0) {

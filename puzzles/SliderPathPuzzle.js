@@ -3,12 +3,12 @@ import {
   ALERT_COLOR, BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH,
   FONT_FAMILY, SUCCESS_COLOR
 } from "../js/config.js";
+import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
   deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
-  getPuzzleCanvas, hasModifierKeys, isDownDirKey, isLeftDirKey, isRestartKey,
-  isRightDirKey, isUndoKey, isUpDirKey, peek, randomIndex,
-  updateForTutorialRecommendation, updateForTutorialState
+  getPuzzleCanvas, peek, randomIndex, updateForTutorialRecommendation,
+  updateForTutorialState
 } from "../js/utils.js";
 
 // Note, below 7/7 not supported, exceeds stack size!
@@ -809,19 +809,23 @@ export function onTouchStart(event) {
 export function onKeyDown(event) {
   if (router.puzzleState.interactive) {
     // Restart
-    if (isRestartKey(event)) {
-      restart();
+    if (keyboardManager.isRestartKey(event)) {
+      void restart();
+      event.preventDefault();
+      return;
     }
 
     // Undo
-    if (isUndoKey(event)) {
+    if (keyboardManager.isUndoKey(event)) {
       undo();
+      event.preventDefault();
+      return;
     }
 
     // Move
-    if (!hasModifierKeys(event)
-        && (isLeftDirKey(event) || isRightDirKey(event)
-        || isUpDirKey(event) || isDownDirKey(event))) {
+    if (!keyboardManager.hasModifierKeys(event)
+        && keyboardManager.isOrthogonalDirKey(event)) {
+      event.preventDefault();
       let sliderCoord;
 
       for (let i = 0; i < COLS; i++) {
@@ -834,40 +838,38 @@ export function onKeyDown(event) {
         }
       }
 
-      if (isLeftDirKey(event)) {
+      if (keyboardManager.isLeftDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0] - 1, sliderCoord[1]], true);
-      } else if (isRightDirKey(event)) {
+      } else if (keyboardManager.isRightDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0] + 1, sliderCoord[1]], true);
-      } else if (isUpDirKey(event)) {
+      } else if (keyboardManager.isUpDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] - 1], true);
-      } else if (isDownDirKey(event)) {
+      } else if (keyboardManager.isDownDirKey(event)) {
         handleLeftClickOrTap([sliderCoord[0], sliderCoord[1] + 1], true);
       }
     }
   }
 }
 
-function restart() {
-  if (!gridHistory.length) {
-    return;
+async function restart() {
+  if (gridHistory.length && await router.getConfirmation('', "Reset Puzzle?")) {
+    // Alternative approach if I wanted to be able to undo restarts,
+    // but would need to figure out alternateToVerticalHistory and
+    // disabling the restart action for the initial restarted state
+
+    // if (gridHistory >= HISTORY_LIMIT) {
+      // gridHistory.shift();
+    // }
+
+    // gridHistory.push(deepCopy(grid));
+
+    gridHistory = [];
+    alternateToVerticalHistory = [];
+
+    grid = deepCopy(solution);
+    audioManager.play(RESTART_SOUND);
+    drawPuzzle();
   }
-
-  // Alternative approach if I wanted to be able to undo restarts,
-  // but would need to figure out alternateToVerticalHistory and
-  // disabling the restart action for the initial restarted state
-
-  // if (gridHistory >= HISTORY_LIMIT) {
-    // gridHistory.shift();
-  // }
-
-  // gridHistory.push(deepCopy(grid));
-
-  gridHistory = [];
-  alternateToVerticalHistory = [];
-
-  grid = deepCopy(solution);
-  audioManager.play(RESTART_SOUND);
-  drawPuzzle();
 }
 
 function undo() {
@@ -886,7 +888,7 @@ function handleLeftClickOrTap(coord, movementOnly = false) {
       return;
     }
 
-    restart();
+    void restart();
 
   // Undo
   } else if ((coord[0] === -1 || coord[0] === 0) && coord[1] === -1) {
