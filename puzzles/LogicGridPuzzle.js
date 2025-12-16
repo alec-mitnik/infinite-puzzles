@@ -870,6 +870,7 @@ function generateLogic() {
 
   setTimeout(() => {
     if (timeoutForAbortingGeneration) {
+      console.warn("Puzzle generation aborted early due to timeout");
       return;
     }
 
@@ -1089,6 +1090,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
 
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -1102,6 +1104,7 @@ async function obscureNodes(nodesToObscure, tries = 0) {
 
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -1144,6 +1147,15 @@ async function simplifyNodes(nodesToSimplify) {
         let notValueNode = getNodeWithValue(notRule, nodes);
         i--;
 
+        // We know we can cut out this not rule if any node
+        // in this row has a positive rule for the same value
+        if (getRowSymbols(SYMBOL_SETS.indexOf(node.row)).some(symbol => {
+          const rowNode = getNodeWithValue(symbol);
+          return rowNode.rules[row] === notRule;
+        })) {
+          continue;
+        }
+
         if (!(await canColumnBeDerivedForNode(node))
             || !(await canColumnBeDerivedForNode(notValueNode))) {
           notRules.splice(i, 0, notRule);
@@ -1153,7 +1165,8 @@ async function simplifyNodes(nodesToSimplify) {
 
       if (node.rules['not'+row].length >= COLS - 2) {
         //console.log("TEST", node.rules['not'+row]);
-        let ruleValue = getRowSymbols(row).filter(symbol => firstColumnNodeIds.indexOf(symbol) < 0 && node.rules['not'+row].indexOf(symbol) < 0)[0];
+        let ruleValue = getRowSymbols(row).filter(symbol =>
+            firstColumnNodeIds.indexOf(symbol) < 0 && node.rules['not'+row].indexOf(symbol) < 0)[0];
         node.rules[row] = ruleValue;
         node.rules['not'+row] = [];
       }
@@ -1161,6 +1174,7 @@ async function simplifyNodes(nodesToSimplify) {
 
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -1169,6 +1183,7 @@ async function simplifyNodes(nodesToSimplify) {
   } else {
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -1243,6 +1258,7 @@ function organizeRules() {
 
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -1354,6 +1370,7 @@ async function generateXorRules(convertList, falseRules, rulesList, xorList, non
 
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -2056,6 +2073,7 @@ export function init() {
     // Allow opportunity for loading screen to show
     setTimeout(() => {
       if (timeoutForAbortingGeneration) {
+        console.warn("Puzzle generation aborted early due to timeout");
         return;
       }
 
@@ -2107,20 +2125,32 @@ async function restart() {
 
 function getTilesSortedByHorizontalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.x === b.x) {
-      return a.y - b.y;
+    const aLeft = Math.round(a.x);
+    const aTop = Math.round(a.y);
+
+    const bLeft = Math.round(b.x);
+    const bTop = Math.round(b.y);
+
+    if (aLeft === bLeft) {
+      return aTop - bTop;
     } else {
-      return a.x - b.x;
+      return aLeft - bLeft;
     }
   });
 }
 
 function getTilesSortedByVerticalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.y === b.y) {
-      return a.x - b.x;
+    const aLeft = Math.round(a.x);
+    const aTop = Math.round(a.y);
+
+    const bLeft = Math.round(b.x);
+    const bTop = Math.round(b.y);
+
+    if (aTop === bTop) {
+      return aLeft - bLeft;
     } else {
-      return a.y - b.y;
+      return aTop - bTop;
     }
   });
 }

@@ -1235,20 +1235,32 @@ async function restart() {
 
 function getTilesSortedByHorizontalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.canvasCoord[0] === b.canvasCoord[0]) {
-      return a.canvasCoord[1] - b.canvasCoord[1];
+    const aLeft = Math.round(a.canvasCoord[0]);
+    const aTop = Math.round(a.canvasCoord[1]);
+
+    const bLeft = Math.round(b.canvasCoord[0]);
+    const bTop = Math.round(b.canvasCoord[1]);
+
+    if (aLeft === bLeft) {
+      return aTop - bTop;
     } else {
-      return a.canvasCoord[0] - b.canvasCoord[0];
+      return aLeft - bLeft;
     }
   });
 }
 
 function getTilesSortedByVerticalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.canvasCoord[1] === b.canvasCoord[1]) {
-      return a.canvasCoord[0] - b.canvasCoord[0];
+    const aLeft = Math.round(a.canvasCoord[0]);
+    const aTop = Math.round(a.canvasCoord[1]);
+
+    const bLeft = Math.round(b.canvasCoord[0]);
+    const bTop = Math.round(b.canvasCoord[1]);
+
+    if (aTop === bTop) {
+      return aLeft - bLeft;
     } else {
-      return a.canvasCoord[1] - b.canvasCoord[1];
+      return aTop - bTop;
     }
   });
 }

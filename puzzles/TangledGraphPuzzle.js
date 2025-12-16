@@ -1094,20 +1094,32 @@ async function restart() {
 
 function getTilesSortedByHorizontalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.x === b.x) {
-      return a.y - b.y;
+    const aLeft = Math.round(a.x);
+    const aTop = Math.round(a.y);
+
+    const bLeft = Math.round(b.x);
+    const bTop = Math.round(b.y);
+
+    if (aLeft === bLeft) {
+      return aTop - bTop;
     } else {
-      return a.x - b.x;
+      return aLeft - bLeft;
     }
   });
 }
 
 function getTilesSortedByVerticalPosition() {
   return [...nodes].sort((a, b) => {
-    if (a.y === b.y) {
-      return a.x - b.x;
+    const aLeft = Math.round(a.x);
+    const aTop = Math.round(a.y);
+
+    const bLeft = Math.round(b.x);
+    const bTop = Math.round(b.y);
+
+    if (aTop === bTop) {
+      return aLeft - bLeft;
     } else {
-      return a.y - b.y;
+      return aTop - bTop;
     }
   });
 }

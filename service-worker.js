@@ -1,11 +1,8 @@
-let CACHE_VERSION = 260;
+let CACHE_VERSION = 261;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
- *
- * Prune redundant logic grid puzzle rules...
- * If B => square, then A => !square is redundant
  *
  * Change background color to work around iOS no longer honoring theme color?
  * Might be fixed by iOS 26.2?  No...

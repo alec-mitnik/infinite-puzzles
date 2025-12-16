@@ -1323,22 +1323,27 @@ function handleCursorRotate(isClockwise) {
 
 function getTileBoundingBox(tile) {
   return {
-    left: Math.round(Math.min(...tile.cells.map(cell => cell.x))),
-    top: Math.round(Math.min(...tile.cells.map(cell => cell.y))),
-    right: Math.round(Math.max(...tile.cells.map(cell => cell.x))),
-    bottom: Math.round(Math.max(...tile.cells.map(cell => cell.y))),
+    left: Math.min(...tile.cells.map(cell => cell.x)),
+    top: Math.min(...tile.cells.map(cell => cell.y)),
+    right: Math.max(...tile.cells.map(cell => cell.x)),
+    bottom: Math.max(...tile.cells.map(cell => cell.y)),
   };
 }
 
 function getTilesSortedByHorizontalPosition() {
   return [...tiles].sort((a, b) => {
     const aBounds = getTileBoundingBox(a);
-    const bBounds = getTileBoundingBox(b);
+    const aLeft = Math.round(aBounds.left);
+    const aTop = Math.round(aBounds.top);
 
-    if (aBounds.left === bBounds.left) {
-      return aBounds.top - bBounds.top;
+    const bBounds = getTileBoundingBox(b);
+    const bLeft = Math.round(bBounds.left);
+    const bTop = Math.round(bBounds.top);
+
+    if (aLeft === bLeft) {
+      return aTop - bTop;
     } else {
-      return aBounds.left - bBounds.left;
+      return aLeft - bLeft;
     }
   });
 }
@@ -1346,12 +1351,17 @@ function getTilesSortedByHorizontalPosition() {
 function getTilesSortedByVerticalPosition() {
   return [...tiles].sort((a, b) => {
     const aBounds = getTileBoundingBox(a);
-    const bBounds = getTileBoundingBox(b);
+    const aLeft = Math.round(aBounds.left);
+    const aTop = Math.round(aBounds.top);
 
-    if (aBounds.top === bBounds.top) {
-      return aBounds.left - bBounds.left;
+    const bBounds = getTileBoundingBox(b);
+    const bLeft = Math.round(bBounds.left);
+    const bTop = Math.round(bBounds.top);
+
+    if (aTop === bTop) {
+      return aLeft - bLeft;
     } else {
-      return aBounds.top - bBounds.top;
+      return aTop - bTop;
     }
   });
 }
