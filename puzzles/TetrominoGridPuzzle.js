@@ -727,12 +727,12 @@ function puzzleSolved(playSound = true) {
   return solved;
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Tetromino Grid Puzzle", "🔲\uFE0E",
       ["Fit all the tetromino pieces into the black area.",
           "Pieces must not overlap each other or the white area."],
       ["Drag the pieces to move them."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {

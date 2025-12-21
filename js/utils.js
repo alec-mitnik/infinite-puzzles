@@ -1,6 +1,7 @@
 import audioManager from "./audio-manager.js";
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONFIGS } from "./config.js";
 import dailyChallengeManager from "./daily-challenge-manager.js";
+import keyboardManager from "./keyboard-manager.js";
 import router from "./router.js";
 import statsManager from "./stats-manager.js";
 
@@ -68,6 +69,18 @@ export function stopConfetti() {
   }
 
   window.confetti.reset();
+}
+
+// Standard list formatting, so example outputs are
+// "apple" or "apple and banana" or "apple, banana, and orange".
+export function formatArrayAsCommaSeparatedString(array) {
+  if (array.length < 2) {
+    return array.join("");
+  } else if (array.length === 2) {
+    return array.join(" and ");
+  } else {
+    return array.slice(0, array.length - 1).join(", ") + ", and " + array[array.length - 1];
+  }
 }
 
 // Proper markup for screen readers.  Use outerHTML to convert to a string.
@@ -304,8 +317,14 @@ export function onMiddleMouseUp() {
 }
 
 export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLines,
-    controlLines, tutorialStage = 0, tutorialsTotal = 0) {
-  if (!router.puzzleState.showingInstructions) {
+    controlLines, tutorialStage = 0, tutorialsTotal = 0, forceShowInstructions = false) {
+  if (!router.puzzleState.showingInstructions || forceShowInstructions) {
+    const showKeyboardControlsCommand = keyboardManager.shouldShowKeyboardControls();
+
+    const spacingHeight = showKeyboardControlsCommand ? 70 : 100;
+    const lineHeight = 60;
+    let yPos = 150;
+
     let instructionsButton = document.getElementById("instructionsButton");
     instructionsButton.classList.add("active");
     instructionsButton.ariaLabel = "Hide Instructions";
@@ -326,30 +345,61 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
     context.fillStyle = BACKGROUND_COLOR;
     context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    context.font = `bold 60px ${FONT_FAMILY}`;
     context.textAlign = "center";
+    context.font = `bold 60px ${FONT_FAMILY}`;
     context.fillStyle = "#ffffff";
-    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, 150);
+    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, yPos);
     compiledInstructions.push(`${puzzleTitle} Instructions:`);
 
     context.font = `40px ${FONT_FAMILY}`;
-    let yPos = 265;
+    yPos += spacingHeight + 15;
 
     descriptionLines.forEach(line => {
-      yPos += 60;
+      yPos += lineHeight;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
       compiledInstructions.push(line);
     });
 
-    yPos += 100;
+    yPos += spacingHeight;
 
     controlLines.forEach(line => {
-      yPos += 60;
+      yPos += lineHeight;
       context.fillText(line, CANVAS_WIDTH / 2, yPos);
       compiledInstructions.push(line);
     });
 
-    yPos += 160;
+    yPos += spacingHeight + lineHeight;
+
+    if (showKeyboardControlsCommand) {
+      context.font = `bold 35px ${FONT_FAMILY}`;
+      context.fillStyle = "#aaa";
+      const keyboardControlsDialogInputsLabel =
+          keyboardManager.getLabelForFirstActionCommandInputs("keyboardControlsDialog", true);
+      const keyboardControlsWrapperLeft = "- — ——  ";
+      const keyboardControlsWrapperRight = "  —— — -";
+      let keyboardControlsText = `Press [${keyboardControlsDialogInputsLabel}] for keyboard controls.`;
+
+      if (context.measureText(keyboardControlsText).width > CANVAS_WIDTH * 0.75) {
+        keyboardControlsText = 'For keyboard controls, press:';
+        context.fillText(`${keyboardControlsWrapperLeft}${keyboardControlsText}${keyboardControlsWrapperRight}`,
+            CANVAS_WIDTH / 2, yPos - lineHeight * 0.5);
+
+        if (context.measureText(keyboardControlsDialogInputsLabel).width > CANVAS_WIDTH * 0.75) {
+          context.font = `bold 30px ${FONT_FAMILY}`;
+        }
+
+        context.fillText(keyboardControlsDialogInputsLabel, CANVAS_WIDTH / 2, yPos + lineHeight * 0.4);
+        compiledInstructions.push(keyboardControlsText, keyboardControlsDialogInputsLabel);
+      } else {
+        context.fillText(`${keyboardControlsWrapperLeft}${keyboardControlsText}${keyboardControlsWrapperRight}`,
+            CANVAS_WIDTH / 2, yPos);
+        compiledInstructions.push(keyboardControlsText);
+      }
+
+      context.font = `40px ${FONT_FAMILY}`;
+      context.fillStyle = "#ffffff";
+      yPos += spacingHeight + lineHeight;
+    }
 
     if (tutorialStage) {
       context.fillText(`Tutorial Puzzle  ${tutorialStage} / ${tutorialsTotal}`, CANVAS_WIDTH / 2, yPos);
@@ -364,8 +414,8 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
           } of ${dailyChallengeManager.activeDailyChallenge.puzzles.length}.`;
 
       context.font = `40px ${FONT_FAMILY}`;
-      context.fillText(fullDailyChallengeDateText, CANVAS_WIDTH / 2, yPos - 30);
-      context.fillText(dailyChallengePuzzleVisualText, CANVAS_WIDTH / 2, yPos + 30);
+      context.fillText(fullDailyChallengeDateText, CANVAS_WIDTH / 2, yPos - lineHeight * 0.5);
+      context.fillText(dailyChallengePuzzleVisualText, CANVAS_WIDTH / 2, yPos + lineHeight * 0.5);
 
       compiledInstructions.push(fullDailyChallengeDateText, dailyChallengePuzzleReaderText);
     } else {
@@ -400,7 +450,7 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
     const promptTextAction = router.puzzleState.started ? "resume" : "start";
     // Screen reader pronounces it like "résumé" otherwise...
     const promptTextActionPhonetic = router.puzzleState.started ? "re-zoom" : "start";
-    context.fillText(`${promptText}${promptTextAction}!`, CANVAS_WIDTH / 2, 880);
+    context.fillText(`${promptText}${promptTextAction}!`, CANVAS_WIDTH / 2, 890);
     compiledInstructions.push(`${promptText}${promptTextActionPhonetic}!`);
 
     canvas.ariaDescription = compiledInstructions.join('\n');
@@ -714,14 +764,14 @@ export function saveData(key, data) {
     localStorage.setItem(key, data);
 
     if (document.readyState === 'complete') {
-      document.querySelector('.local-storage').classList.add('hidden');
+      document.querySelectorAll('.local-storage').forEach(element => element.classList.add('hidden'));
     }
   } catch (e) {
     // console.warn(`Unable to save '${key}' to local storage:`, e);
     console.warn("Unable to save to local storage:", e);
 
     if (document.readyState === 'complete') {
-      document.querySelector('.local-storage').classList.remove('hidden');
+      document.querySelectorAll('.local-storage').forEach(element => element.classList.remove('hidden'));
     }
   }
 }
@@ -731,7 +781,7 @@ export function loadData(key, fallback) {
     const value = localStorage.getItem(key) ?? fallback;
 
     if (document.readyState === 'complete') {
-      document.querySelector('.local-storage').classList.add('hidden');
+      document.querySelectorAll('.local-storage').forEach(element => element.classList.add('hidden'));
     }
 
     return value;
@@ -740,10 +790,18 @@ export function loadData(key, fallback) {
     console.warn("Unable to load from local storage:", e);
 
     if (document.readyState === 'complete') {
-      document.querySelector('.local-storage').classList.remove('hidden');
+      document.querySelectorAll('.local-storage').forEach(element => element.classList.remove('hidden'));
     }
 
     return fallback;
+  }
+}
+
+export function deleteData(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.warn(`Unable to delete '${key}' from local storage:`, e);
   }
 }
 

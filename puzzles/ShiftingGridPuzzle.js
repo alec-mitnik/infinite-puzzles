@@ -675,12 +675,12 @@ function puzzleSolved() {
   return connectedTiles.length === grid.flat().length;
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Shifting Grid Puzzle", "🚂\uFE0E",
       ["Shift tiles to connect all the tracks to the station.",
           "Tracks and shifted tiles both loop back around."],
       ["Click or tap the arrows to shift the row or column."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 function getConnectedTiles(tile, connectedTiles, gridToDraw) {

@@ -490,12 +490,12 @@ function isSolved(tile, gridToDraw) {
   return solved;
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Arithmetic Grid Puzzle", "📝\uFE0E",
       ["Arrange the tiles to get the expected totals.",
           "White tiles are fixed in place."],
       ["Click or tap to select tiles and swap them."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {
@@ -792,7 +792,7 @@ export function onKeyDown(event) {
     }
 
     // Selection
-    if (keyboardManager.isActivationKey(event)) {
+    if (keyboardManager.isSelectKey(event)) {
       event.preventDefault();
       const tile = grid[cursorCoord[0]][cursorCoord[1]];
 

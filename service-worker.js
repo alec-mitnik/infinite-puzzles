@@ -1,4 +1,4 @@
-let CACHE_VERSION = 261;
+let CACHE_VERSION = 262;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
@@ -6,24 +6,6 @@ const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
  *
  * Change background color to work around iOS no longer honoring theme color?
  * Might be fixed by iOS 26.2?  No...
- *
- * Toggle sound with M?
- * Screen reader announcement for sound or mode toggle...
- * Shortcuts for puzzle control buttons?
- * T for tutorial
- * I for instructions
- * H/Esc for home
- * P for peek at solution
- * N for new/next puzzle
- * L for puzzle sharing (link)?
- *
- * Present keyboard controls somewhere.  Add a dialog (with ⌨️ icon button?)
- * and give keyboard command (K) for toggling it on any screen
- * (show this in puzzle instructions - so may not need an icon button).
- *
- * Include accessibility statement about how "puzzles rely heavily on
- * visual-spatial cues and are not fully compatible with screen readers."
- * Make keyboard controls remappable?
  *
  * Reduce audio file size and improve quality by converting to ogg "with vorbis or opus codecs"?
  * Keep the mp3 as a fallback?  Can convert with Audacity.

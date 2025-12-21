@@ -737,14 +737,14 @@ export function init() {
   finishedLoading();
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Marked Loop Puzzle", "💍\uFE0E",
       //["Draw a loop with the given length.  Markers indicate",
       //    "the locations of all straight segments before/after a turn."],
       ["Draw a loop of the given length, where the markers",
           "coincide with all straight segments before/after a turn."],
       ["Drag over the cells to draw/erase loop path segments."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 function areAllPathsLoops(gridToDraw) {

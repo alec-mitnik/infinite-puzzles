@@ -809,12 +809,12 @@ export function init() {
   finishedLoading();
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Grid Mirror Puzzle", "🔆\uFE0E",
       ["Use the allotted taps and mirrors to match the pattern."],
       ["Click or tap a grid tile to fill it.",
           "Click or tap the arrows to mirror in that direction."],
-          router.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {
@@ -1242,7 +1242,7 @@ export function onKeyDown(event) {
     }
 
     // Tap
-    if (keyboardManager.isActivationKey(event)) {
+    if (keyboardManager.isSelectKey(event)) {
       handleLeftClickOrTap(cursorCoord);
       event.preventDefault();
       return;
@@ -1272,7 +1272,6 @@ export function onKeyDown(event) {
           handleLeftClickOrTap([COLS, -1], true);
           mirrored = true;
         } else if (keyboardManager.isDownLeftDirKey(event)) {
-          // TODO - this conflicts with CTRL+Z for undo!
           handleLeftClickOrTap([-1, ROWS], true);
           mirrored = true;
         } else if (keyboardManager.isDownRightDirKey(event)) {

@@ -170,12 +170,12 @@ let solutionGrid;
 let solutionSwitches;
 let queuedSounds = [];
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Light Switches Puzzle", "🚨\uFE0E",
       ["Activate the correct switches to light all the grid tiles.",
           "Each switch toggles a specific set of tiles."],
       ["Click or tap a switch to toggle it."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {
@@ -506,7 +506,7 @@ export function onKeyDown(event) {
     }
 
     // Toggle Switch
-    if (keyboardManager.isActivationKey(event)) {
+    if (keyboardManager.isSelectKey(event)) {
       event.preventDefault();
       const lightSwitch = lightSwitches[cursorSwitchIndex];
       queuedSounds.push(SWITCH_SOUND);

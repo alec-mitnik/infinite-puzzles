@@ -1,10 +1,12 @@
 import audioManager from './audio-manager.js';
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, FONT_FAMILY, PUZZLE_CONFIGS } from './config.js';
 import dailyChallengeManager from './daily-challenge-manager.js';
+import keyboardManager from './keyboard-manager.js';
+import { openPuzzleSharingDialog } from './main.js';
 import {
   generateSeed, getPuzzleCanvas, getSeededRandomFunction,
   getTutorialDone, onMiddleMouseDown, onMiddleMouseUp, openDialogWithTransition,
-  startButtonClick, stopConfetti, updateForTutorialRecommendation
+  solutionToggle, startButtonClick, stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
 
 class Router {
@@ -90,13 +92,120 @@ class Router {
     });
 
     // Detect keyboard usage
-    document.addEventListener('keydown', () => {
+    document.addEventListener('keydown', event => {
+      keyboardManager.keyboardInputDetected();
+
       if (!this.puzzleState.usingKeyboard) {
         this.puzzleState.usingKeyboard = true;
 
         if (this.puzzleState.interactive) {
           this.currentPuzzle?.drawPuzzle();
         }
+      }
+
+      // Handle keyboard commands
+
+      if (event.key === 'Escape' && document.querySelector('dialog[open]')) {
+        // Don't interfere with dialog Escape handling
+        return;
+      }
+
+      // Puzzle Page Actions
+      if (this.currentPuzzle) {
+        // Back to Home
+        if (keyboardManager.isBackToHomeKey(event)) {
+          if (dailyChallengeManager.isDoingDailyChallenge()) {
+            void dailyChallengeManager.exitDailyChallenge();
+          } else {
+            void router.navigate('home');
+          }
+
+          event.preventDefault();
+          return;
+        }
+
+        // Tutorial
+        if (keyboardManager.isTutorialKey(event)) {
+          void this.toggleTutorial();
+          event.preventDefault();
+          return;
+        }
+
+        // Instructions
+        if (keyboardManager.isInstructionsKey(event)) {
+          this.currentPuzzle.drawInstructions();
+          event.preventDefault();
+          return;
+        }
+
+        // Peek at Solution
+        if (keyboardManager.isPeekAtSolutionKey(event)) {
+          void solutionToggle();
+          event.preventDefault();
+          return;
+        }
+
+        // New/Next Puzzle
+        if (keyboardManager.isNewPuzzleKey(event)) {
+          if (dailyChallengeManager.isDoingDailyChallenge()) {
+            dailyChallengeManager.goToNextDailyChallengePuzzle();
+          } else {
+            void router.reloadPuzzle();
+          }
+
+          event.preventDefault();
+          return;
+        }
+
+        // Puzzle Sharing Dialog
+        if (keyboardManager.isPuzzleSharingDialogKey(event)) {
+          const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
+
+          if (!puzzleSharingDialog.open) {
+            openPuzzleSharingDialog();
+          } else {
+            puzzleSharingDialog.close();
+          }
+
+          event.preventDefault();
+          return;
+        }
+      }
+
+      // Keyboard Controls Dialog
+      if (keyboardManager.isKeyboardControlsDialogKey(event)) {
+        keyboardManager.toggleKeyboardControlsDialog();
+        event.preventDefault();
+        return;
+      }
+
+      // Mute/Unmute Sounds
+      if (keyboardManager.isMuteKey(event)) {
+        audioManager.toggleMuted();
+        event.preventDefault();
+        return;
+      }
+
+      // Set Difficulty
+      if (keyboardManager.isSetDifficultyTo1Key(event)) {
+        void this.setDifficulty(1);
+        event.preventDefault();
+        return;
+      }
+      if (keyboardManager.isSetDifficultyTo2Key(event)) {
+        void this.setDifficulty(2);
+        event.preventDefault();
+        return;
+      }
+      if (keyboardManager.isSetDifficultyTo3Key(event)) {
+        void this.setDifficulty(3);
+        event.preventDefault();
+        return;
+      }
+      if (keyboardManager.isSetDifficultyTo4Key(event)) {
+        void this.setDifficulty(4);
+        event.preventDefault();
+        return;
       }
     });
     document.addEventListener('mousemove', () => {

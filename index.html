@@ -53,6 +53,18 @@
     </defs>
   </svg>
 
+  <!-- Remove Icon -->
+  <svg style="display: none;">
+    <defs>
+      <symbol id="remove-icon" stroke="none" fill="currentColor">
+        <g stroke-width="10" stroke="currentColor" stroke-linecap="round">
+          <line x1="20" y1="20" x2="80" y2="80" />
+          <line x1="20" y1="80" x2="80" y2="20" />
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
   <!-- Confirmation Dialog -->
   <dialog id="confirmationDialog" class="no-close-button hug"
       role="alertdialog" aria-labelledby="confirmationDialogTitle"
@@ -84,6 +96,178 @@
               Confirm
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add Key Binding Dialog -->
+  <dialog id="addKeyBindingDialog" aria-labelledBy="addKeyBindingDialogTitle"
+      aria-describedby="addKeyBindingDescription">
+    <div class="dialog-inner-wrapper">
+      <div class="modal-backdrop" aria-hidden="true"
+          onclick="document.getElementById('addKeyBindingDialog').close()"></div>
+      <div class="modal-foreground">
+        <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('addKeyBindingDialog').close()">
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="modal-content" tabindex="-1">
+          <form id="addKeyBindingForm" method="dialog">
+            <h1 id="addKeyBindingDialogTitle">Add Key Binding</h1>
+
+            <div class="scroll-container">
+              <!-- "for <Action>" -->
+              <p id="addKeyBindingDescription"></p>
+
+              <fieldset id="addKeyBindingModifierKeysFieldset">
+                <legend>Modifier Keys</legend>
+
+                <div class="fieldset-grouping">
+                  <label>
+                    <input type="checkbox" name="ctrlKey" />
+                    Control
+                  </label>
+                  <label>
+                    <input type="checkbox" name="metaKey" />
+                    Command/Windows
+                  </label>
+                  <label>
+                    <input type="checkbox" name="altKey" />
+                    Alt/Option
+                  </label>
+                  <label>
+                    <input type="checkbox" name="shiftKey" />
+                    Shift
+                  </label>
+                </div>
+              </fieldset>
+
+              <label for="addKeyBindingCodeInput">
+                Key Code
+              </label>
+              <!-- Setting readonly prevents required from applying validation -->
+              <input id="addKeyBindingCodeInput" type="text" name="code" required  maxlength="25" />
+              <button type="button" id="addKeyBindingCaptureButton" class="bottom-button"></button>
+
+              <hr />
+
+              <!-- Warning for not recommended due to potential native functionality conflicts -->
+              <p id="addKeyBindingNotRecommendedWarning" class="warning hidden" aria-live="polite">
+                Caution: this key code may conflict with built-in functionality.
+              </p>
+
+              <!-- Warning for already in use -->
+              <p id="addKeyBindingAlreadyInUseWarning" class="warning hidden" aria-live="polite">
+                Warning: this key binding is already used for <span
+                    id="addKeyBindingAlreadyInUseWarningAction"></span>.
+              </p>
+
+              <div>
+                <button type="submit" id="addKeyBindingSubmitButton" class="bottom-button">
+                  Submit Key Binding
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Keyboard Controls Dialog -->
+  <dialog id="keyboardControlsDialog" aria-labelledBy="keyboardControlsDialogTitle"
+      aria-describedby="keyboardControlsDescription">
+    <div class="dialog-inner-wrapper">
+      <div class="modal-backdrop" aria-hidden="true"
+          onclick="document.getElementById('keyboardControlsDialog').close()"></div>
+      <div class="modal-foreground">
+        <button autofocus class="close-button" aria-label="Close dialog"
+            onclick="document.getElementById('keyboardControlsDialog').close()">
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="modal-content" tabindex="-1">
+          <h1 id="keyboardControlsDialogTitle">Keyboard Controls</h1>
+
+          <div class="scroll-container">
+            <p id="keyboardControlsDescription" class="smaller-text">
+              Puzzles can be played using only the keyboard, and other actions support keyboard shortcuts as well.  Controls can be viewed here, and remapped to fit your needs.
+            </p>
+
+            <hr />
+
+            <details name="keyboardControls">
+              <summary>
+                <h2 id="keyboardControlsGeneralControlsHeader">General Controls</h2>
+              </summary>
+
+              <dl id="keyboardControlsGeneralControlsContent"
+                  aria-labelledby="keyboardControlsGeneralControlsHeader"></dl>
+            </details>
+
+            <hr />
+
+            <details name="keyboardControls">
+              <summary>
+                <h2 id="keyboardControlsPuzzleControlsHeader">Puzzle Page Controls</h2>
+              </summary>
+
+              <dl id="keyboardControlsPuzzlePageControlsContent"
+                  aria-labelledby="keyboardControlsPuzzlePageControlsHeader"></dl>
+            </details>
+
+            <hr />
+
+            <details name="keyboardControls">
+              <summary>
+                <h2 id="keyboardControlsPuzzleControlsHeader">Puzzle Main Controls</h2>
+              </summary>
+
+              <p class="smaller-text">
+                The following controls apply to each puzzle as applicable.
+              </p>
+
+              <dl id="keyboardControlsPuzzleControlsContent"
+                  aria-labelledby="keyboardControlsPuzzleControlsHeader"></dl>
+            </details>
+
+            <hr />
+
+            <details name="keyboardControls">
+              <summary>
+                <h2 id="keyboardControlsPuzzleDirectionalControlsHeader">Puzzle Directional Controls</h2>
+              </summary>
+
+              <p class="smaller-text">
+                If the puzzle uses a cursor, it can be moved with the orthogonal direction controls.  All direction controls may apply as applicable to directional actions while the input mode is toggled.
+              </p>
+
+              <dl id="keyboardControlsPuzzleDirectionalControlsContent"
+                  aria-labelledby="keyboardControlsPuzzleDirectionalControlsHeader"></dl>
+            </details>
+
+            <hr />
+
+            <p class="local-storage warning hidden">
+              Warning: local storage unavailable.  Changes will not persist!
+            </p>
+
+            <div>
+              <button id="keyboardControlsRemapButton" class="bottom-button spaced-out">
+                Remap Controls
+              </button>
+
+              <button id="keyboardControlsDoneRemappingButton" class="bottom-button spaced-out hidden">
+                Done Remapping
+              </button>
+
+              <button id="keyboardControlsResetButton" class="bottom-button spaced-out">
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

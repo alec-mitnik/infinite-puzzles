@@ -931,12 +931,12 @@ function rotateTile(tile, playSound = true) {
   }
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Color Pieces Grid Puzzle", "🏁\uFE0E",
       ["Arrange the puzzle pieces into the grid by color."],
       ["Drag the pieces to move them.  While dragging,",
           "right-click or tap with a 2nd finger to rotate the piece."],
-          router.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 function puzzleSolved(playSound = true) {

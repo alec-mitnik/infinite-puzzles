@@ -1,6 +1,7 @@
 import audioManager from './audio-manager.js';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, PUZZLE_CONFIGS } from './config.js';
 import dailyChallengeManager from './daily-challenge-manager.js';
+import keyboardManager from './keyboard-manager.js';
 import router from './router.js';
 import statsManager from './stats-manager.js';
 import {
@@ -41,6 +42,46 @@ if ('serviceWorker' in navigator) {
         console.error('ServiceWorker registration failed:', error);
       });
   });
+}
+
+export function openPuzzleSharingDialog() {
+  const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
+  const sharePuzzleOptions = document.getElementById('sharePuzzleOptions');
+  const sharePuzzleTutorialMessage = document.getElementById('sharePuzzleTutorialMessage');
+
+  if (router.puzzleState.tutorialStage) {
+    sharePuzzleOptions.style.display = 'none';
+    sharePuzzleTutorialMessage.style.display = null;
+    puzzleSharingDialog.ariaDescribedByElements = [sharePuzzleTutorialMessage];
+  } else {
+    sharePuzzleOptions.style.display = null;
+    sharePuzzleTutorialMessage.style.display = 'none';
+    puzzleSharingDialog.ariaDescribedByElements =
+        [document.getElementById('puzzleSharingExplanation')];
+
+    document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
+    document.getElementById('generatePuzzleFromSeedForm').reset();
+
+    const sharePuzzleSeed = document.getElementById('sharePuzzleSeed');
+    sharePuzzleSeed.textContent = router.seed;
+
+    const url = router.buildUrl(true);
+
+    const sharePuzzleUrl = document.getElementById('sharePuzzleUrl');
+    sharePuzzleUrl.textContent = url;
+
+    const difficulty = router.difficulty;
+    const difficultyLabelElement = document.getElementById(`difficulty${difficulty}`);
+    const difficultyEmoji = difficultyLabelElement.querySelector('span').textContent;
+    const difficultyAriaLabel = difficultyLabelElement.querySelector('input').ariaLabel;
+
+    document.getElementById('seedInstructionsTitles').textContent =
+        document.title.replace(' - ', ' in ');
+    document.getElementById('seedInstructionsDifficultyEmoji').textContent = difficultyEmoji;
+    document.getElementById('seedInstructionsDifficultyLabel').textContent = difficultyAriaLabel;
+  }
+
+  openDialogWithTransition(puzzleSharingDialog);
 }
 
 function updateLayoutForOrientation(isPortrait) {
@@ -261,43 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   // Open Puzzle Sharing Dialog
   document.getElementById('sharePuzzleButton')?.addEventListener('click', () => {
-    const puzzleSharingDialog = document.getElementById('puzzleSharingDialog');
-    const sharePuzzleOptions = document.getElementById('sharePuzzleOptions');
-    const sharePuzzleTutorialMessage = document.getElementById('sharePuzzleTutorialMessage');
-
-    if (router.puzzleState.tutorialStage) {
-      sharePuzzleOptions.style.display = 'none';
-      sharePuzzleTutorialMessage.style.display = null;
-      puzzleSharingDialog.ariaDescribedByElements = [sharePuzzleTutorialMessage];
-    } else {
-      sharePuzzleOptions.style.display = null;
-      sharePuzzleTutorialMessage.style.display = 'none';
-      puzzleSharingDialog.ariaDescribedByElements =
-          [document.getElementById('puzzleSharingExplanation')];
-
-      document.getElementById('sharePuzzleSeedDirectlyDetails').open = false;
-      document.getElementById('generatePuzzleFromSeedForm').reset();
-
-      const sharePuzzleSeed = document.getElementById('sharePuzzleSeed');
-      sharePuzzleSeed.textContent = router.seed;
-
-      const url = router.buildUrl(true);
-
-      const sharePuzzleUrl = document.getElementById('sharePuzzleUrl');
-      sharePuzzleUrl.textContent = url;
-
-      const difficulty = router.difficulty;
-      const difficultyLabelElement = document.getElementById(`difficulty${difficulty}`);
-      const difficultyEmoji = difficultyLabelElement.querySelector('span').textContent;
-      const difficultyAriaLabel = difficultyLabelElement.querySelector('input').ariaLabel;
-
-      document.getElementById('seedInstructionsTitles').textContent =
-          document.title.replace(' - ', ' in ');
-      document.getElementById('seedInstructionsDifficultyEmoji').textContent = difficultyEmoji;
-      document.getElementById('seedInstructionsDifficultyLabel').textContent = difficultyAriaLabel;
-    }
-
-    openDialogWithTransition(puzzleSharingDialog);
+    openPuzzleSharingDialog();
   });
 
   // Handle fullscreen toggling
@@ -329,6 +334,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize daily challenge
   dailyChallengeManager.init();
+
+  // Initialize keyboard manager
+  keyboardManager.init();
 });
 
 // Fullscreen API helpers

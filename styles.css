@@ -87,10 +87,6 @@ body {
   of cutoff elements causes scrolling even with overflow hidden. */
 }
 
-.warning {
-  color: var(--gold);
-}
-
 .sidebar-group {
   display: flex;
   flex-direction: column;
@@ -874,6 +870,7 @@ dialog {
     overflow: auto;
 
     .modal-content {
+      outline-offset: -2px;
       background-color: var(--gray);
       border: 2px solid var(--gray);
       border-radius: inherit;
@@ -915,8 +912,40 @@ dialog {
         margin: 0;
       }
 
+      details dl {
+        margin-block: 16px;
+      }
+
+      fieldset {
+        margin: 16px 0;
+        border: 2px solid var(--light-gray);
+        border-radius: 16px;
+        padding: 16px;
+
+        legend {
+          margin: auto;
+          padding: 0 8px;
+          font-size: 1.25rem;
+        }
+
+        .fieldset-grouping {
+          display: flex;
+          gap: 24px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+
       p, h2, h3, dt {
         margin-block: 16px 0;
+
+        &.warning {
+          color: var(--gold);
+
+          + .warning {
+            margin-top: 0;
+          }
+        }
       }
 
       a {
@@ -957,16 +986,16 @@ dialog {
     width: 100%;
   }
 
-  &#puzzleSharingDialog, &#dailyChallengeDialog, &#statsDialog {
-    hr {
-      &:first-of-type {
-        margin-block: 24px 0;
-      }
+  hr:has(+ details) {
+    margin-block: 24px 0;
+  }
 
-      &:last-of-type {
-        margin-block: 0 16px;
-      }
-    }
+  details + hr {
+    margin-block: 0 16px;
+  }
+
+  details + hr:has(+ details) {
+    margin-block: 0;
   }
 
   section {
@@ -1017,6 +1046,26 @@ dialog {
     &[type=checkbox] {
       transform: scale(1.5);
       margin-right: 4px;
+    }
+  }
+
+  label[for] {
+    display: block;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    input[type=checkbox]:not(:disabled) {
+      cursor: pointer;
+    }
+
+    label:has(input[type=checkbox]:not(:disabled)) {
+      cursor: pointer;
+
+      &:hover {
+        input[type=checkbox]:not(:disabled) {
+          box-shadow: 0 0 8px 1px rgba(255 255 255 / 0.5);
+        }
+      }
     }
   }
 
@@ -1092,10 +1141,17 @@ dialog {
   }
 }
 
-svg.share-icon {
-  height: 0.9em;
-  margin-top: 0.1em;
-  margin-right: 10px;
+svg {
+  &.share-icon {
+    height: 0.9em;
+    margin-top: 0.1em;
+    margin-right: 10px;
+  }
+
+  &.remove-icon {
+    height: 0.9em;
+    margin-top: 0.1em;
+  }
 }
 
 #dailyChallengeDialog {
@@ -1167,6 +1223,116 @@ svg.share-icon {
   &:not(.completed) {
     #replayDailyChallengeNote, #dailyChallengeCompletedContent {
       display: none;
+    }
+  }
+}
+
+#keyboardControlsDialog {
+  .modal-foreground {
+    /* Keep a stable width for when a details section is expanded */
+    width: 100%;
+  }
+
+  dl {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    .descriptions-container {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      padding: 8px;
+      margin-block: -8px;
+
+      &:nth-child(even) {
+        background-color: #fff1;
+      }
+
+      button {
+        padding: 3px 8px;
+        font-size: 1.25rem;
+        line-height: 1;
+
+        /* Prevent text background from obscuring the top border in high-contrast mode */
+        overflow: hidden;
+
+        &.remove-command-button {
+          margin-top: 0;
+        }
+      }
+    }
+
+    dt {
+      /* Span all rows.  Can't use -1 for implicit row templating. */
+      grid-row: 1 / span 999;
+      grid-column: 1;
+      margin: 0;
+      text-align: right;
+
+      .action-description {
+        display: block;
+        font-weight: normal;
+        font-size: 1rem;
+      }
+    }
+
+    dd {
+      grid-column: 2;
+      text-align: left;
+      font-size: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+
+      &:not(:first-of-type) {
+        border-top: 1px dotted color-mix(in srgb, currentcolor 25%, transparent);
+      }
+    }
+
+    + h2 {
+      margin-top: 32px;
+    }
+  }
+
+  details {
+    dl:last-child {
+      margin-bottom: 24px;
+    }
+
+    summary + dl {
+      margin-top: 8px;
+    }
+
+    summary {
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 700px) {
+    dl {
+      grid-template-columns: 1fr;
+
+      dt, dd {
+        grid-column: 1;
+      }
+
+      dt {
+        text-align: left;
+      }
+
+      dd {
+        &, label {
+          justify-content: end;
+          text-align: right;
+        }
+
+        label {
+          flex-grow: 0;
+        }
+      }
     }
   }
 }

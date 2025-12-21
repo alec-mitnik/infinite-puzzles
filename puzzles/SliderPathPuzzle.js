@@ -343,12 +343,12 @@ export function init() {
   finishedLoading();
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Slider Path Puzzle", "🚩\uFE0E",
       ["Break all the white blocks and land in the green goal.",
           "Hint: alternate vertical and horizontal moves."],
       ["Click or tap the arrows to move the slider."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {

@@ -599,12 +599,12 @@ function circuitGetConnectedEnd(circuitEnd, gridToDraw, context = null) {
   return null;
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Circuit Grid Puzzle", "🔌\uFE0E",
       ["Arrange the tiles to complete all the outgoing circuits."],
       ["Click or tap to select tiles and swap them.",
           "Right-click or tap with a 2nd finger to rotate tiles."],
-          router.puzzleState.tutorialStage, tutorials.length);
+          router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {
@@ -1055,7 +1055,7 @@ export function onKeyDown(event) {
     }
 
     // Selection
-    if (keyboardManager.isActivationKey(event)) {
+    if (keyboardManager.isSelectKey(event)) {
       event.preventDefault();
       const tile = grid[cursorCoord[0]][cursorCoord[1]];
 

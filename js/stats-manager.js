@@ -1,5 +1,6 @@
 import { PUZZLE_CONFIGS } from "./config.js";
 import dailyChallengeManager from "./daily-challenge-manager.js";
+import keyboardManager from "./keyboard-manager.js";
 import router from "./router.js";
 import { clearData, getPuzzleIconElement, loadData, openDialogWithTransition, saveData } from "./utils.js";
 
@@ -61,6 +62,10 @@ class StatsManager {
     document.getElementById('resetDataButton')?.addEventListener('click', async () => {
       if (await router.getConfirmation('This cannot be undone.', 'Reset All Data?')) {
         clearData();
+
+        // Preserve custom key bindings
+        keyboardManager.saveKeyboardCommandMapping();
+
         statsDialog.close();
         document.body.classList.add('loading');
         window.location.reload();

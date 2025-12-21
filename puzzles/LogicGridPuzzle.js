@@ -1564,12 +1564,12 @@ async function canColumnBeDerivedForNode(node) {
   return await narrowColumnPossibilities(node).length < 2;
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Logic Grid Puzzle", "💭\uFE0E",
       ["Place each token in the grid row for its symbol set",
           "and the column which follows the stated logic rules."],
       ["Drag tokens to move them."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 export function drawPuzzle() {

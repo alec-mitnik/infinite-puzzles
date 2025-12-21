@@ -56,9 +56,22 @@ class AudioManager {
 
   // Setup event listeners to initialize audio on user interaction
   setUpInitHandlers() {
-    const initEvents = ['click', 'touchstart', 'keydown'];
+    // These are the "activation triggering input events"
+    const initEventTypes = ['mousedown', 'touchend', 'keydown'];
 
-    const initFunction = async () => {
+    const isModifierKey = (event) => {
+      const modifiers = ['Shift', 'Control', 'Alt', 'Meta', 'Escape',
+          'CapsLock', 'NumLock', 'ScrollLock', 'PrintScreen', 'Pause'];
+      return modifiers.includes(event.key);
+    };
+
+    const initFunction = async event => {
+      // Abort if this is a keydown event for a modifier key,
+      // which is not considered to be a user gesture
+      if (event.type === 'keydown' && isModifierKey(event)) {
+        return;
+      }
+
       if (!this.initialized) {
         try {
           await this.initialize();
@@ -67,8 +80,8 @@ class AudioManager {
           this.initialized = true;
 
           // Remove the event listeners once initialized
-          initEvents.forEach(event => {
-            document.removeEventListener(event, initFunction);
+          initEventTypes.forEach(eventType => {
+            document.removeEventListener(eventType, initFunction);
           });
         } catch (error) {
           console.error('Error loading sounds:', error);
@@ -77,8 +90,8 @@ class AudioManager {
     };
 
     // Add listeners for events that can initialize audio
-    initEvents.forEach(event => {
-      document.addEventListener(event, initFunction, { once: true });
+    initEventTypes.forEach(event => {
+      document.addEventListener(event, initFunction);
     });
   }
 

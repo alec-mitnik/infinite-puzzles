@@ -726,12 +726,12 @@ function generateGraph() {
   }
 }
 
-export function drawInstructions() {
+export function drawInstructions(forceShowInstructions) {
   drawInstructionsHelper("Tangled Graph Puzzle", "🕸︎\uFE0E",
       ["Untangle the graph so that no lines intersect.",
           "White nodes are fixed in place."],
       ["Drag the nodes to move them."],
-      router.puzzleState.tutorialStage, tutorials.length);
+      router.puzzleState.tutorialStage, tutorials.length, forceShowInstructions);
 }
 
 function drawStage() {
