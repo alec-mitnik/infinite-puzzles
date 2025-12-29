@@ -1575,6 +1575,7 @@ export function drawInstructions(forceShowInstructions) {
 export function drawPuzzle() {
   let canvas = getPuzzleCanvas();
   let context = canvas.getContext("2d");
+  context.lineWidth = LINE_THICKNESS;
 
   const RULES_FONT = "bold " + (RULES_SIZE * 1.1) + `px ${FONT_FAMILY}`;
   const RULES_FONT_DRAGGING = "bold " + (RULES_SIZE * 1.2) + `px ${FONT_FAMILY}`;
@@ -1582,29 +1583,8 @@ export function drawPuzzle() {
   context.fillStyle = BACKGROUND_COLOR;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, GRID_WIDTH, GRID_HEIGHT);
-
   context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
   context.textAlign = "center";
-  context.fillStyle = "#808080";
-
-  context.strokeStyle = "#808080";
-  context.lineWidth = LINE_THICKNESS;
-
-  for (let i = 0; i < ROWS - 1; i++) {
-    context.beginPath();
-    context.moveTo(0, (i + 1) * CELL_SIZE);
-    context.lineTo(COLS * CELL_SIZE, (i + 1) * CELL_SIZE);
-    context.stroke();
-  }
-
-  for (let i = 0; i < COLS - 1; i++) {
-    context.beginPath();
-    context.moveTo((i + 1) * CELL_SIZE, 0);
-    context.lineTo((i + 1) * CELL_SIZE, ROWS * CELL_SIZE);
-    context.stroke();
-  }
 
   let solved = !dragging;
   let rowCorrectness = {};
@@ -1638,36 +1618,6 @@ export function drawPuzzle() {
         solved = false;
       }
     }
-  }
-
-  if (!solved && !atOriginalState) {
-    // Restart
-    const OFFSET_SIZE = CELL_SIZE * 0.8;
-    const ADJUSTMENT = CELL_SIZE * 0.1;
-    const verticalOffset = CANVAS_HEIGHT - OFFSET_SIZE;
-    context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
-    context.textAlign = "right";
-    context.fillStyle = "#ffffff";
-    context.fillText("Reset", ADJUSTMENT + CANVAS_WIDTH - CELL_SIZE,
-        verticalOffset + OFFSET_SIZE / 2 + CELL_SIZE / 12);
-
-    context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
-    context.strokeStyle = "#ffffff";
-    context.beginPath();
-    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE),
-        verticalOffset + OFFSET_SIZE / 2,
-        OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
-    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE),
-        verticalOffset + OFFSET_SIZE * 0.35);
-    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE),
-        verticalOffset + OFFSET_SIZE * 0.2);
-    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE),
-        verticalOffset + OFFSET_SIZE * 0.24);
-    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE),
-        verticalOffset + OFFSET_SIZE * 0.3);
-    context.stroke();
-
-    context.lineWidth = LINE_THICKNESS;
   }
 
   // Draw rules
@@ -1828,6 +1778,56 @@ export function drawPuzzle() {
     }
   });
 
+  if (!solved && !atOriginalState) {
+    // Restart
+    const OFFSET_SIZE = CELL_SIZE * 0.8;
+    const ADJUSTMENT = CELL_SIZE * 0.1;
+    const verticalOffset = CANVAS_HEIGHT - OFFSET_SIZE;
+    context.font = "bold " + (CELL_SIZE / 4) + `px ${FONT_FAMILY}`;
+    context.textAlign = "right";
+    context.fillStyle = "#ffffff";
+    context.fillText("Reset", ADJUSTMENT + CANVAS_WIDTH - CELL_SIZE,
+        verticalOffset + OFFSET_SIZE / 2 + CELL_SIZE / 12);
+
+    context.lineWidth = Math.max(6, 15 - 1.5 * COLS);
+    context.strokeStyle = "#ffffff";
+    context.beginPath();
+    context.arc(CELL_SIZE * 1.5 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE / 2,
+        OFFSET_SIZE / 4, Math.PI, 3 / 2 * Math.PI, true);
+    context.lineTo(CELL_SIZE * 1.55 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.35);
+    context.lineTo(CELL_SIZE * 1.6 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.2);
+    context.lineTo(CELL_SIZE * 1.48 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.24);
+    context.lineTo(CELL_SIZE * 1.525 + (CANVAS_WIDTH - 2 * CELL_SIZE),
+        verticalOffset + OFFSET_SIZE * 0.3);
+    context.stroke();
+
+    context.lineWidth = LINE_THICKNESS;
+  }
+
+  // Draw grid
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, GRID_WIDTH, GRID_HEIGHT);
+
+  context.strokeStyle = solved ? SUCCESS_COLOR : "#808080";
+
+  for (let i = 0; i < ROWS - 1; i++) {
+    context.beginPath();
+    context.moveTo(0, (i + 1) * CELL_SIZE);
+    context.lineTo(COLS * CELL_SIZE, (i + 1) * CELL_SIZE);
+    context.stroke();
+  }
+
+  for (let i = 0; i < COLS - 1; i++) {
+    context.beginPath();
+    context.moveTo((i + 1) * CELL_SIZE, 0);
+    context.lineTo((i + 1) * CELL_SIZE, ROWS * CELL_SIZE);
+    context.stroke();
+  }
+
   // Draw all the fixed nodes first so they show behind the rest
   const fixedNodes = nodesToDraw.filter(node => node.fixed);
 
@@ -1857,7 +1857,7 @@ export function drawPuzzle() {
     const nodeColor = solved ? SUCCESS_COLOR
         : (isOverlapping(node, nodesToDraw) ? ALERT_COLOR : "#808080");
 
-    context.lineWidth = solved ? LINE_THICKNESS * 2 : LINE_THICKNESS;
+    context.lineWidth = LINE_THICKNESS;
     context.beginPath();
     context.strokeStyle = nodeColor;
     context.fillStyle = "#000000";
