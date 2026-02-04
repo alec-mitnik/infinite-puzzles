@@ -147,8 +147,9 @@
               <label for="addKeyBindingCodeInput">
                 Key Code
               </label>
-              <!-- Setting readonly prevents required from applying validation -->
-              <input id="addKeyBindingCodeInput" type="text" name="code" required  maxlength="25" />
+              <!-- Setting readonly would prevent required from applying validation -->
+              <!-- Required inputs will be given a tool tip of "Please fill out this field" in Chrome by default -->
+              <input id="addKeyBindingCodeInput" type="text" name="code" required title=""  maxlength="25" />
               <button type="button" id="addKeyBindingCaptureButton" class="bottom-button"></button>
 
               <hr />
@@ -211,7 +212,7 @@
 
             <details name="keyboardControls">
               <summary>
-                <h2 id="keyboardControlsPuzzleControlsHeader">Puzzle Page Controls</h2>
+                <h2 id="keyboardControlsPuzzlePageControlsHeader">Puzzle Page Controls</h2>
               </summary>
 
               <dl id="keyboardControlsPuzzlePageControlsContent"
@@ -278,7 +279,7 @@
       <!-- Volume -->
       <button aria-label="Mute Sounds" id="muteButton">
         <span id="soundIcon" role="img" aria-label="Mute Sounds">🔊</span>
-        <span id="noSoundIcon"role="img" aria-label="Unmute Sounds">🔈</span>
+        <span id="noSoundIcon" role="img" aria-label="Unmute Sounds">🔈</span>
       </button>
 
       <div id="difficulty-group" role="radiogroup" aria-label="Puzzle Difficulty">
@@ -476,21 +477,19 @@
                   <dd id="statLongestDailyChallengeStreakValue"></dd>
                 </div>
 
-                <div class="double-column">
-                  <div>
-                    <dt>Total Completed</dt>
-                    <dd id="statTotalDailyChallengesCompletedValue"></dd>
-                  </div>
+                <div>
+                  <dt>Total Completed</dt>
+                  <dd id="statTotalDailyChallengesCompletedValue"></dd>
+                </div>
 
-                  <div>
-                    <dt>Median Completion</dt>
-                    <dd id="statMedianDailyChallengeCompletionValue"></dd>
-                  </div>
+                <div class="double-row">
+                  <dt>Fastest Completion</dt>
+                  <dd id="statFastestDailyChallengeCompletionValue"></dd>
                 </div>
 
                 <div>
-                  <dt>Fastest Completion</dt>
-                  <dd id="statFastestDailyChallengeCompletionValue"></dd>
+                  <dt>Median Completion</dt>
+                  <dd id="statMedianDailyChallengeCompletionValue"></dd>
                 </div>
               </dl>
             </section>
@@ -672,13 +671,15 @@
 
             <hr />
 
-            <form id="generatePuzzleFromSeedForm">
+            <form id="generatePuzzleFromSeedForm" aria-labelledby="generatePuzzleFromSeedHeading">
+              <h2 id="generatePuzzleFromSeedHeading">Generate Puzzle from Seed</h2>
               <label for="generateFromSeedInput">
-                <h2>Generate Puzzle from Seed</h2>
+                Seed:
               </label>
 
-              <input id="generateFromSeedInput" type="text" name="newSeed" size="14" placeholder="Seed..."
-                  required  pattern="[a-zA-Z0-9]*" maxlength="14"
+              <!-- Required inputs will be given a tool tip of "Please fill out this field" in Chrome by default -->
+              <input id="generateFromSeedInput" type="text" name="newSeed" size="14"
+                  required  pattern="[a-zA-Z0-9]*" maxlength="14" title=""
                   spellcheck="false" autocomplete="off" />
               <button type="submit">Generate</button>
 

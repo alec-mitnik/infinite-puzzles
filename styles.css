@@ -1049,10 +1049,6 @@ dialog {
     }
   }
 
-  label[for] {
-    display: block;
-  }
-
   @media (hover: hover) and (pointer: fine) {
     input[type=checkbox]:not(:disabled) {
       cursor: pointer;
@@ -1337,6 +1333,12 @@ svg {
   }
 }
 
+#addKeyBindingDialog {
+  label[for] {
+    display: block;
+  }
+}
+
 #statsDialog {
   .modal-foreground {
     /* Keep a stable width for when the details section is expanded */
@@ -1375,10 +1377,8 @@ svg {
       grid-column: 1 / -1;
     }
 
-    .double-column {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    .double-row {
+      grid-row: span 2;
     }
 
     #statTutorialsCompletedValue {
