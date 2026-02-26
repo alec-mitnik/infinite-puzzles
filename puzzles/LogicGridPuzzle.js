@@ -2284,6 +2284,7 @@ export function onMouseDown(event) {
             + Math.pow(mouseY - node.y, 2)) < NODE_SIZE + LINE_THICKNESS) {
           dragging = node;
           cursorTileIndex = nodes.indexOf(node);
+          audioManager.play(SNAP_SOUND, 0.5);
           return;
         }
       }
@@ -2331,6 +2332,7 @@ export function onTouchStart(event) {
         previousTouch = touch;
         dragging = node;
         cursorTileIndex = nodes.indexOf(node);
+        audioManager.play(SNAP_SOUND, 0.5);
         return;
       }
     }

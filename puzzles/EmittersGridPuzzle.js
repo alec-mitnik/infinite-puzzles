@@ -1396,6 +1396,7 @@ export function onMouseDown(event) {
             + Math.pow(mouseY - node.canvasCoord[1], 2)) < CELL_SIZE * 3 / 8) {
           dragging = node;
           cursorTileIndex = nodes.indexOf(node);
+          audioManager.play(SNAP_SOUND, 0.5);
           return;
         }
       }
@@ -1443,6 +1444,7 @@ export function onTouchStart(event) {
         previousTouch = touch;
         dragging = node;
         cursorTileIndex = nodes.indexOf(node);
+        audioManager.play(SNAP_SOUND, 0.5);
         return;
       }
     }

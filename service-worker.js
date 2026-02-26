@@ -1,8 +1,10 @@
-let CACHE_VERSION = 264;
+let CACHE_VERSION = 265;
 const CACHE_NAME = `infinite-puzzles-v${CACHE_VERSION}`;
 
 /*
  * TODO:
+ *
+ * Convert to using pointer events, as touch events aren't universally supported
  *
  * Change background color to work around iOS no longer honoring theme color?
  * Might be fixed by iOS 26.2?  No...

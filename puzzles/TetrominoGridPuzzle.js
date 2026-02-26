@@ -1188,6 +1188,7 @@ export function onMouseDown(event) {
                 && Math.abs(mouseY - cell.y) < CELL_SIZE / 2) {
               dragging = tile;
               cursorTileIndex = i;
+              audioManager.play(SNAP_SOUND, 0.5);
               return;
             }
           }
@@ -1250,6 +1251,7 @@ export function onTouchStart(event) {
               previousTouch = touch;
               dragging = tile;
               cursorTileIndex = i;
+              audioManager.play(SNAP_SOUND, 0.5);
               return;
             }
           }

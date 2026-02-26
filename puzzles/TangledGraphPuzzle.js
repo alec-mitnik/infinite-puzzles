@@ -16,6 +16,7 @@ const NODE_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / 7;
 const LINE_THICKNESS = 12;
 
 const CLINK_SOUND = audioManager.SoundEffects.CLINK;
+const CLICK_SOUND = audioManager.SoundEffects.CLICK;
 const RESTART_SOUND = audioManager.SoundEffects.BOING;
 const TOGGLE_SOUND = audioManager.SoundEffects.TOGGLE;
 const TOGGLE_OFF_SOUND = audioManager.SoundEffects.TOGGLE_OFF;
@@ -1257,6 +1258,7 @@ export function onMouseDown(event) {
 
           dragging = node;
           cursorTileIndex = i;
+          audioManager.play(CLICK_SOUND, 0.5);
           return;
         }
       }
@@ -1305,6 +1307,7 @@ export function onTouchStart(event) {
         previousTouch = touch;
         dragging = node;
         cursorTileIndex = i;
+        audioManager.play(CLICK_SOUND, 0.5);
         return;
       }
     }
