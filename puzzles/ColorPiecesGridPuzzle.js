@@ -1124,6 +1124,9 @@ export function init() {
     updateForTutorialRecommendation();
   }
 
+  // Want to update this before any loading delays
+  updateForTutorialState();
+
   dragging = null;
   previousTouch = null;
   queuedSounds = [];
@@ -1140,6 +1143,8 @@ export function init() {
 
     grid = deepCopy(tutorial.grid);
     tiles = deepCopy(tutorial.tiles);
+
+    finishInit(rotateForTutorial);
   } else {
     DIFFICULTY = router.difficulty;
 
@@ -1150,75 +1155,86 @@ export function init() {
     CELL_SIZE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) / (Math.max(ROWS, COLS) + 2);
     CELL_CONNECTION_THICKNESS = CELL_SIZE / 4;
 
-    grid = generateGrid();
-    tiles = [];
+    // Allow opportunity for loading screen to show
+    setTimeout(() => {
+      generateBoard();
+    }, 100);
+  }
+}
 
-    for (let i = 0; i < COLS / GRID_MASK_SIZE; i++) {
-      for (let j = 0; j < ROWS / GRID_MASK_SIZE; j++) {
-        let gridMask = gridMasks[randomIndex(gridMasks)];
+function generateBoard() {
+  grid = generateGrid();
+  tiles = [];
 
-        gridMask.forEach(tile => {
-          let cellObjects = [];
-          let tileMinCoordX = tile.reduce((total, cell) => {
-            return Math.min(total, cell[0]);
-          }, 999);
-          let tileMinCoordY = tile.reduce((total, cell) => {
-            return Math.min(total, cell[1]);
-          }, 999);
+  for (let i = 0; i < COLS / GRID_MASK_SIZE; i++) {
+    for (let j = 0; j < ROWS / GRID_MASK_SIZE; j++) {
+      let gridMask = gridMasks[randomIndex(gridMasks)];
 
-          tile.forEach(cell => {
-            let cellX = GRID_MASK_SIZE * CELL_SIZE * i + cell[0] * CELL_SIZE + CELL_SIZE/2;
-            let cellY = GRID_MASK_SIZE * CELL_SIZE * j + cell[1] * CELL_SIZE + CELL_SIZE/2;
+      gridMask.forEach(tile => {
+        let cellObjects = [];
+        let tileMinCoordX = tile.reduce((total, cell) => {
+          return Math.min(total, cell[0]);
+        }, 999);
+        let tileMinCoordY = tile.reduce((total, cell) => {
+          return Math.min(total, cell[1]);
+        }, 999);
 
-            let cellObject = {
-              value: grid[GRID_MASK_SIZE * i + cell[0]][GRID_MASK_SIZE * j + cell[1]].value,
-              x: cellX,
-              y: cellY,
-              coordinates: [cell[0] === tileMinCoordX ? 0 : 1, cell[1] === tileMinCoordY ? 0 : 1],
-            };
-            cellObjects.push(cellObject);
-          });
+        tile.forEach(cell => {
+          let cellX = GRID_MASK_SIZE * CELL_SIZE * i + cell[0] * CELL_SIZE + CELL_SIZE/2;
+          let cellY = GRID_MASK_SIZE * CELL_SIZE * j + cell[1] * CELL_SIZE + CELL_SIZE/2;
 
-          let tileObject = {
-            cells: cellObjects,
-            fixed: false,
+          let cellObject = {
+            value: grid[GRID_MASK_SIZE * i + cell[0]][GRID_MASK_SIZE * j + cell[1]].value,
+            x: cellX,
+            y: cellY,
+            coordinates: [cell[0] === tileMinCoordX ? 0 : 1, cell[1] === tileMinCoordY ? 0 : 1],
           };
-
-          // Shuffle the data so the draw order doesn't reveal the solution
-          tiles.splice(randomIndex(tiles), 0, tileObject);
+          cellObjects.push(cellObject);
         });
-      }
-    }
 
-    let rotations = Math.floor(router.sRand() * 4);
-    for (let i = 0; i < rotations; i++) {
-      rotateMatrix(grid);
-      rotateTileset(tiles);
-    }
+        let tileObject = {
+          cells: cellObjects,
+          fixed: false,
+        };
 
-    if (router.sRand() < 0.5) {
-      flipMatrix(grid);
-      flipTileset(tiles);
-    }
-
-    let moveableTiles = [...tiles];
-    let fixedTiles = [];
-
-    for (let i = 0; i < FIXED_TILES; i++) {
-      let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
-      fixedTiles.push(fixedTile);
-      fixedTile.fixed = true;
-
-      fixedTile.cells.forEach(cell => {
-        let coord = getGridCoordinatesForCell(cell);
-        grid[coord[0]][coord[1]].show = false;
+        // Shuffle the data so the draw order doesn't reveal the solution
+        tiles.splice(randomIndex(tiles), 0, tileObject);
       });
     }
-
-    // Ensure fixed tiles are always behind movable tiles
-    tiles = [...fixedTiles, ...moveableTiles]
   }
 
+  let rotations = Math.floor(router.sRand() * 4);
+  for (let i = 0; i < rotations; i++) {
+    rotateMatrix(grid);
+    rotateTileset(tiles);
+  }
+
+  if (router.sRand() < 0.5) {
+    flipMatrix(grid);
+    flipTileset(tiles);
+  }
+
+  let moveableTiles = [...tiles];
+  let fixedTiles = [];
+
+  for (let i = 0; i < FIXED_TILES; i++) {
+    let fixedTile = moveableTiles.splice(randomIndex(moveableTiles), 1)[0];
+    fixedTiles.push(fixedTile);
+    fixedTile.fixed = true;
+
+    fixedTile.cells.forEach(cell => {
+      let coord = getGridCoordinatesForCell(cell);
+      grid[coord[0]][coord[1]].show = false;
+    });
+  }
+
+  // Ensure fixed tiles are always behind movable tiles
+  tiles = [...fixedTiles, ...moveableTiles]
+
+  finishInit();
+}
+
+function finishInit(rotateForTutorial = false) {
   solution = deepCopy(tiles);
 
   // Place on bottom or right edge to not obscure the grid
@@ -1282,8 +1298,6 @@ export function init() {
     sortedTileIndex++;
     cursorTileIndex = tiles.indexOf(sortedTiles[sortedTileIndex]);
   } while (tiles[cursorTileIndex].fixed);
-
-  updateForTutorialState();
 
   drawInstructions();
 
