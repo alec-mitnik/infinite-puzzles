@@ -4,7 +4,7 @@ import dailyChallengeManager from './daily-challenge-manager.js';
 import keyboardManager from './keyboard-manager.js';
 import { openPuzzleSharingDialog } from './main.js';
 import {
-  generateSeed, getPuzzleCanvas, getSeededRandomFunction,
+  fillCenteredEmojiText, generateSeed, getPuzzleCanvas, getSeededRandomFunction,
   getTutorialDone, onMiddleMouseDown, onMiddleMouseUp, openDialogWithTransition,
   solutionToggle, startButtonClick, stopConfetti, updateForTutorialRecommendation
 } from './utils.js';
@@ -556,7 +556,10 @@ class Router {
     context.font = `104px ${FONT_FAMILY}`;
     context.fillText("\uD83D\uDE0B➧\uD83E\uDD14➧\uD83D\uDE24➧\uD83E\uDD2F", CANVAS_WIDTH / 2, 375);
     context.font = `120px ${FONT_FAMILY}`;
-    context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E",
+    context.textAlign = "center";
+    // context.fillText("\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E",
+    //     CANVAS_WIDTH / 2, 660);
+    fillCenteredEmojiText(context, "\uD83D\uDDB1\u0298 / \u2611\uFE0E  \u27A0  \u2611\uFE0E\uD83D\uDC40\uFE0E",
         CANVAS_WIDTH / 2, 660);
 
     context.font = `30px ${FONT_FAMILY}`;

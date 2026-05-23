@@ -316,6 +316,16 @@ export function onMiddleMouseUp() {
   }
 }
 
+// Workaround for a bug introduced in iOS 26.5 that left-aligns text with
+// emojis that have the \uFE0E variation selector even with textAlign set to center
+export function fillCenteredEmojiText(context, text, x, y) {
+  const originalTextAlign = context.textAlign;
+  context.textAlign = "left";
+  const textWidth = context.measureText(text).width;
+  context.fillText(text, x - textWidth / 2, y);
+  context.textAlign = originalTextAlign;
+}
+
 export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLines,
     controlLines, tutorialStage = 0, tutorialsTotal = 0, forceShowInstructions = false) {
   if (!router.puzzleState.showingInstructions || forceShowInstructions) {
@@ -348,7 +358,8 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
     context.textAlign = "center";
     context.font = `bold 60px ${FONT_FAMILY}`;
     context.fillStyle = "#ffffff";
-    context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, yPos);
+    // context.fillText(`${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, yPos);
+    fillCenteredEmojiText(context, `${puzzleSymbol} ${puzzleTitle} ${puzzleSymbol}`, CANVAS_WIDTH / 2, yPos);
     compiledInstructions.push(`${puzzleTitle} Instructions:`);
 
     context.font = `40px ${FONT_FAMILY}`;
@@ -440,7 +451,8 @@ export function drawInstructionsHelper(puzzleTitle, puzzleSymbol, descriptionLin
       }
 
       context.font = `96px ${FONT_FAMILY}`;
-      context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
+      // context.fillText(atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
+      fillCenteredEmojiText(context, atomText, CANVAS_WIDTH / 2 - totalWidth / 2 + selectTextWidth + atomTextWidth / 2, yPos + 15);
       compiledInstructions.push(`${selectText}the Start Tutorial button${tutorialText}`);
     }
 
