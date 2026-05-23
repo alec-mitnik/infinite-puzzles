@@ -6,7 +6,7 @@ import {
 import keyboardManager from "../js/keyboard-manager.js";
 import router from "../js/router.js";
 import {
-  deepCopy, drawInstructionsHelper, endPuzzle, finishedLoading,
+  deepCopy, drawInstructionsHelper, endPuzzle, fillCenteredEmojiText, finishedLoading,
   getPuzzleCanvas, randomIndex, updateForTutorialRecommendation,
   updateForTutorialState
 } from "../js/utils.js";
@@ -1703,7 +1703,8 @@ export function drawPuzzle() {
         }
       }
 
-      context.fillText(ruleText, xPos, yPos);
+      // context.fillText(ruleText, xPos, yPos);
+      fillCenteredEmojiText(context, ruleText, xPos, yPos);
       yPos += RULES_SIZE * 1.5;
 
     // Simple rule
@@ -1772,7 +1773,8 @@ export function drawPuzzle() {
         }
       }
 
-      context.fillText(ruleText, xPos, yPos);
+      // context.fillText(ruleText, xPos, yPos);
+      fillCenteredEmojiText(context, ruleText, xPos, yPos);
       yPos += (index % 2) * RULES_SIZE * 1.5;
       index++;
     }
@@ -1838,7 +1840,8 @@ export function drawPuzzle() {
     context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
-    context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+    // context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+    fillCenteredEmojiText(context, node.id, node.x, node.y + NODE_SIZE / 2);
 
     if (violated) {
       // Underline
@@ -1869,7 +1872,8 @@ export function drawPuzzle() {
     context.font = "bold " + (NODE_SIZE * 1.5) + `px ${FONT_FAMILY}`;
     context.textAlign = "center";
     context.fillStyle = nodeColor;
-    context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+    // context.fillText(node.id, node.x, node.y + NODE_SIZE / 2);
+    fillCenteredEmojiText(context, node.id, node.x, node.y + NODE_SIZE / 2);
 
     // Cross out nodes with invalid placements
     if (!solved && isNodeInGrid(node) && !isNodeAlignedWithRow(node)) {

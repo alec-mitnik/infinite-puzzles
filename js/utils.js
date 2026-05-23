@@ -320,6 +320,12 @@ export function onMiddleMouseUp() {
 // emojis that have the \uFE0E variation selector even with textAlign set to center
 export function fillCenteredEmojiText(context, text, x, y) {
   const originalTextAlign = context.textAlign;
+
+  if (originalTextAlign !== "center") {
+    console.warn("fillCenteredEmojiText called with non-center textAlign");
+    return;
+  }
+
   context.textAlign = "left";
   const textWidth = context.measureText(text).width;
   context.fillText(text, x - textWidth / 2, y);
